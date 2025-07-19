@@ -3,22 +3,8 @@ import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import {
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  CreditCard,
-  File,
-  Home,
-  LineChart,
   ListFilter,
-  MoreVertical,
-  Package,
-  Package2,
-  PanelLeft,
-  Search,
   ShoppingCart,
-  Truck,
-  Users2,
   Calculator,
 } from "lucide-react"
 
@@ -50,6 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 import {
   Select,
@@ -103,25 +90,10 @@ function ProductCard({ product }: { product: Product }) {
     );
 }
 
-
-export default function CustomerHomePage() {
-  return (
-    <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between gap-4">
-            <Breadcrumb>
-                <BreadcrumbList>
-                <BreadcrumbItem>
-                    <BreadcrumbLink asChild>
-                    <Link href="/home">Home</Link>
-                    </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                    <BreadcrumbPage>Products</BreadcrumbPage>
-                </BreadcrumbItem>
-                </BreadcrumbList>
-            </Breadcrumb>
-            <div className="flex items-center gap-2">
+function ProductCatalog() {
+    return (
+        <div className="flex flex-col gap-4">
+             <div className="flex items-center justify-end gap-2">
                 <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-7 gap-1">
@@ -157,13 +129,107 @@ export default function CustomerHomePage() {
                     </SelectContent>
                 </Select>
             </div>
+            <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                ))}
+            </section>
         </div>
+    )
+}
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-            ))}
-        </section>
+function MaterialEstimator() {
+    return (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+            <Card className="lg:col-span-3">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Calculator className="h-6 w-6"/>
+                        AI Material Estimator
+                    </CardTitle>
+                    <CardDescription>
+                        Fill in the details below to get an AI-powered material estimate for your project.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <div>
+                            <Label htmlFor="length">Length (m)</Label>
+                            <Input id="length" type="number" placeholder="e.g., 5" />
+                        </div>
+                        <div>
+                            <Label htmlFor="width">Width (m)</Label>
+                            <Input id="width" type="number" placeholder="e.g., 4" />
+                        </div>
+                        <div>
+                            <Label htmlFor="height">Height (m)</Label>
+                            <Input id="height" type="number" placeholder="e.g., 2.4" />
+                        </div>
+                    </div>
+                    <div>
+                        <Label htmlFor="project-type">Project Type</Label>
+                        <Select>
+                            <SelectTrigger id="project-type">
+                                <SelectValue placeholder="Select project type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="painting">Painting</SelectItem>
+                                <SelectItem value="drywall">Drywall Installation</SelectItem>
+                                <SelectItem value="flooring">Flooring</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button className="w-full">Calculate Estimate</Button>
+                </CardContent>
+            </Card>
+
+            <Card className="lg:col-span-4">
+                <CardHeader>
+                    <CardTitle>Estimated Materials</CardTitle>
+                    <CardDescription>
+                        Your calculated materials will appear here.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-center text-muted-foreground py-20">
+                        Awaiting calculation...
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+
+export default function CustomerHomePage() {
+  return (
+    <div className="flex flex-col gap-4">
+        <Breadcrumb>
+            <BreadcrumbList>
+            <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                <Link href="/home">Home</Link>
+                </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+                <BreadcrumbPage>Store</BreadcrumbPage>
+            </BreadcrumbItem>
+            </BreadcrumbList>
+        </Breadcrumb>
+        
+        <Tabs defaultValue="products">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="products">Product Catalog</TabsTrigger>
+                <TabsTrigger value="estimator">Material Estimator</TabsTrigger>
+            </TabsList>
+            <TabsContent value="products" className="mt-4">
+                <ProductCatalog />
+            </TabsContent>
+            <TabsContent value="estimator" className="mt-4">
+                <MaterialEstimator />
+            </TabsContent>
+        </Tabs>
     </div>
   )
 }

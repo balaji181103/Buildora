@@ -48,13 +48,6 @@ export default function CustomerLayout({
                   Shop
                 </Link>
                 <Link
-                  href="/material-estimator"
-                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
-                >
-                  <Calculator className="h-5 w-5" />
-                  Material Estimator
-                </Link>
-                <Link
                   href="#"
                   className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                 >
