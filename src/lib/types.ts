@@ -49,3 +49,21 @@ export type Customer = {
   loyaltyPoints: number;
   orderCount: number;
 };
+
+export type LoyaltyHistoryItem = {
+    date: string;
+    description: string;
+    type: 'earned' | 'redeemed';
+    points: number;
+};
+
+export type LoyaltyOffer = {
+    title: string;
+    points: number;
+};
+
+export type LoyaltyData = {
+    currentPoints: number;
+    history: LoyaltyHistoryItem[];
+    availableOffers: LoyaltyOffer[];
+};

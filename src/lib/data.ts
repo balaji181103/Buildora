@@ -1,5 +1,5 @@
 
-import type { Drone, Order, Product, Truck, Customer } from '@/lib/types';
+import type { Drone, Order, Product, Truck, Customer, LoyaltyData } from '@/lib/types';
 
 export const drones: Drone[] = [
   { id: 'SB-001', status: 'Idle', battery: 100, location: 'Warehouse A', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
@@ -33,3 +33,18 @@ export const customers: Customer[] = [
     { id: 'CUST-003', name: 'Anjali Verma', email: 'anjali.verma@example.com', status: 'Active', loyaltyPoints: 0, orderCount: 0 },
     { id: 'CUST-004', name: 'Vikram Singh', email: 'vikram.singh@example.com', status: 'Inactive', loyaltyPoints: 0, orderCount: 0 },
 ];
+
+export const loyaltyData: LoyaltyData = {
+    currentPoints: 1250,
+    history: [
+        { date: '2024-07-20', description: 'Order #ORD-123', type: 'earned', points: 500 },
+        { date: '2024-07-18', description: 'Redeemed: 10% Off Coupon', type: 'redeemed', points: 1000 },
+        { date: '2024-07-15', description: 'Order #ORD-119', type: 'earned', points: 750 },
+        { date: '2024-07-10', description: 'Sign-up Bonus', type: 'earned', points: 1000 },
+    ],
+    availableOffers: [
+        { title: '₹500 Off Your Next Order', points: 5000 },
+        { title: 'Free Drone Delivery', points: 2500 },
+        { title: '15% Off on Tools', points: 7500 },
+    ]
+};

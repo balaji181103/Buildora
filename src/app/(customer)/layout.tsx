@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "@/components/ui/dropdown-menu";
-import { Calculator, Home, LogOut, Menu, Moon, Package, Rocket, Search, Settings, ShoppingCart, Sun } from "lucide-react";
+import { Calculator, Home, LogOut, Menu, Moon, Package, Rocket, Search, Settings, ShoppingCart, Sun, Award } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -56,6 +56,13 @@ export default function CustomerLayout({
                   <Package className="h-5 w-5" />
                   My Orders
                 </Link>
+                <Link
+                  href="/loyalty"
+                  className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
+                >
+                  <Award className="h-5 w-5" />
+                  Loyalty
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>
@@ -98,6 +105,10 @@ export default function CustomerLayout({
               <DropdownMenuItem>
                 <Package className="mr-2 h-4 w-4" />
                 <span>My Orders</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/loyalty')}>
+                <Award className="mr-2 h-4 w-4" />
+                <span>Loyalty</span>
               </DropdownMenuItem>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
