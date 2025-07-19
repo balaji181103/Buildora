@@ -21,7 +21,7 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle>System Configuration</CardTitle>
             <CardDescription>
-              Adjust core settings for the SkyBuild platform.
+              Adjust core settings for the Buildora platform.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -32,7 +32,7 @@ export default function SettingsPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="notification-email">Notification Email</Label>
-                <Input id="notification-email" type="email" defaultValue="notifications@skybuild.com" />
+                <Input id="notification-email" type="email" defaultValue="notifications@buildora.com" />
               </div>
               <Button>Save Settings</Button>
             </form>
