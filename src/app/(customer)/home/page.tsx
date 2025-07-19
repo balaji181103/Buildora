@@ -68,6 +68,7 @@ import { Product } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormMessage, FormDescription, FormLabel } from "@/components/ui/form";
+import { HeroSection } from "./hero-section"
 
 
 function ProductCard({ product }: { product: Product }) {
@@ -107,7 +108,7 @@ function ProductCard({ product }: { product: Product }) {
 
 function ProductCatalog() {
     return (
-        <div className="flex flex-col gap-4">
+        <div id="products" className="flex flex-col gap-4 scroll-mt-20">
              <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Product Catalog</h2>
@@ -224,7 +225,7 @@ function MaterialEstimator() {
     }
 
     return (
-        <div className="flex flex-col gap-4">
+        <div id="estimator" className="flex flex-col gap-4 scroll-mt-20">
             <h2 className="text-2xl font-bold tracking-tight">AI Material Estimator</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
                 <Card className="lg:col-span-3">
@@ -402,7 +403,7 @@ function MaterialEstimator() {
 
 export default function CustomerHomePage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
         <Breadcrumb>
             <BreadcrumbList>
             <BreadcrumbItem>
@@ -417,6 +418,8 @@ export default function CustomerHomePage() {
             </BreadcrumbList>
         </Breadcrumb>
 
+        <HeroSection />
+
         <MaterialEstimator />
 
         <Separator className="my-6" />
@@ -426,5 +429,3 @@ export default function CustomerHomePage() {
     </div>
   )
 }
-
-    
