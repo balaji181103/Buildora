@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "@/components/ui/dropdown-menu";
-import { Calculator, Home, LogOut, Menu, Moon, Package, Rocket, Search, Settings, ShoppingCart, Sun, Award } from "lucide-react";
+import { Calculator, Home, LogOut, Menu, Moon, Package, Rocket, Search, Settings, ShoppingCart, Sun, Award, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
@@ -66,6 +66,11 @@ export default function CustomerLayout({
               </nav>
             </SheetContent>
           </Sheet>
+          
+          <Button variant="ghost" size="icon" className="hidden sm:inline-flex" onClick={() => router.back()}>
+              <ArrowLeft className="h-5 w-5" />
+              <span className="sr-only">Back</span>
+          </Button>
 
           <div className="relative ml-auto flex-1 md:grow-0">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
