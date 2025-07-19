@@ -63,13 +63,13 @@ export default function LandingPage() {
         <section className="w-full pt-8 pb-12 md:pt-12 md:pb-24 lg:pt-16 lg:pb-32">
             <div className="container px-4 md:px-6 grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
                 <div className="space-y-4">
-                    <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
+                    <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
                         Construction Logistics, Reimagined.
                     </h1>
-                    <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                    <p className="max-w-[600px] text-muted-foreground md:text-xl animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-200">
                         Buildora revolutionizes supply delivery with autonomous drones and AI-powered logistics, ensuring you get the right materials, right when you need them.
                     </p>
-                    <div className="flex flex-col gap-4 sm:flex-row">
+                    <div className="flex flex-col gap-4 sm:flex-row animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-300">
                         <Button size="lg" asChild>
                             <Link href="/signup">
                                 Get Started
@@ -83,12 +83,12 @@ export default function LandingPage() {
                         </Button>
                     </div>
                 </div>
-                 <div className="relative h-80 w-full lg:h-[400px]">
+                 <div className="relative h-80 w-full lg:h-[400px] animate-in fade-in slide-in-from-right duration-500">
                     <Image
                         src="https://placehold.co/1200x800.png"
                         alt="Drone delivering a package to a construction site"
                         fill
-                        className="rounded-xl object-cover"
+                        className="rounded-xl object-cover transition-transform duration-300 hover:scale-105"
                         data-ai-hint="drone delivery construction"
                         priority
                     />
@@ -105,7 +105,7 @@ export default function LandingPage() {
                     </p>
                 </div>
                 <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
-                    <Card>
+                    <Card className="transition-transform duration-300 hover:scale-105 hover:-translate-y-2">
                         <CardHeader className="items-center text-center">
                             <div className="rounded-full bg-primary/10 p-4 text-primary">
                                 <Rocket className="h-8 w-8" />
@@ -118,7 +118,7 @@ export default function LandingPage() {
                             </CardDescription>
                         </CardContent>
                     </Card>
-                     <Card>
+                     <Card className="transition-transform duration-300 hover:scale-105 hover:-translate-y-2">
                         <CardHeader className="items-center text-center">
                             <div className="rounded-full bg-primary/10 p-4 text-primary">
                                 <Calculator className="h-8 w-8" />
@@ -131,7 +131,7 @@ export default function LandingPage() {
                             </CardDescription>
                         </CardContent>
                     </Card>
-                     <Card>
+                     <Card className="transition-transform duration-300 hover:scale-105 hover:-translate-y-2">
                         <CardHeader className="items-center text-center">
                             <div className="rounded-full bg-primary/10 p-4 text-primary">
                                 <BrainCircuit className="h-8 w-8" />
@@ -165,7 +165,7 @@ export default function LandingPage() {
                             src="https://placehold.co/600x400.png"
                             alt="A team of construction workers and engineers collaborating"
                             fill
-                            className="object-cover rounded-lg"
+                            className="object-cover rounded-lg transition-transform duration-300 hover:scale-105"
                             data-ai-hint="construction team"
                         />
                     </div>
