@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 export default function CustomerLoginPage() {
     const router = useRouter();
     const { toast } = useToast();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
 
@@ -21,15 +23,23 @@ export default function CustomerLoginPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulate network delay and login
+        // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500));
-        
-        toast({
-            title: "Login Successful",
-            description: "Welcome back! Redirecting...",
-        });
 
-        router.push('/home');
+        if (email === 'customer' && password === 'customer') {
+            toast({
+                title: "Login Successful",
+                description: "Welcome back! Redirecting...",
+            });
+            router.push('/home');
+        } else {
+             toast({
+                variant: "destructive",
+                title: "Login Failed",
+                description: "Invalid credentials. Please try again.",
+            });
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -37,7 +47,7 @@ export default function CustomerLoginPage() {
              <div className="w-full max-w-md mx-4 relative">
                 <Button variant="ghost" size="icon" className="absolute top-0 left-0 -translate-y-16" onClick={() => router.push('/')}>
                     <ArrowLeft className="h-5 w-5" />
-                    <span className="sr-only">Back to Home</span>
+                    <span className="sr-only">Back</span>
                 </Button>
                 <Link href="/" className="flex items-center justify-center gap-2 font-bold text-2xl mb-8">
                     <Rocket className="w-8 h-8 text-primary" />
@@ -52,7 +62,14 @@ export default function CustomerLoginPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" required disabled={isLoading} />
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    required 
+                                    disabled={isLoading}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
@@ -61,7 +78,14 @@ export default function CustomerLoginPage() {
                                         Forgot password?
                                     </Link>
                                 </div>
-                                <Input id="password" type="password" required disabled={isLoading} />
+                                <Input 
+                                    id="password" 
+                                    type="password" 
+                                    required 
+                                    disabled={isLoading}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)} 
+                                />
                             </div>
                         </CardContent>
                         <CardFooter className="flex flex-col gap-4">
