@@ -220,12 +220,13 @@ export default function CustomerHomePage() {
             </BreadcrumbItem>
             </BreadcrumbList>
         </Breadcrumb>
+
+        <MaterialEstimator />
+
+        <Separator className="my-6" />
         
         <ProductCatalog />
 
-        <Separator className="my-6" />
-
-        <MaterialEstimator />
     </div>
   )
 }
