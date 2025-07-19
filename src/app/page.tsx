@@ -97,7 +97,7 @@ export default function LandingPage() {
                 </div>
                  <div className="relative h-80 w-full lg:h-[400px] animate-in fade-in slide-in-from-right duration-500">
                     <Image
-                        src="/image.jpg"
+                        src="https://placehold.co/1200x800.png"
                         alt="An arrangement of various construction tools, including a hard hat, saw, and paint roller, against a concrete wall."
                         fill
                         className="rounded-xl object-cover transition-transform duration-300 hover:scale-105"
