@@ -14,9 +14,10 @@ export default function CustomerLoginPage() {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-muted">
-             <div className="w-full max-w-md mx-4">
-                <Button variant="ghost" className="absolute top-4 left-4" onClick={() => router.push('/')}>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+             <div className="w-full max-w-md mx-4 relative">
+                <Button variant="ghost" size="icon" className="absolute top-0 left-0 -translate-y-16" onClick={() => router.push('/')}>
+                    <ArrowLeft className="h-5 w-5" />
+                    <span className="sr-only">Back to Home</span>
                 </Button>
                 <Link href="/" className="flex items-center justify-center gap-2 font-bold text-2xl mb-8">
                     <Rocket className="w-8 h-8 text-primary" />
