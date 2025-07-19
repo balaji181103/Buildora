@@ -1,0 +1,207 @@
+
+'use client';
+
+import * as React from "react"
+import Link from "next/link"
+import Image from "next/image"
+import { useCart } from "@/hooks/use-cart"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Separator } from "@/components/ui/separator"
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
+import { Rocket, Truck } from "lucide-react"
+
+export default function CheckoutPage() {
+    const { cart } = useCart();
+
+    const subtotal = React.useMemo(() => {
+        return cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+    }, [cart]);
+
+    const shippingCost = 500; // Mock shipping cost
+    const taxes = subtotal * 0.18; // Mock 18% tax
+    const total = subtotal + shippingCost + taxes;
+
+    if (cart.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+                 <h1 className="text-2xl font-bold">Your Cart is Empty</h1>
+                 <p className="text-muted-foreground">You can't proceed to checkout without any items.</p>
+                 <Button asChild>
+                    <Link href="/home#products">Continue Shopping</Link>
+                 </Button>
+            </div>
+        )
+    }
+
+    return (
+        <div className="flex flex-col gap-8">
+            <Breadcrumb>
+                <BreadcrumbList>
+                <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                    <Link href="/home">Home</Link>
+                    </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                    <BreadcrumbLink asChild>
+                    <Link href="/cart">Cart</Link>
+                    </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                    <BreadcrumbPage>Checkout</BreadcrumbPage>
+                </BreadcrumbItem>
+                </BreadcrumbList>
+            </Breadcrumb>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Shipping Address */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Shipping Address</CardTitle>
+                            <CardDescription>Enter the address where you want to receive your order.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Full Name</Label>
+                                <Input id="name" placeholder="Priya Sharma" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">Phone Number</Label>
+                                <Input id="phone" placeholder="+91 98765 43210" />
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="address">Address</Label>
+                                <Input id="address" placeholder="123, Blossom Heights, Hiranandani Gardens" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="city">City</Label>
+                                <Input id="city" placeholder="Mumbai" />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="state">State</Label>
+                                <Input id="state" placeholder="Maharashtra" />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="pincode">PIN Code</Label>
+                                <Input id="pincode" placeholder="400076" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Delivery Method */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Delivery Method</CardTitle>
+                            <CardDescription>Choose how you'd like your items delivered.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                             <RadioGroup defaultValue="standard" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Label htmlFor="standard" className="flex flex-col gap-2 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:border-primary">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 font-semibold">
+                                            <Truck className="h-5 w-5" />
+                                            Standard
+                                        </div>
+                                         <RadioGroupItem value="standard" id="standard" />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">2-3 Business Days (For heavy items)</p>
+                                    <p className="font-bold">₹500.00</p>
+                                </Label>
+                                 <Label htmlFor="express" className="flex flex-col gap-2 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:border-primary">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 font-semibold">
+                                            <Rocket className="h-5 w-5" />
+                                            Express Drone
+                                        </div>
+                                         <RadioGroupItem value="express" id="express" />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">Within 24 Hours (For light items)</p>
+                                    <p className="font-bold">₹1,200.00</p>
+                                </Label>
+                             </RadioGroup>
+                        </CardContent>
+                    </Card>
+
+                    {/* Payment Information */}
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Payment Information</CardTitle>
+                            <CardDescription>Enter your credit or debit card details.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="card-number">Card Number</Label>
+                                <Input id="card-number" placeholder="1234 5678 9012 3456" />
+                            </div>
+                             <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2 col-span-2">
+                                    <Label htmlFor="expiry">Expiration Date</Label>
+                                    <Input id="expiry" placeholder="MM / YY" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="cvc">CVC</Label>
+                                    <Input id="cvc" placeholder="123" />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="card-name">Name on Card</Label>
+                                <Input id="card-name" placeholder="Priya Sharma" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+                <div className="lg:col-span-1 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Order Summary</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                {cart.map(item => (
+                                    <div key={item.product.id} className="flex justify-between items-center text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <div className="relative h-12 w-12">
+                                                <Image src="https://placehold.co/64x64.png" alt={item.product.name} fill className="rounded-md object-cover" data-ai-hint="product image"/>
+                                                <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{item.quantity}</span>
+                                            </div>
+                                            <span>{item.product.name}</span>
+                                        </div>
+                                        <span className="font-medium">₹{(item.product.price * item.quantity).toFixed(2)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <Separator />
+                            <div className="space-y-2 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span>₹{subtotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Shipping</span>
+                                    <span>₹{shippingCost.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground">Taxes (18%)</span>
+                                    <span>₹{taxes.toFixed(2)}</span>
+                                </div>
+                                <Separator />
+                                <div className="flex justify-between font-bold text-base">
+                                    <span>Total</span>
+                                    <span>₹{total.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Button size="lg" className="w-full">Place Order</Button>
+                </div>
+            </div>
+        </div>
+    )
+}

@@ -195,7 +195,9 @@ export default function CartPage() {
                             <span>Subtotal</span>
                             <span>₹{subtotal.toFixed(2)}</span>
                         </div>
-                        <Button className="w-full md:w-auto" disabled={selectedItems.length === 0}>Proceed to Checkout</Button>
+                        <Button asChild className="w-full md:w-auto" disabled={selectedItems.length === 0}>
+                            <Link href="/checkout">Proceed to Checkout</Link>
+                        </Button>
                     </CardFooter>
                 )}
             </Card>
