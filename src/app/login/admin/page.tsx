@@ -13,7 +13,7 @@ import Link from "next/link";
 export default function AdminLoginPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const [id, setId] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (id === 'admin' && password === 'admin') {
+        if (email === 'admin@buildora.com' && password === 'admin') {
             toast({
                 title: "Login Successful",
                 description: "Redirecting to your dashboard...",
@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
             toast({
                 variant: "destructive",
                 title: "Login Failed",
-                description: "Invalid ID or password. Please try again.",
+                description: "Invalid email or password. Please try again.",
             });
             setIsLoading(false);
         }
@@ -55,14 +55,14 @@ export default function AdminLoginPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="id">Admin ID</Label>
+                                <Label htmlFor="email">Email</Label>
                                 <Input 
-                                    id="id" 
-                                    type="text" 
-                                    placeholder="admin" 
+                                    id="email" 
+                                    type="email" 
+                                    placeholder="admin@buildora.com" 
                                     required 
-                                    value={id}
-                                    onChange={(e) => setId(e.target.value)}
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     disabled={isLoading}
                                 />
                             </div>
