@@ -58,17 +58,22 @@ const prompt = ai.definePrompt({
     7. Your output for 'materials' should list "ALO Blocks", "Cement", "Sand", and "Total Cost".
 
   - If the project type is 'brickwork' and the brick type is 'red_brick':
-    1. The standard Red Brick size is 7.5" x 3.5" x 3.5". Convert brick dimensions to meters for calculation (1 inch = 0.0254 meters). Assume a standard mortar thickness of 10mm (0.01m).
-    2. Calculate the number of bricks required for a single wall with the given length and height. Use the width provided by the user for the wall thickness.
-    3. Then, calculate the required cement (in 50kg bags) and sand (in cubic meters) for the mortar (assume a 1:6 cement-sand ratio).
+    1. The standard Red Brick size is 7.5" x 3.5" x 3.5". Assume a standard mortar thickness of 10mm (0.01m).
+    2. Calculate the volume of one brick with mortar: (7.5" + 10mm) x (3.5" + 10mm) x (3.5" + 10mm). Convert all units to feet for calculation.
+    3. Calculate the total volume of the wall in cubic feet (length x width x height).
+    4. Divide the total wall volume by the volume of one brick with mortar to get the number of bricks. Add a 5% wastage buffer.
+    5. Then, calculate the required cement (in 50kg bags) and sand (in cubic meters) for the mortar (assume a 1:6 cement-sand ratio).
+    6. Your output for 'materials' should list "Red Bricks", "Cement", "Sand", and "Total Cost". For cost, assume a price of ₹8 per brick.
 
   - If the project type is 'concreting':
     1. Convert dimensions from FEET to METERS (1 foot = 0.3048 meters).
-    2. Calculate the volume of concrete required in cubic meters.
-    3. Determine the amount of cement (in 50kg bags), sand (in cubic meters), and aggregate (in cubic meters) needed for a standard M20 grade concrete mix (1:1.5:3 ratio).
+    2. Calculate the volume of concrete required in cubic meters (length x width x height in meters).
+    3. Determine the amount of cement (in 50kg bags), sand (in cubic meters), and aggregate (in cubic meters) needed for a standard M20 grade concrete mix (1:1.5:3 ratio). Add a 10% wastage buffer to all materials.
+    4. Calculate the total cost. Assume Cement is ₹400/bag, Sand is ₹2000/cubic meter, and Aggregate is ₹2500/cubic meter.
+    5. Your output for 'materials' should list "Cement", "Sand", "Aggregate", and "Total Cost".
   
   Provide the output as a list of materials with their quantities.
-  For the 'notes' field, include key assumptions like the buffer percentage, cost per ALO block, mix ratios, and the original dimensions provided by the user.
+  For the 'notes' field, include key assumptions like the buffer percentage, cost per unit, mix ratios, and the original dimensions provided by the user.
   `,
 });
 
