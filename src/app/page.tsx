@@ -18,8 +18,8 @@ const slides = [
       alt: "Drone delivering a package to a construction site",
       hint: "drone delivery construction"
     },
-    title: "Welcome to Buildora",
-    description: "Buildora revolutionizes construction logistics with autonomous drone and truck deliveries, ensuring you get the right materials, right when you need them.",
+    title: "Construction Logistics, Reimagined.",
+    description: "Buildora revolutionizes supply delivery with autonomous drones and trucks, ensuring you get the right materials, right when you need them.",
     buttons: [
       { text: "Get Started", href: "/signup", variant: "default" },
       { text: "Learn More", href: "#features", variant: "outline" }
@@ -29,10 +29,10 @@ const slides = [
     image: {
       src: "https://placehold.co/1200x800.png",
       alt: "AI interface showing logistics and estimations",
-      hint: "AI logistics"
+      hint: "AI logistics interface"
     },
-    title: "AI-Powered Material Estimation & Logistics",
-    description: "Our intelligent platform uses AI to estimate your material needs with precision and optimizes delivery schedules to prevent project delays.",
+    title: "AI-Powered Precision & Logistics",
+    description: "Our intelligent platform uses AI to estimate your material needs with accuracy and optimize delivery schedules to prevent project delays.",
     buttons: [
       { text: "Try the Estimator", href: "/login/customer", variant: "default" },
       { text: "Explore AI Features", href: "#features", variant: "outline" }
@@ -41,11 +41,11 @@ const slides = [
   {
     image: {
       src: "https://placehold.co/1200x800.png",
-      alt: "A drone and a truck moving in sync",
+      alt: "A drone and a truck moving in sync with a digital overlay",
       hint: "drone truck logistics"
     },
-    title: "Dual-Fleet for Ultimate Flexibility",
-    description: "From lightweight tools delivered in minutes by drones to heavy materials by truck, our integrated fleet handles all your needs efficiently and safely.",
+    title: "Your Fleet, On-Demand",
+    description: "From lightweight tools delivered in minutes by drone to heavy materials by truck, our integrated fleet handles all your site's needs with ultimate flexibility.",
     buttons: [
       { text: "View Our Fleet", href: "/login/admin", variant: "default" },
       { text: "How It Works", href: "#features", variant: "outline" }
