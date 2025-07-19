@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Rocket } from "lucide-react";
+import { Rocket, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { addCustomer } from '@/app/actions/customers';
 
@@ -74,7 +74,11 @@ export default function CustomerSignupPage() {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-muted py-12">
-             <div className="w-full max-w-md mx-4">
+             <div className="w-full max-w-md mx-4 relative">
+                <Button variant="ghost" size="icon" className="absolute top-0 left-0 -translate-y-16" onClick={() => router.push('/')}>
+                    <ArrowLeft className="h-5 w-5" />
+                    <span className="sr-only">Back</span>
+                </Button>
                 <Link href="/" className="flex items-center justify-center gap-2 font-bold text-2xl mb-8">
                     <Rocket className="w-8 h-8 text-primary" />
                     <span>Buildora</span>
