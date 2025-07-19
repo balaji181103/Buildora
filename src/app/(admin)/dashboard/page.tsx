@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -21,18 +22,20 @@ import {
   Package,
   Wrench,
   AlertTriangle,
+  Plus,
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { OverviewChart } from "./overview-chart"
 import { recentOrders, products } from "@/lib/data"
+import { ActionCard } from "@/components/ui/action-card"
 
 export default function DashboardPage() {
   const lowStockProducts = products.filter(p => p.stock < 10);
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Link href="/orders">
           <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -97,6 +100,9 @@ export default function DashboardPage() {
             </CardContent>
             </Card>
         </Link>
+        <ActionCard href={{ pathname: '/products', query: { new: 'true' } }}>
+          Add New Product
+        </ActionCard>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="lg:col-span-4">

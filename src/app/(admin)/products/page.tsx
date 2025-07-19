@@ -1,6 +1,8 @@
+
 'use client';
 
 import * as React from "react";
+import { useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -39,8 +41,18 @@ import type { Product } from "@/lib/types";
 import { AddProductForm } from "./add-product-form";
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = React.useState<Product[]>(initialProducts);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  
+  // Control dialog state based on URL search parameter
+  const isNewProductFlow = searchParams.get('new') === 'true';
+  const [isDialogOpen, setIsDialogOpen] = React.useState(isNewProductFlow);
+
+  // Sync dialog state if the prop changes (e.g., from navigation)
+  React.useEffect(() => {
+    setIsDialogOpen(isNewProductFlow);
+  }, [isNewProductFlow]);
+
 
   const handleProductAdded = (newProduct: Product) => {
     setProducts(prevProducts => [...prevProducts, newProduct]);
