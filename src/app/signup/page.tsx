@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Rocket } from "lucide-react";
 import Link from "next/link";
 
-export default function CustomerLoginPage() {
+export default function CustomerSignupPage() {
     return (
         <div className="flex items-center justify-center min-h-screen bg-muted">
              <div className="w-full max-w-md mx-4">
@@ -15,28 +15,27 @@ export default function CustomerLoginPage() {
                 </Link>
                 <Card>
                     <CardHeader className="text-center">
-                        <CardTitle>Customer Login</CardTitle>
-                        <CardDescription>Welcome back! Please sign in to your account.</CardDescription>
+                        <CardTitle>Create an Account</CardTitle>
+                        <CardDescription>Join Buildora to streamline your construction supplies.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input id="name" type="text" required />
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input id="email" type="email" required />
                         </div>
                         <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="password">Password</Label>
-                                <Link href="#" className="text-xs underline hover:text-primary">
-                                    Forgot password?
-                                </Link>
-                            </div>
+                            <Label htmlFor="password">Password</Label>
                             <Input id="password" type="password" required />
                         </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
-                        <Button className="w-full">Sign In</Button>
+                        <Button className="w-full">Sign Up</Button>
                         <p className="text-xs text-muted-foreground text-center">
-                            Don't have an account? <Link href="/signup" className="underline hover:text-primary">Sign Up</Link>
+                            Already have an account? <Link href="/login/customer" className="underline hover:text-primary">Sign In</Link>
                         </p>
                     </CardFooter>
                 </Card>

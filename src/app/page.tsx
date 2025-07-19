@@ -35,7 +35,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center md:justify-start">
               <Button size="lg" asChild>
-                <Link href="#">Get Started</Link>
+                <Link href="/signup">Get Started</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="#">Learn More</Link>
@@ -80,7 +80,7 @@ export default function LandingPage() {
                             <div className="rounded-full bg-primary/10 p-4 text-primary">
                                 <Hammer className="h-8 w-8" />
                             </div>
-                            <CardTitle>Reduced Downtime</CardTitle>
+                            <CardTitle className="mt-4">Reduced Downtime</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <CardDescription className="text-center">
@@ -93,7 +93,7 @@ export default function LandingPage() {
                             <div className="rounded-full bg-primary/10 p-4 text-primary">
                                 <ShieldCheck className="h-8 w-8" />
                             </div>
-                            <CardTitle>Safety & Reliability</CardTitle>
+                            <CardTitle className="mt-4">Safety & Reliability</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <CardDescription className="text-center">
