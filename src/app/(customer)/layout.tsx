@@ -50,7 +50,7 @@ export default function CustomerLayout({
                   Shop
                 </Link>
                 <Link
-                  href="#"
+                  href="/my-orders"
                   className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"
                 >
                   <Package className="h-5 w-5" />
@@ -107,7 +107,7 @@ export default function CustomerLayout({
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/my-orders')}>
                 <Package className="mr-2 h-4 w-4" />
                 <span>My Orders</span>
               </DropdownMenuItem>

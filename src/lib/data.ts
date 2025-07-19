@@ -16,7 +16,11 @@ export const trucks: Truck[] = [
 
 export const recentOrders: Order[] = [];
 
-export const allOrders: Order[] = [];
+export const allOrders: Order[] = [
+    { id: 'ORD-001', customer: 'Priya Sharma', status: 'Delivered', date: '2024-07-20', total: 8500.00, deliveryMethod: 'Drone', deliveryVehicleId: 'SB-001' },
+    { id: 'ORD-002', customer: 'Priya Sharma', status: 'Processing', date: '2024-07-22', total: 12000.50, deliveryMethod: 'Truck', deliveryVehicleId: 'TR-01' },
+    { id: 'ORD-003', customer: 'Priya Sharma', status: 'Cancelled', date: '2024-07-15', total: 450.75, deliveryMethod: 'Drone', deliveryVehicleId: 'SB-003' },
+];
 
 
 export const products: Product[] = [
