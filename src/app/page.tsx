@@ -72,7 +72,7 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="w-full pt-8 pb-12 md:pt-12 md:pb-24 lg:pt-16 lg:pb-32">
+        <section className="w-full pt-6 pb-12 md:pt-10 md:pb-24 lg:pt-12 lg:pb-32">
             <div className="container px-4 md:px-6 grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
                 <div className="space-y-4">
                     <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
