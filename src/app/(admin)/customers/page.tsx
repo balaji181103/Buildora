@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -28,14 +29,18 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { customers as initialCustomers } from "@/lib/data"
 import { MoreHorizontal, PlusCircle, Star, Package } from "lucide-react"
-import Link from "next/link"
 import type { Customer } from "@/lib/types";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
 
-  // This part would be replaced with a useEffect to fetch data from a database in a real app
-  // For now, it just uses the initial data.
+  const handleDeactivate = (customerId: string) => {
+    setCustomers(prevCustomers =>
+      prevCustomers.map(customer =>
+        customer.id === customerId ? { ...customer, status: 'Inactive' } : customer
+      )
+    );
+  };
 
   return (
     <Card>
@@ -107,8 +112,16 @@ export default function CustomersPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>View Profile</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Deactivate Account</DropdownMenuItem>
+                       <DropdownMenuItem asChild>
+                        <Link href={`/customers/${customer.id}`}>View Profile</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        className="text-destructive" 
+                        onClick={() => handleDeactivate(customer.id)}
+                        disabled={customer.status === 'Inactive'}
+                      >
+                        Deactivate Account
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
