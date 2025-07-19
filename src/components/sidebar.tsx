@@ -23,7 +23,8 @@ import {
   Settings,
   Wrench,
   LogOut,
-  Truck
+  Truck,
+  Building2,
 } from 'lucide-react';
 
 const navItems = [
@@ -33,6 +34,7 @@ const navItems = [
   { href: '/orders', icon: Package, label: 'Orders' },
   { href: '/products', icon: Boxes, label: 'Products' },
   { href: '/customers', icon: Users, label: 'Customers' },
+  { href: '/suppliers', icon: Building2, label: 'Suppliers' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/ai-tool', icon: Wrench, label: 'AI Maintenance' },
 ];

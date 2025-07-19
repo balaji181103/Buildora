@@ -1,5 +1,6 @@
 
-import type { Drone, Order, Product, Truck, Customer, LoyaltyData, Address } from '@/lib/types';
+
+import type { Drone, Order, Product, Truck, Customer, LoyaltyData, Address, Supplier } from '@/lib/types';
 
 export const drones: Drone[] = [
   { id: 'SB-001', status: 'Idle', battery: 100, location: 'Warehouse A', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
@@ -30,6 +31,14 @@ export const products: Product[] = [
     { id: 'PROD-004', name: 'I-Beam Steel 10ft', category: 'Structural', stock: 0, price: 0, supplier: 'SteelWorks', weight: 90, dimensions: { length: 305, width: 10, height: 10 } }, // Heavy, requires a truck
     { id: 'PROD-005', name: 'Hard Hat - Orange', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo', weight: 0.5, dimensions: { length: 30, width: 25, height: 20 } }, // Lightweight, can be delivered by drone
 ];
+
+export const suppliers: Supplier[] = [
+    { id: 'SUP-001', name: 'ToolMaster', contactPerson: 'Rajesh Kumar', email: 'rajesh@toolmaster.com', phone: '+91 8877665544', productCount: 1 },
+    { id: 'SUP-002', name: 'Cemex', contactPerson: 'Sunita Patel', email: 'sunita.p@cemex.in', phone: '+91 8877665533', productCount: 1 },
+    { id: 'SUP-003', name: 'SafeCo', contactPerson: 'Amit Singh', email: 'amit.singh@safeco.biz', phone: '+91 8877665522', productCount: 2 },
+    { id: 'SUP-004', name: 'SteelWorks', contactPerson: 'Deepa Iyer', email: 'deepa.iyer@steelworks.com', phone: '+91 8877665511', productCount: 1 },
+];
+
 
 const priyaAddresses: Address[] = [
     { id: 'ADDR-001', label: 'Main Residence', line1: '123, Blossom Heights', line2: 'Hiranandani Gardens, Powai', city: 'Mumbai', state: 'Maharashtra', pincode: '400076' },
