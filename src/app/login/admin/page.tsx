@@ -59,7 +59,6 @@ export default function AdminLoginPage() {
                                 <Input 
                                     id="email" 
                                     type="email" 
-                                    placeholder="admin@buildora.com" 
                                     required 
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -72,7 +71,6 @@ export default function AdminLoginPage() {
                                     id="password" 
                                     type="password" 
                                     required
-                                    placeholder="admin" 
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={isLoading}
