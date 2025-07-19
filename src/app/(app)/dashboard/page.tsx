@@ -41,9 +41,9 @@ export default function DashboardPage() {
             <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹3,754,246.87</div>
+            <div className="text-2xl font-bold">₹0.00</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              No data available yet
             </p>
           </CardContent>
         </Card>
@@ -55,9 +55,9 @@ export default function DashboardPage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">
-              2 drones currently on delivery routes
+              No active delivery routes
             </p>
           </CardContent>
         </Card>
@@ -67,9 +67,9 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">0</div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last month
+              No sales this month
             </p>
           </CardContent>
         </Card>
@@ -103,47 +103,51 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle>Recent Orders</CardTitle>
             <CardDescription>
-              You made 265 sales this month.
+              There are no recent orders.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>
-                      <div className="font-medium">{order.customer}</div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
-                        {order.id}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          order.status === "Delivered" ? "default" : 
-                          order.status === "Processing" ? "secondary" : "destructive"
-                        }
-                        className={
-                          order.status === 'Delivered' ? 'bg-green-500/20 text-green-700 border-green-500/30' : 
-                          order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700 border-blue-500/30' : 
-                          'bg-red-500/20 text-red-700 border-red-500/30'
-                        }
-                      >
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">₹{order.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+             {recentOrders.length === 0 ? (
+                <div className="text-center text-muted-foreground py-10">No recent orders to display.</div>
+            ) : (
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {recentOrders.map((order) => (
+                    <TableRow key={order.id}>
+                        <TableCell>
+                        <div className="font-medium">{order.customer}</div>
+                        <div className="hidden text-sm text-muted-foreground md:inline">
+                            {order.id}
+                        </div>
+                        </TableCell>
+                        <TableCell>
+                        <Badge
+                            variant={
+                            order.status === "Delivered" ? "default" : 
+                            order.status === "Processing" ? "secondary" : "destructive"
+                            }
+                            className={
+                            order.status === 'Delivered' ? 'bg-green-500/20 text-green-700 border-green-500/30' : 
+                            order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700 border-blue-500/30' : 
+                            'bg-red-500/20 text-red-700 border-red-500/30'
+                            }
+                        >
+                            {order.status}
+                        </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">₹{order.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -161,6 +165,9 @@ export default function DashboardPage() {
                 </Button>
             </CardHeader>
             <CardContent>
+                {lowStockProducts.length === 0 ? (
+                 <div className="text-center text-muted-foreground py-10">No alerts to display.</div>
+                ) : (
                 <Table>
                     <TableHeader>
                         <TableRow>
@@ -187,6 +194,7 @@ export default function DashboardPage() {
                         ))}
                     </TableBody>
                 </Table>
+                )}
             </CardContent>
         </Card>
        </div>
