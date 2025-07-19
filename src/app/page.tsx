@@ -18,7 +18,7 @@ const slides = [
       alt: "Drone delivering a package to a construction site",
       hint: "drone delivery construction"
     },
-    title: "Drone-Powered Delivery for the Modern Construction Site",
+    title: "Welcome to Buildora",
     description: "Buildora revolutionizes construction logistics with autonomous drone and truck deliveries, ensuring you get the right materials, right when you need them.",
     buttons: [
       { text: "Get Started", href: "/signup", variant: "default" },
