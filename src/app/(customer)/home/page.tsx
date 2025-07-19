@@ -11,6 +11,8 @@ import {
   Loader2,
   AlertTriangle,
   Plus,
+  Minus,
+  Trash2,
 } from "lucide-react"
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -73,8 +75,10 @@ import { useCart } from "@/hooks/use-cart";
 
 
 function ProductCard({ product }: { product: Product }) {
-    const { addItem } = useCart();
+    const { cart, addItem, updateQuantity, removeItem } = useCart();
     const { toast } = useToast();
+
+    const cartItem = cart.find(item => item.product.id === product.id);
 
     const handleAddToCart = () => {
         addItem(product);
@@ -109,10 +113,22 @@ function ProductCard({ product }: { product: Product }) {
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
             <div className="font-semibold text-lg">₹{product.price.toFixed(2)}</div>
-            <Button size="sm" onClick={handleAddToCart}>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
-            </Button>
+             {cartItem ? (
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}>
+                        {cartItem.quantity === 1 ? <Trash2 className="h-4 w-4 text-destructive" /> : <Minus className="h-4 w-4" />}
+                    </Button>
+                    <span className="font-bold text-center w-8">{cartItem.quantity}</span>
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}>
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                </div>
+            ) : (
+                <Button size="sm" onClick={handleAddToCart}>
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Add to Cart
+                </Button>
+            )}
         </CardFooter>
       </Card>
     );

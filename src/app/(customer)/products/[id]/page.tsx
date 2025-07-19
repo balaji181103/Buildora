@@ -18,6 +18,9 @@ import {
     ShoppingCart,
     Truck,
     Users2,
+    Minus,
+    Plus,
+    Trash2,
   } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -57,8 +60,10 @@ import { useToast } from "@/hooks/use-toast"
 import { Product } from "@/lib/types"
 
 function ProductCard({ product }: { product: any }) {
-    const { addItem } = useCart();
+    const { cart, addItem, updateQuantity, removeItem } = useCart();
     const { toast } = useToast();
+
+    const cartItem = cart.find(item => item.product.id === product.id);
 
     const handleAddToCart = () => {
         addItem(product);
@@ -67,7 +72,7 @@ function ProductCard({ product }: { product: any }) {
             description: `${product.name} has been added to your cart.`,
         });
     }
-
+    
     return (
       <Card className="flex flex-col">
         <CardHeader className="p-0 relative">
@@ -90,24 +95,46 @@ function ProductCard({ product }: { product: any }) {
             </CardTitle>
         </CardContent>
         <CardFooter className="p-4 pt-0">
-            <Button size="sm" className="w-full" onClick={handleAddToCart}>
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Add to Cart
-            </Button>
+             {cartItem ? (
+                <div className="flex items-center gap-1 w-full">
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}>
+                         {cartItem.quantity === 1 ? <Trash2 className="h-4 w-4 text-destructive" /> : <Minus className="h-4 w-4" />}
+                    </Button>
+                    <span className="font-bold text-center flex-1">{cartItem.quantity}</span>
+                    <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}>
+                        <Plus className="h-4 w-4" />
+                    </Button>
+                </div>
+            ) : (
+                <Button size="sm" className="w-full" onClick={handleAddToCart}>
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Add to Cart
+                </Button>
+            )}
         </CardFooter>
       </Card>
     );
 }
 
 export default function ProductDetailsPage({ params }: { params: { id: string } }) {
-    const { addItem } = useCart();
+    const { cart, addItem, updateQuantity } = useCart();
     const { toast } = useToast();
-    const [quantity, setQuantity] = React.useState(1);
-
+    
     const product = products.find(p => p.id === params.id)
     if (!product) {
         notFound()
     }
+
+    const cartItem = cart.find(item => item.product.id === product.id);
+    const [quantity, setQuantity] = React.useState(cartItem ? cartItem.quantity : 1);
+    
+    React.useEffect(() => {
+        if (cartItem) {
+            setQuantity(cartItem.quantity);
+        } else {
+            setQuantity(1);
+        }
+    }, [cartItem]);
 
     const handleAddToCart = () => {
         addItem(product, quantity);
@@ -115,6 +142,17 @@ export default function ProductDetailsPage({ params }: { params: { id: string } 
             title: "Added to Cart",
             description: `${quantity} x ${product.name} has been added to your cart.`,
         });
+    }
+
+    const handleQuantityChange = (newQuantity: number) => {
+        if (newQuantity > 0) {
+            setQuantity(newQuantity);
+            if(cartItem) {
+                updateQuantity(product.id, newQuantity);
+            }
+        } else if (cartItem) {
+             updateQuantity(product.id, 0); // This will remove the item
+        }
     }
 
     const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
@@ -191,18 +229,20 @@ export default function ProductDetailsPage({ params }: { params: { id: string } 
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
-                                -
+                            <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => handleQuantityChange(quantity - 1)}>
+                                {quantity === 1 && cartItem ? <Trash2 className="h-5 w-5 text-destructive" /> : <Minus className="h-5 w-5" />}
                             </Button>
-                            <Input className="h-8 w-14 text-center" value={quantity} readOnly />
-                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => q + 1)}>
-                                +
+                            <Input className="h-10 w-16 text-center text-lg font-bold" value={quantity} readOnly />
+                            <Button variant="outline" size="icon" className="h-10 w-10" onClick={() => handleQuantityChange(quantity + 1)}>
+                                <Plus className="h-5 w-5" />
                             </Button>
                         </div>
-                        <Button size="lg" className="flex-1" onClick={handleAddToCart}>
-                            <ShoppingCart className="mr-2 h-5 w-5" />
-                            Add to Cart
-                        </Button>
+                        {!cartItem && (
+                             <Button size="lg" className="flex-1" onClick={handleAddToCart}>
+                                <ShoppingCart className="mr-2 h-5 w-5" />
+                                Add to Cart
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -218,3 +258,4 @@ export default function ProductDetailsPage({ params }: { params: { id: string } 
         </div>
     )
 }
+
