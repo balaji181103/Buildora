@@ -58,14 +58,40 @@ import { useCart } from "@/hooks/use-cart"
 
 export default function CartPage() {
     const { cart, updateQuantity, removeItem } = useCart();
+    const [selectedItems, setSelectedItems] = React.useState<string[]>([]);
+
+    React.useEffect(() => {
+        // Initialize selected items with all items in the cart
+        setSelectedItems(cart.map(item => item.product.id));
+    }, [cart]);
     
     const subtotal = React.useMemo(() => {
-        return cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
-    }, [cart]);
+        return cart
+            .filter(item => selectedItems.includes(item.product.id))
+            .reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+    }, [cart, selectedItems]);
 
     const handleQuantityChange = (productId: string, newQuantity: number) => {
         updateQuantity(productId, newQuantity);
     }
+
+    const handleSelectItem = (productId: string, isSelected: boolean) => {
+        if (isSelected) {
+            setSelectedItems(prev => [...prev, productId]);
+        } else {
+            setSelectedItems(prev => prev.filter(id => id !== productId));
+        }
+    }
+
+    const handleSelectAll = (isSelected: boolean) => {
+        if (isSelected) {
+            setSelectedItems(cart.map(item => item.product.id));
+        } else {
+            setSelectedItems([]);
+        }
+    }
+
+    const isAllSelected = cart.length > 0 && selectedItems.length === cart.length;
   
     return (
     <div className="flex flex-col gap-8">
@@ -88,7 +114,7 @@ export default function CartPage() {
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle>Your Cart</CardTitle>
-                            <CardDescription>You have {cart.length} item(s) in your cart.</CardDescription>
+                            <CardDescription>You have {cart.length} item(s) in your cart. Selected {selectedItems.length}.</CardDescription>
                         </div>
                          <Button variant="outline" size="sm" onClick={() => cart.forEach(item => removeItem(item.product.id))} disabled={cart.length === 0}>
                             Clear Cart
@@ -98,6 +124,13 @@ export default function CartPage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                <TableHead className="w-[50px]">
+                                    <Checkbox
+                                        checked={isAllSelected}
+                                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                                        aria-label="Select all items"
+                                    />
+                                </TableHead>
                                 <TableHead className="hidden w-[100px] sm:table-cell">
                                     <span className="sr-only">Image</span>
                                 </TableHead>
@@ -110,13 +143,20 @@ export default function CartPage() {
                             <TableBody>
                                 {cart.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-40 text-center text-muted-foreground">
+                                        <TableCell colSpan={6} className="h-40 text-center text-muted-foreground">
                                             Your cart is empty. <Link href="/home#products" className="text-primary underline">Continue shopping</Link>.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     cart.map(({product, quantity}) => (
-                                    <TableRow key={product.id}>
+                                    <TableRow key={product.id} data-state={selectedItems.includes(product.id) ? 'selected' : ''}>
+                                        <TableCell>
+                                            <Checkbox
+                                                checked={selectedItems.includes(product.id)}
+                                                onCheckedChange={(checked) => handleSelectItem(product.id, !!checked)}
+                                                aria-label={`Select ${product.name}`}
+                                            />
+                                        </TableCell>
                                         <TableCell className="hidden sm:table-cell">
                                         <Image
                                             alt={product.name}
@@ -177,7 +217,7 @@ export default function CartPage() {
                         </div>
                     </CardContent>
                     <CardFooter>
-                        <Button className="w-full" disabled={cart.length === 0}>Proceed to Checkout</Button>
+                        <Button className="w-full" disabled={selectedItems.length === 0}>Proceed to Checkout</Button>
                     </CardFooter>
                 </Card>
                 <Card>
