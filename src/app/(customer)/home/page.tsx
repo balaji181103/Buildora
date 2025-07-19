@@ -68,6 +68,8 @@ import { products } from "@/lib/data"
 import { Product } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast";
+import { Form, FormControl, FormField, FormItem, FormMessage, FormDescription } from "@/components/ui/form";
+
 
 function ProductCard({ product }: { product: Product }) {
     return (
@@ -165,9 +167,23 @@ const materialEstimatorSchema = z.object({
     projectType: z.enum(['brickwork', 'concreting'], {
       required_error: "You need to select a project type.",
     }),
+    brickType: z.enum(['alo_block', 'red_brick']).optional(),
+}).refine((data) => {
+    if (data.projectType === 'brickwork') {
+        return !!data.brickType;
+    }
+    return true;
+}, {
+    message: "Please select a brick type for brickwork projects.",
+    path: ["brickType"],
 });
 
 type MaterialEstimatorFormValues = z.infer<typeof materialEstimatorSchema>;
+
+const brickTypeDetails = {
+    alo_block: 'Size: 4" x 6" x 9"',
+    red_brick: 'Size: 7.5" x 3.5" x 3.5"',
+};
 
 function MaterialEstimator() {
     const [isPending, startTransition] = React.useTransition();
@@ -180,8 +196,13 @@ function MaterialEstimator() {
             length: 10,
             width: 0.75, // approx 9 inches
             height: 10,
+            projectType: 'brickwork',
+            brickType: 'red_brick',
         }
     });
+
+    const watchedProjectType = form.watch("projectType");
+    const watchedBrickType = form.watch("brickType");
 
     const onSubmit = (values: MaterialEstimatorFormValues) => {
         setEstimate(null);
@@ -208,60 +229,116 @@ function MaterialEstimator() {
             <h2 className="text-2xl font-bold tracking-tight">AI Material Estimator</h2>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
                 <Card className="lg:col-span-3">
-                    <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-xl">
-                                <Calculator className="h-5 w-5"/>
-                                Project Details
-                            </CardTitle>
-                            <CardDescription>
-                                For brickwork or concreting projects. Fill in dimensions to get an AI-powered estimate.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                    <Label htmlFor="length">Length (ft)</Label>
-                                    <Input id="length" type="number" placeholder="e.g., 10" {...form.register('length')} />
-                                    {form.formState.errors.length && <p className="text-destructive text-xs mt-1">{form.formState.errors.length.message}</p>}
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)}>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2 text-xl">
+                                    <Calculator className="h-5 w-5"/>
+                                    Project Details
+                                </CardTitle>
+                                <CardDescription>
+                                    For brickwork or concreting projects. Fill in dimensions to get an AI-powered estimate.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="length"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Length (ft)</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" placeholder="e.g., 10" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="width"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Width (ft)</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" placeholder="e.g., 0.75" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="height"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Height (ft)</FormLabel>
+                                                <FormControl>
+                                                    <Input type="number" placeholder="e.g., 10" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
                                 </div>
-                                <div>
-                                    <Label htmlFor="width">Width (ft)</Label>
-                                    <Input id="width" type="number" placeholder="e.g., 0.75" {...form.register('width')} />
-                                    {form.formState.errors.width && <p className="text-destructive text-xs mt-1">{form.formState.errors.width.message}</p>}
-                                </div>
-                                <div>
-                                    <Label htmlFor="height">Height (ft)</Label>
-                                    <Input id="height" type="number" placeholder="e.g., 10" {...form.register('height')} />
-                                    {form.formState.errors.height && <p className="text-destructive text-xs mt-1">{form.formState.errors.height.message}</p>}
-                                </div>
-                            </div>
-                            <div>
-                                <Label htmlFor="project-type">Project Type</Label>
-                                <Controller
+                                
+                                <FormField
                                     control={form.control}
                                     name="projectType"
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                            <SelectTrigger id="project-type">
-                                                <SelectValue placeholder="Select project type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="brickwork">Brickwork</SelectItem>
-                                                <SelectItem value="concreting">Concreting</SelectItem>
-                                            </SelectContent>
-                                        </Select>
+                                        <FormItem>
+                                            <FormLabel>Project Type</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select project type" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="brickwork">Brickwork</SelectItem>
+                                                    <SelectItem value="concreting">Concreting</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
                                     )}
                                 />
-                                {form.formState.errors.projectType && <p className="text-destructive text-xs mt-1">{form.formState.errors.projectType.message}</p>}
-                            </div>
-                        </CardContent>
-                        <CardFooter>
-                             <Button className="w-full" type="submit" disabled={isPending}>
-                                {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Calculating...</> : 'Calculate Estimate'}
-                             </Button>
-                        </CardFooter>
-                    </form>
+
+                                {watchedProjectType === 'brickwork' && (
+                                    <FormField
+                                        control={form.control}
+                                        name="brickType"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Brick Type</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select brick type" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="alo_block">ALO Block</SelectItem>
+                                                        <SelectItem value="red_brick">Red Brick</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormDescription>
+                                                    {watchedBrickType && brickTypeDetails[watchedBrickType]}
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                )}
+                            </CardContent>
+                            <CardFooter>
+                                <Button className="w-full" type="submit" disabled={isPending}>
+                                    {isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Calculating...</> : 'Calculate Estimate'}
+                                </Button>
+                            </CardFooter>
+                        </form>
+                    </Form>
                 </Card>
 
                 <Card className="lg:col-span-4">
@@ -350,3 +427,5 @@ export default function CustomerHomePage() {
     </div>
   )
 }
+
+    
