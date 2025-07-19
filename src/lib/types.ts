@@ -1,3 +1,4 @@
+
 export type Drone = {
   id: string;
   status: 'Idle' | 'Delivering' | 'Returning' | 'Maintenance';
@@ -38,4 +39,13 @@ export type Product = {
     width: number;
     height: number;
   };
+};
+
+export type Customer = {
+  id: string;
+  name: string;
+  email: string;
+  status: 'Active' | 'Inactive';
+  loyaltyPoints: number;
+  orderCount: number;
 };
