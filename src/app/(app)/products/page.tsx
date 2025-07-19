@@ -1,3 +1,6 @@
+'use client';
+
+import * as React from "react";
 import {
   Card,
   CardContent,
@@ -20,13 +23,30 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { products } from "@/lib/data"
+import { products as initialProducts } from "@/lib/data"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
-import Link from "next/link"
+import type { Product } from "@/lib/types";
+import { AddProductForm } from "./add-product-form";
 
 export default function ProductsPage() {
+  const [products, setProducts] = React.useState<Product[]>(initialProducts);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+
+  const handleProductAdded = (newProduct: Product) => {
+    setProducts(prevProducts => [...prevProducts, newProduct]);
+    setIsDialogOpen(false);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -35,12 +55,23 @@ export default function ProductsPage() {
             <CardTitle>Products</CardTitle>
             <CardDescription>Manage your product inventory. Delivery method is determined by weight and dimensions.</CardDescription>
           </div>
-          <Button asChild size="sm" className="gap-1">
-            <Link href="#">
-              <PlusCircle className="h-4 w-4" />
-              Add Product
-            </Link>
-          </Button>
+           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1">
+                <PlusCircle className="h-4 w-4" />
+                Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[625px]">
+              <DialogHeader>
+                <DialogTitle>Add New Product</DialogTitle>
+                <DialogDescription>
+                  Enter the details of the new product below.
+                </DialogDescription>
+              </DialogHeader>
+              <AddProductForm onProductAdded={handleProductAdded} />
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
       <CardContent>
