@@ -13,10 +13,25 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CreditCard, Rocket, Truck } from "lucide-react"
+import { CreditCard, Home, PlusCircle, Rocket, Truck } from "lucide-react"
+import { customers } from "@/lib/data" // Assuming we get the logged in customer's data
 
 export default function CheckoutPage() {
     const { cart } = useCart();
+    const [selectedAddressId, setSelectedAddressId] = React.useState<string | undefined>(undefined);
+    const [showNewAddressForm, setShowNewAddressForm] = React.useState(false);
+    
+    // In a real app, you'd fetch the logged-in user. We'll use the first customer as a mock.
+    const customer = customers[0]; 
+
+    React.useEffect(() => {
+        if (customer.addresses && customer.addresses.length > 0) {
+            setSelectedAddressId(customer.addresses[0].id);
+        } else {
+            setShowNewAddressForm(true);
+        }
+    }, [customer]);
+
 
     const subtotal = React.useMemo(() => {
         return cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
@@ -64,35 +79,68 @@ export default function CheckoutPage() {
                 <div className="lg:col-span-2 space-y-8">
                     {/* Shipping Address */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle>Shipping Address</CardTitle>
-                            <CardDescription>Enter the address where you want to receive your order.</CardDescription>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                             <div>
+                                <CardTitle>Shipping Address</CardTitle>
+                                <CardDescription>Select or add an address for delivery.</CardDescription>
+                            </div>
+                             <Button variant="outline" size="sm" onClick={() => setShowNewAddressForm(true)} disabled={showNewAddressForm}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add New Address
+                            </Button>
                         </CardHeader>
-                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="name">Full Name</Label>
-                                <Input id="name" placeholder="Priya Sharma" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="phone">Phone Number</Label>
-                                <Input id="phone" placeholder="+91 98765 43210" />
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor="address">Address</Label>
-                                <Input id="address" placeholder="123, Blossom Heights, Hiranandani Gardens" />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="city">City</Label>
-                                <Input id="city" placeholder="Mumbai" />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="state">State</Label>
-                                <Input id="state" placeholder="Maharashtra" />
-                            </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="pincode">PIN Code</Label>
-                                <Input id="pincode" placeholder="400076" />
-                            </div>
+                        <CardContent className="space-y-4">
+                            <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId} className="space-y-4">
+                                {customer.addresses.map((address) => (
+                                    <Label key={address.id} htmlFor={address.id} className="flex items-start gap-4 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                        <RadioGroupItem value={address.id} id={address.id} className="mt-1" />
+                                        <div>
+                                            <p className="font-semibold">{address.label}</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {address.line1}, {address.line2 ? `${address.line2}, ` : ''}
+                                                {address.city}, {address.state} - {address.pincode}
+                                            </p>
+                                        </div>
+                                    </Label>
+                                ))}
+                            </RadioGroup>
+
+                             {showNewAddressForm && (
+                                <div className="p-4 border-t mt-4 space-y-4">
+                                     <h3 className="font-semibold">Add a New Address</h3>
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Full Name</Label>
+                                            <Input id="name" placeholder="Priya Sharma" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="phone">Phone Number</Label>
+                                            <Input id="phone" placeholder="+91 98765 43210" />
+                                        </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                            <Label htmlFor="address">Address Line 1</Label>
+                                            <Input id="address" placeholder="123, Blossom Heights, Hiranandani Gardens" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="city">City</Label>
+                                            <Input id="city" placeholder="Mumbai" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="state">State</Label>
+                                            <Input id="state" placeholder="Maharashtra" />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="pincode">PIN Code</Label>
+                                            <Input id="pincode" placeholder="400076" />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button>Save Address</Button>
+                                        <Button variant="ghost" onClick={() => setShowNewAddressForm(false)}>Cancel</Button>
+                                    </div>
+                                </div>
+                            )}
+
                         </CardContent>
                     </Card>
 

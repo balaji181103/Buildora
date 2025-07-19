@@ -42,6 +42,16 @@ export type Product = {
   };
 };
 
+export type Address = {
+    id: string;
+    label: string; // e.g., "Home", "Work Site"
+    line1: string;
+    line2?: string;
+    city: string;
+    state: string;
+    pincode: string;
+};
+
 export type Customer = {
   id: string;
   name: string;
@@ -49,6 +59,7 @@ export type Customer = {
   status: 'Active' | 'Inactive';
   loyaltyPoints: number;
   orderCount: number;
+  addresses: Address[];
 };
 
 export type LoyaltyHistoryItem = {
