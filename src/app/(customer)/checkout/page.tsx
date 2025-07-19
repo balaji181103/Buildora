@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
-import { Rocket, Truck } from "lucide-react"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { CreditCard, Rocket, Truck } from "lucide-react"
 
 export default function CheckoutPage() {
     const { cart } = useCart();
@@ -133,27 +134,65 @@ export default function CheckoutPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle>Payment Information</CardTitle>
-                            <CardDescription>Enter your credit or debit card details.</CardDescription>
+                            <CardDescription>Choose your preferred payment method.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="card-number">Card Number</Label>
-                                <Input id="card-number" placeholder="1234 5678 9012 3456" />
-                            </div>
-                             <div className="grid grid-cols-3 gap-4">
-                                <div className="space-y-2 col-span-2">
-                                    <Label htmlFor="expiry">Expiration Date</Label>
-                                    <Input id="expiry" placeholder="MM / YY" />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="cvc">CVC</Label>
-                                    <Input id="cvc" placeholder="123" />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="card-name">Name on Card</Label>
-                                <Input id="card-name" placeholder="Priya Sharma" />
-                            </div>
+                        <CardContent>
+                             <Accordion type="single" collapsible defaultValue="card">
+                                <AccordionItem value="card">
+                                    <AccordionTrigger className="font-semibold">
+                                        <div className="flex items-center gap-2">
+                                            <CreditCard className="h-5 w-5" />
+                                            Credit/Debit Card
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pt-4 space-y-4">
+                                         <div className="space-y-2">
+                                            <Label htmlFor="card-number">Card Number</Label>
+                                            <Input id="card-number" placeholder="1234 5678 9012 3456" />
+                                        </div>
+                                         <div className="grid grid-cols-3 gap-4">
+                                            <div className="space-y-2 col-span-2">
+                                                <Label htmlFor="expiry">Expiration Date</Label>
+                                                <Input id="expiry" placeholder="MM / YY" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="cvc">CVC</Label>
+                                                <Input id="cvc" placeholder="123" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="card-name">Name on Card</Label>
+                                            <Input id="card-name" placeholder="Priya Sharma" />
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
+                                <AccordionItem value="upi-apps">
+                                    <AccordionTrigger className="font-semibold">
+                                        <div className="flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20.533c-5.43.54-9.43-3.46-9.973-8.893A9.453 9.453 0 0 1 11.56 1.57a9.453 9.453 0 0 1 10.873 10.873 9.453 9.453 0 0 1-10.433 8.09zM8 8l8 8"/><path d="m8 16 8-8"/></svg>
+                                            UPI Apps
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pt-4 grid grid-cols-3 gap-4">
+                                        <Button variant="outline">GPay</Button>
+                                        <Button variant="outline">PhonePe</Button>
+                                        <Button variant="outline">Paytm</Button>
+                                    </AccordionContent>
+                                </AccordionItem>
+                                <AccordionItem value="upi-id">
+                                    <AccordionTrigger className="font-semibold">
+                                        <div className="flex items-center gap-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="m22 12-4-4 4-4"/><path d="M2 12h16"/></svg>
+                                            Enter UPI ID
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pt-4 space-y-2">
+                                        <Label htmlFor="upi-id">Your UPI ID</Label>
+                                        <Input id="upi-id" placeholder="yourname@bank" />
+                                        <Button>Verify & Pay</Button>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
                         </CardContent>
                     </Card>
                 </div>
