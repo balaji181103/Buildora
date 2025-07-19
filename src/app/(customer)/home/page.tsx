@@ -69,9 +69,21 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast";
 import { Form, FormControl, FormField, FormItem, FormMessage, FormDescription, FormLabel } from "@/components/ui/form";
 import { HeroSection } from "./hero-section"
+import { useCart } from "@/hooks/use-cart";
 
 
 function ProductCard({ product }: { product: Product }) {
+    const { addItem } = useCart();
+    const { toast } = useToast();
+
+    const handleAddToCart = () => {
+        addItem(product);
+        toast({
+            title: "Added to Cart",
+            description: `${product.name} has been added to your cart.`,
+        });
+    }
+
     return (
       <Card className="flex flex-col">
         <CardHeader className="p-0 relative">
@@ -97,7 +109,7 @@ function ProductCard({ product }: { product: Product }) {
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
             <div className="font-semibold text-lg">₹{product.price.toFixed(2)}</div>
-            <Button size="sm">
+            <Button size="sm" onClick={handleAddToCart}>
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Add to Cart
             </Button>

@@ -1,4 +1,6 @@
 
+'use client';
+
 import {
     ChevronLeft,
     ChevronRight,
@@ -19,6 +21,7 @@ import {
   } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import * as React from 'react'
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -49,8 +52,22 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { products } from "@/lib/data"
 import { notFound } from "next/navigation"
+import { useCart } from "@/hooks/use-cart"
+import { useToast } from "@/hooks/use-toast"
+import { Product } from "@/lib/types"
 
 function ProductCard({ product }: { product: any }) {
+    const { addItem } = useCart();
+    const { toast } = useToast();
+
+    const handleAddToCart = () => {
+        addItem(product);
+        toast({
+            title: "Added to Cart",
+            description: `${product.name} has been added to your cart.`,
+        });
+    }
+
     return (
       <Card className="flex flex-col">
         <CardHeader className="p-0 relative">
@@ -73,7 +90,7 @@ function ProductCard({ product }: { product: any }) {
             </CardTitle>
         </CardContent>
         <CardFooter className="p-4 pt-0">
-            <Button size="sm" className="w-full">
+            <Button size="sm" className="w-full" onClick={handleAddToCart}>
                 <ShoppingCart className="h-4 w-4 mr-2" />
                 Add to Cart
             </Button>
@@ -83,9 +100,21 @@ function ProductCard({ product }: { product: any }) {
 }
 
 export default function ProductDetailsPage({ params }: { params: { id: string } }) {
+    const { addItem } = useCart();
+    const { toast } = useToast();
+    const [quantity, setQuantity] = React.useState(1);
+
     const product = products.find(p => p.id === params.id)
     if (!product) {
         notFound()
+    }
+
+    const handleAddToCart = () => {
+        addItem(product, quantity);
+        toast({
+            title: "Added to Cart",
+            description: `${quantity} x ${product.name} has been added to your cart.`,
+        });
     }
 
     const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
@@ -102,7 +131,7 @@ export default function ProductDetailsPage({ params }: { params: { id: string } 
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                    <Link href="/home">Products</Link>
+                    <Link href="/home#products">Products</Link>
                     </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
@@ -162,15 +191,15 @@ export default function ProductDetailsPage({ params }: { params: { id: string } 
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
-                            <Button variant="outline" size="icon" className="h-8 w-8">
+                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
                                 -
                             </Button>
-                            <Input className="h-8 w-14 text-center" defaultValue="1" />
-                            <Button variant="outline" size="icon" className="h-8 w-8">
+                            <Input className="h-8 w-14 text-center" value={quantity} readOnly />
+                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => q + 1)}>
                                 +
                             </Button>
                         </div>
-                        <Button size="lg" className="flex-1">
+                        <Button size="lg" className="flex-1" onClick={handleAddToCart}>
                             <ShoppingCart className="mr-2 h-5 w-5" />
                             Add to Cart
                         </Button>

@@ -1,4 +1,5 @@
 
+
 export type Drone = {
   id: string;
   status: 'Idle' | 'Delivering' | 'Returning' | 'Maintenance';
@@ -66,4 +67,9 @@ export type LoyaltyData = {
     currentPoints: number;
     history: LoyaltyHistoryItem[];
     availableOffers: LoyaltyOffer[];
+};
+
+export type CartItem = {
+  product: Product;
+  quantity: number;
 };

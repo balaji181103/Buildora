@@ -10,6 +10,7 @@ import { Calculator, Home, LogOut, Menu, Moon, Package, Rocket, Search, Settings
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
+import { useCart } from "@/hooks/use-cart";
 
 export default function CustomerLayout({
   children,
@@ -18,6 +19,7 @@ export default function CustomerLayout({
 }) {
   const router = useRouter();
   const { setTheme } = useTheme();
+  const { cart } = useCart();
 
   const handleLogout = () => {
     router.push('/');
@@ -84,7 +86,7 @@ export default function CustomerLayout({
           <Button variant="ghost" size="icon" className="relative">
             <ShoppingCart className="h-5 w-5"/>
             <span className="sr-only">Shopping Cart</span>
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">0</span>
+            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{cart.length}</span>
           </Button>
 
           <DropdownMenu>
