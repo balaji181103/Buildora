@@ -10,14 +10,14 @@ export function HeroSection() {
     return (
         <div className="w-full bg-muted rounded-lg overflow-hidden">
             <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 items-center gap-8 px-4 py-12 md:px-6 md:py-16">
-                <div className="space-y-6 animate-in fade-in slide-in-from-left duration-500">
-                    <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
+                <div className="space-y-6">
+                    <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
                         Your Construction Supplies, Delivered Faster.
                     </h1>
-                    <p className="max-w-xl text-lg text-muted-foreground">
+                    <p className="max-w-xl text-lg text-muted-foreground animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-200">
                         From AI-powered material estimation to rapid drone delivery, Buildora is your partner in building the future.
                     </p>
-                    <div className="flex flex-col gap-4 sm:flex-row">
+                    <div className="flex flex-col gap-4 sm:flex-row animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-300">
                         <Button size="lg" asChild>
                             <Link href="#products">
                                 Explore Products
