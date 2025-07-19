@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,9 +9,28 @@ import { Label } from "@/components/ui/label";
 import { Rocket, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CustomerLoginPage() {
     const router = useRouter();
+    const { toast } = useToast();
+    const [isLoading, setIsLoading] = useState(false);
+
+
+    const handleSignIn = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        // Simulate network delay and login
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        toast({
+            title: "Login Successful",
+            description: "Welcome back! Redirecting...",
+        });
+
+        router.push('/home');
+    };
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-muted">
@@ -23,33 +43,37 @@ export default function CustomerLoginPage() {
                     <Rocket className="w-8 h-8 text-primary" />
                     <span>Buildora</span>
                 </Link>
-                <Card>
-                    <CardHeader className="text-center">
-                        <CardTitle>Customer Login</CardTitle>
-                        <CardDescription>Welcome back! Please sign in to your account.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" required />
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="password">Password</Label>
-                                <Link href="#" className="text-xs underline hover:text-primary">
-                                    Forgot password?
-                                </Link>
+                <form onSubmit={handleSignIn}>
+                    <Card>
+                        <CardHeader className="text-center">
+                            <CardTitle>Customer Login</CardTitle>
+                            <CardDescription>Welcome back! Please sign in to your account.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email</Label>
+                                <Input id="email" type="email" required disabled={isLoading} />
                             </div>
-                            <Input id="password" type="password" required />
-                        </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col gap-4">
-                        <Button className="w-full">Sign In</Button>
-                        <p className="text-xs text-muted-foreground text-center">
-                            Don't have an account? <Link href="/signup" className="underline hover:text-primary">Sign Up</Link>
-                        </p>
-                    </CardFooter>
-                </Card>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password">Password</Label>
+                                    <Link href="#" className="text-xs underline hover:text-primary">
+                                        Forgot password?
+                                    </Link>
+                                </div>
+                                <Input id="password" type="password" required disabled={isLoading} />
+                            </div>
+                        </CardContent>
+                        <CardFooter className="flex flex-col gap-4">
+                            <Button className="w-full" type="submit" disabled={isLoading}>
+                                {isLoading ? 'Signing In...' : 'Sign In'}
+                            </Button>
+                            <p className="text-xs text-muted-foreground text-center">
+                                Don't have an account? <Link href="/signup" className="underline hover:text-primary">Sign Up</Link>
+                            </p>
+                        </CardFooter>
+                    </Card>
+                </form>
             </div>
         </div>
     );
