@@ -72,7 +72,7 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="w-full pt-6 pb-12 md:pt-10 md:pb-24 lg:pt-12 lg:pb-32">
+        <section className="w-full pb-12 md:pb-24 lg:pb-32">
             <div className="container px-4 md:px-6 grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
                 <div className="space-y-4">
                     <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
@@ -97,11 +97,11 @@ export default function LandingPage() {
                 </div>
                  <div className="relative h-80 w-full lg:h-[400px] animate-in fade-in slide-in-from-right duration-500">
                     <Image
-                        src="https://placehold.co/1200x800.png"
-                        alt="Drone delivering a package to a construction site"
+                        src="/image.jpg"
+                        alt="An arrangement of various construction tools, including a hard hat, saw, and paint roller, against a concrete wall."
                         fill
                         className="rounded-xl object-cover transition-transform duration-300 hover:scale-105"
-                        data-ai-hint="drone delivery construction"
+                        data-ai-hint="construction tools"
                         priority
                     />
                 </div>
