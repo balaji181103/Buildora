@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "@/components/ui/dropdown-menu";
 import { Calculator, Home, LogOut, Menu, Moon, Package, Rocket, Search, Settings, ShoppingCart, Sun, Award, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCart } from "@/hooks/use-cart.tsx";
 
@@ -18,6 +18,7 @@ export default function CustomerLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { setTheme } = useTheme();
   const { cart } = useCart();
 
@@ -26,6 +27,8 @@ export default function CustomerLayout({
   };
 
   const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+
+  const showFloatingCart = pathname !== '/cart';
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -156,17 +159,19 @@ export default function CustomerLayout({
       </main>
 
       {/* Floating Cart Button */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button asChild size="icon" className="relative h-14 w-14 rounded-full shadow-lg">
-          <Link href="/cart">
-              <ShoppingCart className="h-6 w-6"/>
-              <span className="sr-only">Shopping Cart</span>
-              {totalCartItems > 0 && (
-                <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">{totalCartItems}</span>
-              )}
-          </Link>
-        </Button>
-      </div>
+      {showFloatingCart && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <Button asChild size="icon" className="relative h-14 w-14 rounded-full shadow-lg">
+            <Link href="/cart">
+                <ShoppingCart className="h-6 w-6"/>
+                <span className="sr-only">Shopping Cart</span>
+                {totalCartItems > 0 && (
+                  <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">{totalCartItems}</span>
+                )}
+            </Link>
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
