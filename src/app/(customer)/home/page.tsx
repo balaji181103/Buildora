@@ -46,7 +46,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
     Table,
     TableBody,
@@ -68,7 +67,7 @@ import { products } from "@/lib/data"
 import { Product } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormMessage, FormDescription } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage, FormDescription, FormLabel } from "@/components/ui/form";
 
 
 function ProductCard({ product }: { product: Product }) {
