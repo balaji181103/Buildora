@@ -64,7 +64,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     clearCart,
   }
 
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
+  return (<CartContext.Provider value={value}>{children}</CartContext.Provider>)
 }
 
 export const useCart = () => {
