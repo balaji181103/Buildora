@@ -31,7 +31,7 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/40">
+        <section className="w-full pt-24 pb-12 md:pt-32 md:pb-24 lg:pt-40 lg:pb-32 bg-muted/40">
             <div className="container px-4 md:px-6 grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
                 <div className="space-y-4">
                     <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
