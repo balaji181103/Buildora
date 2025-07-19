@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -25,6 +26,7 @@ import {
   LogOut,
   Truck,
   Building2,
+  ClipboardList,
 } from 'lucide-react';
 
 const navItems = [
@@ -33,6 +35,7 @@ const navItems = [
   { href: '/trucks', icon: Truck, label: 'Trucks' },
   { href: '/orders', icon: Package, label: 'Orders' },
   { href: '/products', icon: Boxes, label: 'Products' },
+  { href: '/inventory', icon: ClipboardList, label: 'Inventory' },
   { href: '/customers', icon: Users, label: 'Customers' },
   { href: '/suppliers', icon: Building2, label: 'Suppliers' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
