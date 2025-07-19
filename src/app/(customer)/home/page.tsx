@@ -45,15 +45,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-  } from "@/components/ui/tabs"
-
 import { products } from "@/lib/data"
 import { Product } from "@/lib/types"
+import { Separator } from "@/components/ui/separator"
 
 function ProductCard({ product }: { product: Product }) {
     return (
@@ -93,41 +87,47 @@ function ProductCard({ product }: { product: Product }) {
 function ProductCatalog() {
     return (
         <div className="flex flex-col gap-4">
-             <div className="flex items-center justify-end gap-2">
-                <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="h-7 gap-1">
-                    <ListFilter className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                        Filter
-                    </span>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuCheckboxItem checked>
-                    In Stock
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                    By Drone
-                    </DropdownMenuCheckboxItem>
-                    <DropdownMenuCheckboxItem>
-                    By Truck
-                    </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-                </DropdownMenu>
-                <Select defaultValue="price_asc">
-                    <SelectTrigger className="h-7 text-sm w-[140px]">
-                        <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                        <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                        <SelectItem value="newest">Newest</SelectItem>
-                        <SelectItem value="popularity">Popularity</SelectItem>
-                    </SelectContent>
-                </Select>
+             <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight">Product Catalog</h2>
+                    <p className="text-muted-foreground">Browse our available products.</p>
+                </div>
+                <div className="flex items-center justify-end gap-2">
+                    <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7 gap-1">
+                        <ListFilter className="h-3.5 w-3.5" />
+                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+                            Filter
+                        </span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuCheckboxItem checked>
+                        In Stock
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem>
+                        By Drone
+                        </DropdownMenuCheckboxItem>
+                        <DropdownMenuCheckboxItem>
+                        By Truck
+                        </DropdownMenuCheckboxItem>
+                    </DropdownMenuContent>
+                    </DropdownMenu>
+                    <Select defaultValue="price_asc">
+                        <SelectTrigger className="h-7 text-sm w-[140px]">
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                            <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                            <SelectItem value="newest">Newest</SelectItem>
+                            <SelectItem value="popularity">Popularity</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
             <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {products.map((product) => (
@@ -140,62 +140,65 @@ function ProductCatalog() {
 
 function MaterialEstimator() {
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <Card className="lg:col-span-3">
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Calculator className="h-6 w-6"/>
-                        AI Material Estimator
-                    </CardTitle>
-                    <CardDescription>
-                        Fill in the details below to get an AI-powered material estimate for your project.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                         <div>
-                            <Label htmlFor="length">Length (m)</Label>
-                            <Input id="length" type="number" placeholder="e.g., 5" />
+        <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-bold tracking-tight">AI Material Estimator</h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="lg:col-span-3">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                            <Calculator className="h-5 w-5"/>
+                            Project Details
+                        </CardTitle>
+                        <CardDescription>
+                            Fill in the details below to get an AI-powered material estimate.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <Label htmlFor="length">Length (m)</Label>
+                                <Input id="length" type="number" placeholder="e.g., 5" />
+                            </div>
+                            <div>
+                                <Label htmlFor="width">Width (m)</Label>
+                                <Input id="width" type="number" placeholder="e.g., 4" />
+                            </div>
+                            <div>
+                                <Label htmlFor="height">Height (m)</Label>
+                                <Input id="height" type="number" placeholder="e.g., 2.4" />
+                            </div>
                         </div>
                         <div>
-                            <Label htmlFor="width">Width (m)</Label>
-                            <Input id="width" type="number" placeholder="e.g., 4" />
+                            <Label htmlFor="project-type">Project Type</Label>
+                            <Select>
+                                <SelectTrigger id="project-type">
+                                    <SelectValue placeholder="Select project type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="painting">Painting</SelectItem>
+                                    <SelectItem value="drywall">Drywall Installation</SelectItem>
+                                    <SelectItem value="flooring">Flooring</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <div>
-                            <Label htmlFor="height">Height (m)</Label>
-                            <Input id="height" type="number" placeholder="e.g., 2.4" />
-                        </div>
-                    </div>
-                    <div>
-                        <Label htmlFor="project-type">Project Type</Label>
-                        <Select>
-                            <SelectTrigger id="project-type">
-                                <SelectValue placeholder="Select project type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="painting">Painting</SelectItem>
-                                <SelectItem value="drywall">Drywall Installation</SelectItem>
-                                <SelectItem value="flooring">Flooring</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Button className="w-full">Calculate Estimate</Button>
-                </CardContent>
-            </Card>
+                        <Button className="w-full">Calculate Estimate</Button>
+                    </CardContent>
+                </Card>
 
-            <Card className="lg:col-span-4">
-                <CardHeader>
-                    <CardTitle>Estimated Materials</CardTitle>
-                    <CardDescription>
-                        Your calculated materials will appear here.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="text-center text-muted-foreground py-20">
-                        Awaiting calculation...
-                    </div>
-                </CardContent>
-            </Card>
+                <Card className="lg:col-span-4">
+                    <CardHeader>
+                        <CardTitle className="text-xl">Estimated Materials</CardTitle>
+                        <CardDescription>
+                            Your calculated materials will appear here.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-center text-muted-foreground py-20">
+                            Awaiting calculation...
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }
@@ -203,7 +206,7 @@ function MaterialEstimator() {
 
 export default function CustomerHomePage() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
         <Breadcrumb>
             <BreadcrumbList>
             <BreadcrumbItem>
@@ -218,18 +221,11 @@ export default function CustomerHomePage() {
             </BreadcrumbList>
         </Breadcrumb>
         
-        <Tabs defaultValue="products">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="products">Product Catalog</TabsTrigger>
-                <TabsTrigger value="estimator">Material Estimator</TabsTrigger>
-            </TabsList>
-            <TabsContent value="products" className="mt-4">
-                <ProductCatalog />
-            </TabsContent>
-            <TabsContent value="estimator" className="mt-4">
-                <MaterialEstimator />
-            </TabsContent>
-        </Tabs>
+        <ProductCatalog />
+
+        <Separator className="my-6" />
+
+        <MaterialEstimator />
     </div>
   )
 }
