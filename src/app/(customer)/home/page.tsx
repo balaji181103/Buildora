@@ -178,8 +178,8 @@ function MaterialEstimator() {
         resolver: zodResolver(materialEstimatorSchema),
         defaultValues: {
             length: 10,
-            width: 0.23,
-            height: 3,
+            width: 0.75, // approx 9 inches
+            height: 10,
         }
     });
 
@@ -221,18 +221,18 @@ function MaterialEstimator() {
                         <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <Label htmlFor="length">Length (m)</Label>
-                                    <Input id="length" type="number" placeholder="e.g., 5" {...form.register('length')} />
+                                    <Label htmlFor="length">Length (ft)</Label>
+                                    <Input id="length" type="number" placeholder="e.g., 10" {...form.register('length')} />
                                     {form.formState.errors.length && <p className="text-destructive text-xs mt-1">{form.formState.errors.length.message}</p>}
                                 </div>
                                 <div>
-                                    <Label htmlFor="width">Width (m)</Label>
-                                    <Input id="width" type="number" placeholder="e.g., 0.23" {...form.register('width')} />
+                                    <Label htmlFor="width">Width (ft)</Label>
+                                    <Input id="width" type="number" placeholder="e.g., 0.75" {...form.register('width')} />
                                     {form.formState.errors.width && <p className="text-destructive text-xs mt-1">{form.formState.errors.width.message}</p>}
                                 </div>
                                 <div>
-                                    <Label htmlFor="height">Height (m)</Label>
-                                    <Input id="height" type="number" placeholder="e.g., 3" {...form.register('height')} />
+                                    <Label htmlFor="height">Height (ft)</Label>
+                                    <Input id="height" type="number" placeholder="e.g., 10" {...form.register('height')} />
                                     {form.formState.errors.height && <p className="text-destructive text-xs mt-1">{form.formState.errors.height.message}</p>}
                                 </div>
                             </div>

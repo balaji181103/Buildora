@@ -13,9 +13,9 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const MaterialEstimatorInputSchema = z.object({
-  length: z.number().describe('The length of the structure in meters.'),
-  width: z.number().describe('The width of the structure in meters.'),
-  height: z.number().describe('The height of the structure in meters.'),
+  length: z.number().describe('The length of the structure in feet.'),
+  width: z.number().describe('The width of the structure in feet.'),
+  height: z.number().describe('The height of the structure in feet.'),
   projectType: z.enum(['brickwork', 'concreting']).describe('The type of construction project.'),
 });
 export type MaterialEstimatorInput = z.infer<typeof MaterialEstimatorInputSchema>;
@@ -41,17 +41,18 @@ const prompt = ai.definePrompt({
   output: { schema: MaterialEstimatorOutputSchema },
   prompt: `You are an expert construction material estimator for projects in India.
   Your task is to calculate the required materials for a project based on the provided dimensions and project type.
+  The user has provided the dimensions in FEET. You must convert them to meters for your calculations. (1 foot = 0.3048 meters).
 
   Project Details:
   - Project Type: {{{projectType}}}
-  - Dimensions: {{{length}}}m (length) x {{{width}}}m (width) x {{{height}}}m (height)
+  - Dimensions: {{{length}}}ft (length) x {{{width}}}ft (width) x {{{height}}}ft (height)
 
   Calculations should be based on standard Indian construction practices.
-  - For 'brickwork', assume a standard brick size of 190mm x 90mm x 90mm and a mortar thickness of 10mm. Calculate the number of bricks and the required cement (in 50kg bags) and sand (in cubic meters) for the mortar (assume a 1:6 cement-sand ratio). The calculation should be for a wall with the given length, height, and a standard width of 0.23m (9-inch wall).
-  - For 'concreting', calculate the volume of concrete required. Then, determine the amount of cement (in 50kg bags), sand (in cubic meters), and aggregate (in cubic meters) needed for a standard M20 grade concrete mix (1:1.5:3 ratio).
+  - For 'brickwork', after converting dimensions to meters, assume a standard brick size of 190mm x 90mm x 90mm and a mortar thickness of 10mm. Calculate the number of bricks and the required cement (in 50kg bags) and sand (in cubic meters) for the mortar (assume a 1:6 cement-sand ratio). The calculation should be for a wall with the given length, height, and a standard width of 0.23m (9-inch wall) if the provided width is close to that, otherwise use the provided width.
+  - For 'concreting', after converting dimensions to meters, calculate the volume of concrete required. Then, determine the amount of cement (in 50kg bags), sand (in cubic meters), and aggregate (in cubic meters) needed for a standard M20 grade concrete mix (1:1.5:3 ratio).
 
   Provide the output as a list of materials with their quantities.
-  Include a 'notes' section mentioning the assumptions made (e.g., mix ratio, wastage not included, standard brick size).
+  Include a 'notes' section mentioning the assumptions made (e.g., mix ratio, wastage not included, standard brick size, conversion from feet to meters).
   `,
 });
 
