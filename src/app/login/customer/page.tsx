@@ -44,18 +44,18 @@ export default function CustomerLoginPage() {
 
     return (
         <div className="flex items-center justify-center min-h-screen bg-muted">
-             <div className="w-full max-w-md mx-4 relative">
-                <Button variant="ghost" size="icon" className="absolute top-0 left-0 -translate-y-16" onClick={() => router.push('/')}>
-                    <ArrowLeft className="h-5 w-5" />
-                    <span className="sr-only">Back</span>
-                </Button>
+             <div className="w-full max-w-md mx-4">
                 <Link href="/" className="flex items-center justify-center gap-2 font-bold text-2xl mb-8">
                     <Rocket className="w-8 h-8 text-primary" />
                     <span>Buildora</span>
                 </Link>
                 <form onSubmit={handleSignIn}>
-                    <Card>
+                    <Card className="relative">
                         <CardHeader className="text-center">
+                            <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.push('/')}>
+                                <ArrowLeft className="h-5 w-5" />
+                                <span className="sr-only">Back</span>
+                            </Button>
                             <CardTitle>Customer Login</CardTitle>
                             <CardDescription>Welcome back! Please sign in to your account.</CardDescription>
                         </CardHeader>
