@@ -13,7 +13,7 @@ import Link from "next/link";
 export default function AdminLoginPage() {
     const router = useRouter();
     const { toast } = useToast();
-    const [email, setEmail] = useState('');
+    const [id, setId] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (email === 'admin' && password === 'admin') {
+        if (id === 'admin' && password === 'admin') {
             toast({
                 title: "Login Successful",
                 description: "Redirecting to your dashboard...",
@@ -34,7 +34,7 @@ export default function AdminLoginPage() {
             toast({
                 variant: "destructive",
                 title: "Login Failed",
-                description: "Invalid email or password. Please try again.",
+                description: "Invalid ID or password. Please try again.",
             });
             setIsLoading(false);
         }
@@ -55,14 +55,14 @@ export default function AdminLoginPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="email">Email</Label>
+                                <Label htmlFor="id">Admin ID</Label>
                                 <Input 
-                                    id="email" 
-                                    type="email" 
+                                    id="id" 
+                                    type="text" 
                                     placeholder="admin" 
                                     required 
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    value={id}
+                                    onChange={(e) => setId(e.target.value)}
                                     disabled={isLoading}
                                 />
                             </div>
