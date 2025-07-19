@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Sidebar,
   SidebarHeader,
@@ -39,6 +39,11 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    router.push('/');
+  };
 
   const isActive = (href: string) => {
     if (href === '/dashboard') {
@@ -98,7 +103,7 @@ export function AppSidebar() {
                 <span className="font-semibold text-sm">Admin User</span>
                 <span className="text-xs text-muted-foreground/80">admin@buildora.com</span>
               </div>
-               <Button variant="ghost" size="icon" className="ml-auto group-data-[collapsible=icon]:hidden">
+               <Button variant="ghost" size="icon" className="ml-auto group-data-[collapsible=icon]:hidden" onClick={handleLogout}>
                   <LogOut className="h-5 w-5 text-muted-foreground/80" />
               </Button>
             </div>
