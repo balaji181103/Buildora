@@ -1,4 +1,7 @@
 
+'use client';
+
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -23,11 +26,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { customers } from "@/lib/data"
+import { customers as initialCustomers } from "@/lib/data"
 import { MoreHorizontal, PlusCircle, Star, Package } from "lucide-react"
 import Link from "next/link"
+import type { Customer } from "@/lib/types";
 
 export default function CustomersPage() {
+  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+
+  // This part would be replaced with a useEffect to fetch data from a database in a real app
+  // For now, it just uses the initial data.
+
   return (
     <Card>
       <CardHeader>
