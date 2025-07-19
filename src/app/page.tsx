@@ -15,7 +15,7 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+          <Link href="/login/admin" className="flex items-center gap-2 font-bold text-xl">
             <Rocket className="w-7 h-7 text-primary" />
             <span>Buildora</span>
           </Link>
@@ -23,15 +23,12 @@ export default function LandingPage() {
             <Button variant="ghost" asChild>
               <Link href="/login/customer">Customer Login</Link>
             </Button>
-            <Button asChild>
-              <Link href="/login/admin">Admin Login</Link>
-            </Button>
           </nav>
         </div>
       </header>
 
       <main className="flex-1">
-        <section className="w-full pt-12 pb-12 md:pt-16 md:pb-24 lg:pt-20 lg:pb-32 bg-muted/40">
+        <section className="w-full pt-12 pb-12 md:pt-16 md:pb-24 lg:pt-20 lg:pb-32">
             <div className="container px-4 md:px-6 grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
                 <div className="space-y-4">
                     <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
