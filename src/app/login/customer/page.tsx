@@ -1,14 +1,23 @@
+
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Rocket } from "lucide-react";
+import { Rocket, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CustomerLoginPage() {
+    const router = useRouter();
+
     return (
         <div className="flex items-center justify-center min-h-screen bg-muted">
              <div className="w-full max-w-md mx-4">
+                <Button variant="ghost" className="absolute top-4 left-4" onClick={() => router.push('/')}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Home
+                </Button>
                 <Link href="/" className="flex items-center justify-center gap-2 font-bold text-2xl mb-8">
                     <Rocket className="w-8 h-8 text-primary" />
                     <span>Buildora</span>
