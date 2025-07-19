@@ -21,7 +21,7 @@ export default function CustomerLoginPage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
-                            <Input id="email" type="email" placeholder="you@example.com" required />
+                            <Input id="email" type="email" required />
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
