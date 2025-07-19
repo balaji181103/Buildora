@@ -110,14 +110,14 @@ export default function LandingPage() {
 
         <section id="features" className="bg-muted py-16 md:py-24" ref={featuresRef}>
             <div className="container mx-auto px-4 md:px-6">
-                <div className={cn("mx-auto max-w-3xl text-center opacity-0", featuresInView && "animate-in fade-in-0 slide-in-from-bottom-8 duration-1000")}>
+                <div className={cn("mx-auto max-w-3xl text-center", featuresInView ? "animate-in fade-in-0 slide-in-from-bottom-8 duration-1000" : "opacity-0")}>
                     <h2 className="text-3xl font-bold tracking-tight md:text-4xl">The Future of Construction is Here</h2>
                     <p className="mt-4 text-lg text-muted-foreground">
                         Streamline your supply chain with our intelligent, automated platform.
                     </p>
                 </div>
                 <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
-                    <div className={cn("opacity-0", featuresInView && "animate-in fade-in-0 slide-in-from-left-8 duration-1000 delay-100")}>
+                    <div className={cn(featuresInView ? "animate-in fade-in-0 slide-in-from-left-8 duration-1000 delay-100" : "opacity-0")}>
                         <Card className="transition-transform duration-300 hover:scale-105 hover:-translate-y-2 h-full">
                             <CardHeader className="items-center text-center">
                                 <div className="rounded-full bg-primary/10 p-4 text-primary">
@@ -132,7 +132,7 @@ export default function LandingPage() {
                             </CardContent>
                         </Card>
                     </div>
-                    <div className={cn("opacity-0", featuresInView && "animate-in fade-in-0 slide-in-from-bottom-8 duration-1000 delay-200")}>
+                    <div className={cn(featuresInView ? "animate-in fade-in-0 slide-in-from-bottom-8 duration-1000 delay-200" : "opacity-0")}>
                          <Card className="transition-transform duration-300 hover:scale-105 hover:-translate-y-2 h-full">
                             <CardHeader className="items-center text-center">
                                 <div className="rounded-full bg-primary/10 p-4 text-primary">
@@ -147,7 +147,7 @@ export default function LandingPage() {
                             </CardContent>
                         </Card>
                     </div>
-                    <div className={cn("opacity-0", featuresInView && "animate-in fade-in-0 slide-in-from-right-8 duration-1000 delay-300")}>
+                    <div className={cn(featuresInView ? "animate-in fade-in-0 slide-in-from-right-8 duration-1000 delay-300" : "opacity-0")}>
                          <Card className="transition-transform duration-300 hover:scale-105 hover:-translate-y-2 h-full">
                             <CardHeader className="items-center text-center">
                                 <div className="rounded-full bg-primary/10 p-4 text-primary">
@@ -169,7 +169,7 @@ export default function LandingPage() {
         <section id="about" className="py-16 md:py-24 overflow-x-hidden" ref={aboutRef}>
             <div className="container mx-auto px-4 md:px-6">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div className={cn("space-y-4 opacity-0", aboutInView && "animate-in fade-in-0 slide-in-from-left-12 duration-1000")}>
+                    <div className={cn("space-y-4", aboutInView ? "animate-in fade-in-0 slide-in-from-left-12 duration-1000" : "opacity-0")}>
                          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">About Buildora</h2>
                          <p className="text-muted-foreground">
                             Founded by a team of construction veterans and tech innovators, Buildora was born from a simple observation: construction projects are consistently plagued by logistical inefficiencies. Waiting for materials, incorrect orders, and cluttered sites cost time and money.
@@ -178,7 +178,7 @@ export default function LandingPage() {
                             We envisioned a future where the supply chain is as smart and automated as the buildings we construct. By integrating AI-powered logistics with a dual fleet of drones and trucks, we're not just delivering materials; we're delivering confidence, predictability, and a new standard of efficiency to the construction industry.
                          </p>
                     </div>
-                    <div className={cn("relative h-80 w-full opacity-0", aboutInView && "animate-in fade-in-0 slide-in-from-right-12 duration-1000")}>
+                    <div className={cn("relative h-80 w-full", aboutInView ? "animate-in fade-in-0 slide-in-from-right-12 duration-1000" : "opacity-0")}>
                         <Image
                             src="https://placehold.co/600x400.png"
                             alt="A team of construction workers and engineers collaborating"
