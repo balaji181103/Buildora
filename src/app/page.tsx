@@ -175,6 +175,32 @@ export default function LandingPage() {
                 </div>
             </div>
         </section>
+
+        <section id="about" className="py-16 md:py-24">
+            <div className="container mx-auto px-4 md:px-6">
+                <div className="grid md:grid-cols-2 gap-12 items-center">
+                    <div className="space-y-4">
+                         <h2 className="text-3xl font-bold tracking-tight md:text-4xl">About Buildora</h2>
+                         <p className="text-muted-foreground">
+                            Founded by a team of construction veterans and tech innovators, Buildora was born from a simple observation: construction projects are consistently plagued by logistical inefficiencies. Waiting for materials, incorrect orders, and cluttered sites cost time and money.
+                         </p>
+                         <p className="text-muted-foreground">
+                            We envisioned a future where the supply chain is as smart and automated as the buildings we construct. By integrating AI-powered logistics with a dual fleet of drones and trucks, we're not just delivering materials; we're delivering confidence, predictability, and a new standard of efficiency to the construction industry.
+                         </p>
+                    </div>
+                    <div className="relative h-80 w-full">
+                        <Image
+                            src="https://placehold.co/600x400.png"
+                            alt="A team of construction workers and engineers collaborating"
+                            fill
+                            className="object-cover rounded-lg"
+                            data-ai-hint="team collaboration"
+                        />
+                    </div>
+                </div>
+            </div>
+        </section>
+
       </main>
 
       <footer className="bg-muted">
