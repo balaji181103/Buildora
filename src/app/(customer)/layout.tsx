@@ -25,6 +25,8 @@ export default function CustomerLayout({
     router.push('/');
   };
 
+  const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -87,8 +89,8 @@ export default function CustomerLayout({
             <Link href="/cart">
               <ShoppingCart className="h-5 w-5"/>
               <span className="sr-only">Shopping Cart</span>
-              {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
+              {totalCartItems > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{totalCartItems}</span>
               )}
             </Link>
           </Button>
@@ -152,6 +154,19 @@ export default function CustomerLayout({
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
         {children}
       </main>
+
+      {/* Floating Cart Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button asChild size="icon" className="relative h-14 w-14 rounded-full shadow-lg">
+          <Link href="/cart">
+              <ShoppingCart className="h-6 w-6"/>
+              <span className="sr-only">Shopping Cart</span>
+              {totalCartItems > 0 && (
+                <span className="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">{totalCartItems}</span>
+              )}
+          </Link>
+        </Button>
+      </div>
     </div>
   )
 }
