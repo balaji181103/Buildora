@@ -50,7 +50,7 @@ export function AppSidebar() {
       <SidebarHeader className="h-16 flex items-center justify-center p-0 group-data-[collapsible=icon]:h-16 group-data-[collapsible=icon]:justify-center">
         <Link href="/dashboard" className="flex items-center gap-2.5 font-bold text-xl group-data-[collapsible=icon]:hidden">
           <Rocket className="w-7 h-7 text-primary" />
-          <span className="text-primary">Buil</span><span>dora</span>
+          <span>Buildora</span>
         </Link>
         <Link href="/dashboard" className="hidden items-center group-data-[collapsible=icon]:flex">
            <Rocket className="w-8 h-8 text-primary" />

@@ -72,7 +72,7 @@ export default function ProductsPage() {
                   )}
                 </TableCell>
                 <TableCell>{product.supplier}</TableCell>
-                <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+                <TableCell className="text-right">₹{product.price.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

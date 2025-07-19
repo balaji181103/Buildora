@@ -80,7 +80,7 @@ export default function OrdersPage() {
                 </TableCell>
                 <TableCell>{order.date}</TableCell>
                 <TableCell>{order.droneId}</TableCell>
-                <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                <TableCell className="text-right">₹{order.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

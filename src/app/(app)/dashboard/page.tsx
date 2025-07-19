@@ -16,12 +16,11 @@ import {
 import { Badge } from "@/components/ui/badge"
 import {
   Activity,
-  DollarSign,
+  IndianRupee,
   Users,
   Package,
   Wrench,
   AlertTriangle,
-  ArrowUp,
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -39,10 +38,10 @@ export default function DashboardPage() {
             <CardTitle className="text-sm font-medium">
               Total Revenue
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <IndianRupee className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">₹3,754,246.87</div>
             <p className="text-xs text-muted-foreground">
               +20.1% from last month
             </p>
@@ -140,7 +139,7 @@ export default function DashboardPage() {
                         {order.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">₹{order.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
