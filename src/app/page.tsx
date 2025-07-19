@@ -78,7 +78,7 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        <section className="relative w-full h-[70vh] md:h-[80vh] flex items-center justify-center">
+        <section className="relative w-full h-[70vh] md:h-[80vh]">
             <Carousel
               plugins={[plugin.current]}
               className="w-full h-full"
@@ -89,19 +89,18 @@ export default function LandingPage() {
               <CarouselContent className="h-full">
                 {slides.map((slide, index) => (
                   <CarouselItem key={index} className="h-full">
-                    <div className="w-full h-full relative">
+                    <div className="relative w-full h-full">
                        <Image
                           src={slide.image.src}
                           alt={slide.image.alt}
                           fill
-                          objectFit="cover"
-                          className="brightness-50"
+                          className="object-cover brightness-50"
                           data-ai-hint={slide.image.hint}
                           priority={index === 0}
                       />
-                      <div className="absolute inset-0 flex items-center justify-center text-center">
-                        <div className="container relative z-10 mx-auto px-4 md:px-6 space-y-6 max-w-4xl">
-                           <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-white animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center text-white p-4">
+                        <div className="max-w-4xl space-y-6">
+                           <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
                               {slide.title}
                             </h1>
                             <p className="max-w-2xl mx-auto text-lg text-primary-foreground/80 animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-200">
