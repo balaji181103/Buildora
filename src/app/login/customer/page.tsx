@@ -26,7 +26,7 @@ export default function CustomerLoginPage() {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (email === 'customer' && password === 'customer') {
+        if (email === 'customer@gmail.com' && password === 'customer') {
             toast({
                 title: "Login Successful",
                 description: "Welcome back! Redirecting...",
