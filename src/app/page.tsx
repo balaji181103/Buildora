@@ -94,16 +94,16 @@ export default function LandingPage() {
                           src={slide.image.src}
                           alt={slide.image.alt}
                           fill
-                          className="object-cover brightness-50"
+                          className="object-cover brightness-[0.4]"
                           data-ai-hint={slide.image.hint}
                           priority={index === 0}
                       />
-                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center text-white p-4">
+                      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-4">
                         <div className="max-w-4xl space-y-6">
-                           <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
+                           <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl text-primary animate-in fade-in-0 slide-in-from-bottom-4 duration-1000">
                               {slide.title}
                             </h1>
-                            <p className="max-w-2xl mx-auto text-lg text-primary-foreground/80 animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-200">
+                            <p className="max-w-2xl mx-auto text-lg text-primary/80 animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-200">
                               {slide.description}
                             </p>
                             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-300">
