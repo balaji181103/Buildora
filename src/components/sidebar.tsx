@@ -50,7 +50,7 @@ export function AppSidebar() {
       <SidebarHeader className="h-16 flex items-center justify-center p-0 group-data-[collapsible=icon]:h-16 group-data-[collapsible=icon]:justify-center">
         <Link href="/dashboard" className="flex items-center gap-2.5 font-bold text-xl group-data-[collapsible=icon]:hidden">
           <Rocket className="w-7 h-7 text-primary" />
-          <span className="text-primary">Sky</span><span>Build</span>
+          <span className="text-primary">Buil</span><span>dora</span>
         </Link>
         <Link href="/dashboard" className="hidden items-center group-data-[collapsible=icon]:flex">
            <Rocket className="w-8 h-8 text-primary" />
@@ -94,7 +94,7 @@ export function AppSidebar() {
               </Avatar>
               <div className="flex flex-col group-data-[collapsible=icon]:hidden">
                 <span className="font-semibold text-sm">Admin User</span>
-                <span className="text-xs text-muted-foreground/80">admin@skybuild.com</span>
+                <span className="text-xs text-muted-foreground/80">admin@buildora.com</span>
               </div>
                <Button variant="ghost" size="icon" className="ml-auto group-data-[collapsible=icon]:hidden">
                   <LogOut className="h-5 w-5 text-muted-foreground/80" />
