@@ -22,23 +22,23 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { products } from "@/lib/data"
+import { trucks } from "@/lib/data"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
 import Link from "next/link"
 
-export default function ProductsPage() {
+export default function TrucksPage() {
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Products</CardTitle>
-            <CardDescription>Manage your product inventory and details. Products over 20kg are delivered by truck.</CardDescription>
+            <CardTitle>Trucks</CardTitle>
+            <CardDescription>Manage your fleet of delivery trucks for heavy products.</CardDescription>
           </div>
           <Button asChild size="sm" className="gap-1">
             <Link href="#">
               <PlusCircle className="h-4 w-4" />
-              Add Product
+              Add Truck
             </Link>
           </Button>
         </div>
@@ -47,34 +47,37 @@ export default function ProductsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Weight (kg)</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead className="text-right">Price</TableHead>
+              <TableHead>Truck ID</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Mileage (km)</TableHead>
+              <TableHead>Location</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium">{product.name}</TableCell>
+            {trucks.map((truck) => (
+              <TableRow key={truck.id}>
+                <TableCell className="font-medium">{truck.id}</TableCell>
                 <TableCell>
-                  <Badge variant="outline">{product.category}</Badge>
+                  <Badge 
+                    variant={
+                      truck.status === 'Idle' ? 'secondary' :
+                      truck.status === 'Maintenance' ? 'destructive' : 'default'
+                    }
+                    className={
+                      truck.status === 'Idle' ? 'bg-gray-500/20 text-gray-700 dark:text-gray-300' :
+                      truck.status === 'Maintenance' ? 'bg-red-500/20 text-red-700' :
+                      truck.status === 'Delivering' ? 'bg-blue-500/20 text-blue-700' :
+                      'bg-yellow-500/20 text-yellow-700'
+                    }
+                  >
+                    {truck.status}
+                  </Badge>
                 </TableCell>
-                <TableCell>
-                  {product.stock < 10 ? (
-                    <span className="text-destructive font-semibold">{product.stock} (Low)</span>
-                  ) : (
-                    <span>{product.stock}</span>
-                  )}
-                </TableCell>
-                <TableCell>{product.weight.toFixed(1)}</TableCell>
-                <TableCell>{product.supplier}</TableCell>
-                <TableCell className="text-right">₹{product.price.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
+                <TableCell>{truck.mileage.toLocaleString('en-IN')}</TableCell>
+                <TableCell>{truck.location}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -85,8 +88,9 @@ export default function ProductsPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Delete</DropdownMenuItem>
+                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                      <DropdownMenuItem>Assign Delivery</DropdownMenuItem>
+                      <DropdownMenuItem>Schedule Maintenance</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

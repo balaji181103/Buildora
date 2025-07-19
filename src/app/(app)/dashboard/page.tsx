@@ -49,7 +49,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
-        <Link href="/drones">
+        <Link href="/orders">
             <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -164,7 +164,7 @@ export default function DashboardPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                     <CardTitle>Inventory & Maintenance Alerts</CardTitle>
-                    <CardDescription>Critical alerts that require immediate attention.</CardDescription>
+                    <CardDescription>Critical alerts that require immediate attention. For lightweight products, drones will be used for delivery. For heavy products, trucks will be used.</CardDescription>
                 </div>
                 <Button asChild size="sm" className="ml-auto gap-1">
                   <Link href="/products">

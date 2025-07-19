@@ -23,11 +23,13 @@ import {
   Settings,
   Wrench,
   LogOut,
+  Truck
 } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/drones', icon: Rocket, label: 'Drones' },
+  { href: '/trucks', icon: Truck, label: 'Trucks' },
   { href: '/orders', icon: Package, label: 'Orders' },
   { href: '/products', icon: Boxes, label: 'Products' },
   { href: '/customers', icon: Users, label: 'Customers' },

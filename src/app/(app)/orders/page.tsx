@@ -23,7 +23,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { allOrders } from "@/lib/data"
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Rocket, Truck } from "lucide-react"
 import Link from "next/link"
 
 export default function OrdersPage() {
@@ -33,7 +33,9 @@ export default function OrdersPage() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Orders</CardTitle>
-            <CardDescription>Manage and track all customer orders.</CardDescription>
+            <CardDescription>
+              Manage and track all customer orders. Lightweight items are delivered by drone, heavy items by truck.
+            </CardDescription>
           </div>
           <Button asChild size="sm" className="gap-1">
             <Link href="#">
@@ -51,7 +53,7 @@ export default function OrdersPage() {
               <TableHead>Customer</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Drone</TableHead>
+              <TableHead>Delivery Info</TableHead>
               <TableHead className="text-right">Total</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
@@ -59,7 +61,13 @@ export default function OrdersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {allOrders.map((order) => (
+            {allOrders.length === 0 ? (
+                <TableRow>
+                    <TableCell colSpan={7} className="h-24 text-center">
+                        No orders found.
+                    </TableCell>
+                </TableRow>
+            ) : allOrders.map((order) => (
               <TableRow key={order.id}>
                 <TableCell className="font-medium">{order.id}</TableCell>
                 <TableCell>{order.customer}</TableCell>
@@ -79,7 +87,12 @@ export default function OrdersPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>{order.date}</TableCell>
-                <TableCell>{order.droneId}</TableCell>
+                <TableCell>
+                    <div className="flex items-center gap-2">
+                        {order.deliveryMethod === 'Drone' ? <Rocket className="h-4 w-4 text-muted-foreground" /> : <Truck className="h-4 w-4 text-muted-foreground" />}
+                        {order.deliveryVehicleId}
+                    </div>
+                </TableCell>
                 <TableCell className="text-right">₹{order.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                 <TableCell>
                   <DropdownMenu>

@@ -7,13 +7,22 @@ export type Drone = {
   lastMaintenance: string;
 };
 
+export type Truck = {
+  id: string;
+  status: 'Idle' | 'Delivering' | 'Returning' | 'Maintenance';
+  location: string;
+  mileage: number;
+  lastMaintenance: string;
+};
+
 export type Order = {
   id: string;
   customer: string;
   status: 'Pending' | 'Processing' | 'Delivered' | 'Cancelled';
   date: string;
   total: number;
-  droneId: string;
+  deliveryMethod: 'Drone' | 'Truck';
+  deliveryVehicleId: string;
 };
 
 export type Product = {
@@ -23,4 +32,5 @@ export type Product = {
   stock: number;
   price: number;
   supplier: string;
+  weight: number; // in kg
 };

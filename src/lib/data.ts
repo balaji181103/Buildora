@@ -1,4 +1,4 @@
-import type { Drone, Order, Product } from '@/lib/types';
+import type { Drone, Order, Product, Truck } from '@/lib/types';
 
 export const drones: Drone[] = [
   { id: 'SB-001', status: 'Idle', battery: 100, location: 'Warehouse A', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
@@ -8,15 +8,20 @@ export const drones: Drone[] = [
   { id: 'SB-005', status: 'Idle', battery: 100, location: 'Warehouse B', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
 ];
 
+export const trucks: Truck[] = [
+    { id: 'TR-01', status: 'Idle', location: 'Main Depot', mileage: 12500, lastMaintenance: '2024-05-01' },
+    { id: 'TR-02', status: 'Idle', location: 'Main Depot', mileage: 8300, lastMaintenance: '2024-06-15' },
+];
+
 export const recentOrders: Order[] = [];
 
 export const allOrders: Order[] = [];
 
 
 export const products: Product[] = [
-    { id: 'PROD-001', name: 'Power Drill Kit', category: 'Tools', stock: 0, price: 0, supplier: 'ToolMaster' },
-    { id: 'PROD-002', name: 'Concrete Mix (50lb)', category: 'Materials', stock: 0, price: 0, supplier: 'Cemex' },
-    { id: 'PROD-003', name: 'Safety Goggles (12-pack)', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo' },
-    { id: 'PROD-004', name: 'I-Beam Steel 10ft', category: 'Structural', stock: 0, price: 0, supplier: 'SteelWorks' },
-    { id: 'PROD-005', name: 'Hard Hat - Orange', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo' },
+    { id: 'PROD-001', name: 'Power Drill Kit', category: 'Tools', stock: 0, price: 0, supplier: 'ToolMaster', weight: 5 }, // Lightweight, can be delivered by drone
+    { id: 'PROD-002', name: 'Concrete Mix (50lb)', category: 'Materials', stock: 0, price: 0, supplier: 'Cemex', weight: 22.7 }, // Heavy, requires a truck
+    { id: 'PROD-003', name: 'Safety Goggles (12-pack)', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo', weight: 1 }, // Lightweight, can be delivered by drone
+    { id: 'PROD-004', name: 'I-Beam Steel 10ft', category: 'Structural', stock: 0, price: 0, supplier: 'SteelWorks', weight: 90 }, // Heavy, requires a truck
+    { id: 'PROD-005', name: 'Hard Hat - Orange', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo', weight: 0.5 }, // Lightweight, can be delivered by drone
 ];
