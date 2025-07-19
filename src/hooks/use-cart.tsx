@@ -2,12 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Product } from "@/lib/types"
-
-export type CartItem = {
-  product: Product
-  quantity: number
-}
+import type { Product, CartItem } from "@/lib/types"
 
 type CartContextType = {
   cart: CartItem[]
@@ -17,12 +12,12 @@ type CartContextType = {
   clearCart: () => void
 }
 
-const CartContext = React.createContext<CartContextType | undefined>(undefined)
+export const CartContext = React.createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = React.useState<CartItem[]>([])
 
-  const addItem = (product: Product, quantity: number = 1) => {
+  const addItem = React.useCallback((product: Product, quantity: number = 1) => {
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.product.id === product.id)
       if (existingItem) {
@@ -34,13 +29,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       return [...prevCart, { product, quantity }]
     })
-  }
+  }, [])
 
-  const removeItem = (productId: string) => {
+  const removeItem = React.useCallback((productId: string) => {
     setCart(prevCart => prevCart.filter(item => item.product.id !== productId))
-  }
+  }, [])
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = React.useCallback((productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(productId)
     } else {
@@ -50,22 +45,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         )
       )
     }
-  }
+  }, [removeItem])
 
-  const clearCart = () => {
+  const clearCart = React.useCallback(() => {
     setCart([])
-  }
+  }, [])
 
-  const value = {
+  const value = React.useMemo(() => ({
     cart,
     addItem,
     removeItem,
     updateQuantity,
     clearCart,
-  }
+  }), [cart, addItem, removeItem, updateQuantity, clearCart]);
 
-  return (<CartContext.Provider value={value}>{children}</CartContext.Provider>)
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
+
 
 export const useCart = () => {
   const context = React.useContext(CartContext)
