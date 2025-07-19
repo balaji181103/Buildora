@@ -24,7 +24,7 @@ export const allOrders: Order[] = [
 ];
 
 
-export const products: Product[] = [
+export let products: Product[] = [
     { id: 'PROD-001', name: 'Power Drill Kit', category: 'Tools', stock: 0, price: 0, supplier: 'ToolMaster', weight: 5, dimensions: { length: 40, width: 30, height: 15 } }, // Lightweight, can be delivered by drone
     { id: 'PROD-002', name: 'Concrete Mix (50lb)', category: 'Materials', stock: 0, price: 0, supplier: 'Cemex', weight: 22.7, dimensions: { length: 60, width: 40, height: 15 } }, // Heavy, requires a truck
     { id: 'PROD-003', name: 'Safety Goggles (12-pack)', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo', weight: 1, dimensions: { length: 25, width: 20, height: 10 } }, // Lightweight, can be delivered by drone
@@ -32,7 +32,7 @@ export const products: Product[] = [
     { id: 'PROD-005', name: 'Hard Hat - Orange', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo', weight: 0.5, dimensions: { length: 30, width: 25, height: 20 } }, // Lightweight, can be delivered by drone
 ];
 
-export const suppliers: Supplier[] = [
+export let suppliers: Supplier[] = [
     { id: 'SUP-001', name: 'ToolMaster', contactPerson: 'Rajesh Kumar', email: 'rajesh@toolmaster.com', phone: '+91 8877665544', productCount: 1 },
     { id: 'SUP-002', name: 'Cemex', contactPerson: 'Sunita Patel', email: 'sunita.p@cemex.in', phone: '+91 8877665533', productCount: 1 },
     { id: 'SUP-003', name: 'SafeCo', contactPerson: 'Amit Singh', email: 'amit.singh@safeco.biz', phone: '+91 8877665522', productCount: 2 },
@@ -46,7 +46,7 @@ const priyaAddresses: Address[] = [
 ];
 
 
-export const customers: Customer[] = [
+export let customers: Customer[] = [
     { id: 'CUST-001', name: 'Priya Sharma', email: 'priya.sharma@example.com', status: 'Active', loyaltyPoints: 0, orderCount: 0, addresses: priyaAddresses },
     { id: 'CUST-002', name: 'Rohan Gupta', email: 'rohan.gupta@example.com', status: 'Active', loyaltyPoints: 0, orderCount: 0, addresses: [] },
     { id: 'CUST-003', name: 'Anjali Verma', email: 'anjali.verma@example.com', status: 'Active', loyaltyPoints: 0, orderCount: 0, addresses: [] },

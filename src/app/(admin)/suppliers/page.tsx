@@ -24,14 +24,35 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { suppliers as initialSuppliers } from "@/lib/data"
+import { suppliers as initialSuppliers, products } from "@/lib/data"
 import { MoreHorizontal, PlusCircle, Building2 } from "lucide-react"
-import Link from "next/link"
 import type { Supplier } from "@/lib/types";
+import { AddSupplierForm } from "./add-supplier-form";
 
 export default function SuppliersPage() {
   const [suppliers, setSuppliers] = React.useState<Supplier[]>(initialSuppliers);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+
+  const handleSupplierAdded = (newSupplier: Supplier) => {
+    setSuppliers(prevSuppliers => [...prevSuppliers, newSupplier]);
+    setIsDialogOpen(false);
+  };
+  
+  const getSupplierProductCategories = (supplierName: string) => {
+      const supplierProducts = products.filter(p => p.supplier === supplierName);
+      const categories = new Set(supplierProducts.map(p => p.category));
+      return Array.from(categories);
+  }
 
   return (
     <Card>
@@ -46,12 +67,23 @@ export default function SuppliersPage() {
               Manage your product suppliers and their contact information.
             </CardDescription>
           </div>
-          <Button asChild size="sm" className="gap-1">
-            <Link href="#">
-              <PlusCircle className="h-4 w-4" />
-              Add Supplier
-            </Link>
-          </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1">
+                  <PlusCircle className="h-4 w-4" />
+                  Add Supplier
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[525px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Supplier</DialogTitle>
+                  <DialogDescription>
+                    Enter the details of the new supplier below.
+                  </DialogDescription>
+                </DialogHeader>
+                <AddSupplierForm onSupplierAdded={handleSupplierAdded} />
+              </DialogContent>
+            </Dialog>
         </div>
       </CardHeader>
       <CardContent>
@@ -59,9 +91,8 @@ export default function SuppliersPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Supplier Name</TableHead>
-              <TableHead>Contact Person</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Product Categories</TableHead>
               <TableHead className="text-right">Products</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
@@ -74,9 +105,18 @@ export default function SuppliersPage() {
                 <TableCell className="font-medium">
                   {supplier.name}
                 </TableCell>
-                <TableCell>{supplier.contactPerson}</TableCell>
-                <TableCell className="text-muted-foreground">{supplier.email}</TableCell>
-                <TableCell className="text-muted-foreground">{supplier.phone}</TableCell>
+                <TableCell>
+                    <div>{supplier.contactPerson}</div>
+                    <div className="text-sm text-muted-foreground">{supplier.email}</div>
+                    <div className="text-sm text-muted-foreground">{supplier.phone}</div>
+                </TableCell>
+                <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                        {getSupplierProductCategories(supplier.name).map(category => (
+                            <Badge key={category} variant="secondary">{category}</Badge>
+                        ))}
+                    </div>
+                </TableCell>
                 <TableCell className="text-right">{supplier.productCount}</TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -90,6 +130,7 @@ export default function SuppliersPage() {
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
                       <DropdownMenuItem>View Products</DropdownMenuItem>
+                      <DropdownMenuItem disabled>View Purchase History</DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
