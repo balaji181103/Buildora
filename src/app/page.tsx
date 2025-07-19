@@ -30,11 +30,12 @@ export default function LandingPage() {
         >
            <div className="absolute inset-0 z-0">
                 <Image
-                    src="/background.png"
-                    alt="Drones flying"
+                    src="https://placehold.co/1200x800.png"
+                    alt="Drones flying over a construction site"
                     layout="fill"
                     objectFit="cover"
-                    className="opacity-20"
+                    className="opacity-10"
+                    data-ai-hint="drones construction"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background"></div>
             </div>
