@@ -33,4 +33,9 @@ export type Product = {
   price: number;
   supplier: string;
   weight: number; // in kg
+  dimensions: { // in cm
+    length: number;
+    width: number;
+    height: number;
+  };
 };

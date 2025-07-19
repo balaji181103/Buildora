@@ -33,7 +33,7 @@ export default function ProductsPage() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Products</CardTitle>
-            <CardDescription>Manage your product inventory and details. Products over 20kg are delivered by truck.</CardDescription>
+            <CardDescription>Manage your product inventory. Delivery method is determined by weight and dimensions.</CardDescription>
           </div>
           <Button asChild size="sm" className="gap-1">
             <Link href="#">
@@ -51,6 +51,7 @@ export default function ProductsPage() {
               <TableHead>Category</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Weight (kg)</TableHead>
+              <TableHead>Dimensions (cm)</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead className="text-right">Price</TableHead>
               <TableHead>
@@ -73,6 +74,7 @@ export default function ProductsPage() {
                   )}
                 </TableCell>
                 <TableCell>{product.weight.toFixed(1)}</TableCell>
+                <TableCell>{`${product.dimensions.length}x${product.dimensions.width}x${product.dimensions.height}`}</TableCell>
                 <TableCell>{product.supplier}</TableCell>
                 <TableCell className="text-right">₹{product.price.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                 <TableCell>
