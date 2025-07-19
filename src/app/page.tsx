@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Rocket, Hammer, ShieldCheck, BrainCircuit, ArrowRight } from "lucide-react";
+import { Rocket, Hammer, ShieldCheck, BrainCircuit, ArrowRight, Calculator } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -70,9 +70,9 @@ export default function LandingPage() {
         <section id="features" className="bg-muted py-16 md:py-24">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="mx-auto max-w-3xl text-center">
-                    <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Why Choose Buildora?</h2>
+                    <h2 className="text-3xl font-bold tracking-tight md:text-4xl">The Future of Construction is Here</h2>
                     <p className="mt-4 text-lg text-muted-foreground">
-                        Streamline your supply chain with our intelligent logistics platform.
+                        Streamline your supply chain with our intelligent, automated platform.
                     </p>
                 </div>
                 <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
@@ -81,11 +81,24 @@ export default function LandingPage() {
                             <div className="rounded-full bg-primary/10 p-4 text-primary">
                                 <Rocket className="h-8 w-8" />
                             </div>
-                            <CardTitle className="mt-4">Speed & Efficiency</CardTitle>
+                            <CardTitle className="mt-4">Autonomous Drone & Truck Fleet</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <CardDescription className="text-center">
-                                Get lightweight materials delivered in minutes via our drone fleet, and heavy goods scheduled perfectly with our trucks.
+                                Get lightweight materials delivered in minutes via drone, and heavy goods scheduled perfectly with our trucks. Less site traffic, more productivity.
+                            </CardDescription>
+                        </CardContent>
+                    </Card>
+                     <Card>
+                        <CardHeader className="items-center text-center">
+                            <div className="rounded-full bg-primary/10 p-4 text-primary">
+                                <Calculator className="h-8 w-8" />
+                            </div>
+                            <CardTitle className="mt-4">AI-Powered Material Estimator</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <CardDescription className="text-center">
+                                Input your project dimensions and let our AI calculate the exact amount of materials needed. Reduce waste and save on costs.
                             </CardDescription>
                         </CardContent>
                     </Card>
@@ -94,24 +107,11 @@ export default function LandingPage() {
                             <div className="rounded-full bg-primary/10 p-4 text-primary">
                                 <BrainCircuit className="h-8 w-8" />
                             </div>
-                            <CardTitle className="mt-4">AI-Powered Logistics</CardTitle>
+                            <CardTitle className="mt-4">Predictive Logistics</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <CardDescription className="text-center">
-                                Avoid costly delays. Our predictive AI and real-time tracking ensure your crew is never waiting for supplies.
-                            </CardDescription>
-                        </CardContent>
-                    </Card>
-                     <Card>
-                        <CardHeader className="items-center text-center">
-                            <div className="rounded-full bg-primary/10 p-4 text-primary">
-                                <ShieldCheck className="h-8 w-8" />
-                            </div>
-                            <CardTitle className="mt-4">Safety & Reliability</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <CardDescription className="text-center">
-                                Our robust system minimizes on-site traffic and ensures secure, confirmed deliveries every time.
+                                Our AI analyzes your project progress and vehicle data to anticipate needs and prevent downtime, ensuring your crew is never left waiting.
                             </CardDescription>
                         </CardContent>
                     </Card>
@@ -137,7 +137,7 @@ export default function LandingPage() {
                             alt="A team of construction workers and engineers collaborating"
                             fill
                             className="object-cover rounded-lg"
-                            data-ai-hint="team collaboration"
+                            data-ai-hint="construction team"
                         />
                     </div>
                 </div>
