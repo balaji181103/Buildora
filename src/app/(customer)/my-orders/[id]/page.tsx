@@ -111,7 +111,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                      <div>
                         <p className="font-medium">Delivery Method</p>
                         <div className="text-sm text-muted-foreground flex items-center gap-2">
-                           {order.deliveryMethod === 'Drone' ? <Truck className="h-4 w-4" /> : <Package className="h-4 w-4" />}
+                           {order.deliveryMethod === 'Drone' ? <Rocket className="h-4 w-4" /> : <Truck className="h-4 w-4" />}
                             <span>{order.deliveryMethod} ({order.deliveryVehicleId})</span>
                         </div>
                     </div>

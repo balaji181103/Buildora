@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Mail, Phone, Home, Star, Package } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Home, Star, Package, Rocket } from 'lucide-react';
 
 export default function CustomerProfilePage({ params }: { params: { id: string } }) {
   const router = useRouter();
