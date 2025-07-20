@@ -17,10 +17,12 @@ export type Truck = {
   lastMaintenance: string;
 };
 
+export type OrderStatus = 'Pending' | 'Processing' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
+
 export type Order = {
   id: string;
   customer: string;
-  status: 'Pending' | 'Processing' | 'Delivered' | 'Cancelled';
+  status: OrderStatus;
   date: string;
   total: number;
   deliveryMethod: 'Drone' | 'Truck';

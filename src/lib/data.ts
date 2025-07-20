@@ -19,17 +19,18 @@ export const recentOrders: Order[] = [];
 
 export const allOrders: Order[] = [
     { id: 'ORD-001', customer: 'Priya Sharma', status: 'Delivered', date: '2024-07-20', total: 8500.00, deliveryMethod: 'Drone', deliveryVehicleId: 'SB-001' },
-    { id: 'ORD-002', customer: 'Priya Sharma', status: 'Processing', date: '2024-07-22', total: 12000.50, deliveryMethod: 'Truck', deliveryVehicleId: 'TR-01' },
-    { id: 'ORD-003', customer: 'Priya Sharma', status: 'Cancelled', date: '2024-07-15', total: 450.75, deliveryMethod: 'Drone', deliveryVehicleId: 'SB-003' },
+    { id: 'ORD-002', customer: 'Priya Sharma', status: 'Out for Delivery', date: '2024-07-23', total: 12000.50, deliveryMethod: 'Truck', deliveryVehicleId: 'TR-01' },
+    { id: 'ORD-003', customer: 'Rohan Gupta', status: 'Processing', date: '2024-07-24', total: 450.75, deliveryMethod: 'Drone', deliveryVehicleId: 'SB-003' },
+    { id: 'ORD-004', customer: 'Anjali Verma', status: 'Cancelled', date: '2024-07-15', total: 1500.00, deliveryMethod: 'Drone', deliveryVehicleId: 'SB-002' },
 ];
 
 
 export let products: Product[] = [
-    { id: 'PROD-001', name: 'Power Drill Kit', category: 'Tools', stock: 0, price: 0, supplier: 'ToolMaster', weight: 5, dimensions: { length: 40, width: 30, height: 15 } }, // Lightweight, can be delivered by drone
-    { id: 'PROD-002', name: 'Concrete Mix (50lb)', category: 'Materials', stock: 0, price: 0, supplier: 'Cemex', weight: 22.7, dimensions: { length: 60, width: 40, height: 15 } }, // Heavy, requires a truck
-    { id: 'PROD-003', name: 'Safety Goggles (12-pack)', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo', weight: 1, dimensions: { length: 25, width: 20, height: 10 } }, // Lightweight, can be delivered by drone
-    { id: 'PROD-004', name: 'I-Beam Steel 10ft', category: 'Structural', stock: 0, price: 0, supplier: 'SteelWorks', weight: 90, dimensions: { length: 305, width: 10, height: 10 } }, // Heavy, requires a truck
-    { id: 'PROD-005', name: 'Hard Hat - Orange', category: 'Safety Gear', stock: 0, price: 0, supplier: 'SafeCo', weight: 0.5, dimensions: { length: 30, width: 25, height: 20 } }, // Lightweight, can be delivered by drone
+    { id: 'PROD-001', name: 'Power Drill Kit', category: 'Tools', stock: 0, price: 4200, supplier: 'ToolMaster', weight: 5, dimensions: { length: 40, width: 30, height: 15 } }, // Lightweight, can be delivered by drone
+    { id: 'PROD-002', name: 'Concrete Mix (50lb)', category: 'Materials', stock: 0, price: 500, supplier: 'Cemex', weight: 22.7, dimensions: { length: 60, width: 40, height: 15 } }, // Heavy, requires a truck
+    { id: 'PROD-003', name: 'Safety Goggles (12-pack)', category: 'Safety Gear', stock: 0, price: 1200, supplier: 'SafeCo', weight: 1, dimensions: { length: 25, width: 20, height: 10 } }, // Lightweight, can be delivered by drone
+    { id: 'PROD-004', name: 'I-Beam Steel 10ft', category: 'Structural', stock: 0, price: 15000, supplier: 'SteelWorks', weight: 90, dimensions: { length: 305, width: 10, height: 10 } }, // Heavy, requires a truck
+    { id: 'PROD-005', name: 'Hard Hat - Orange', category: 'Safety Gear', stock: 0, price: 800, supplier: 'SafeCo', weight: 0.5, dimensions: { length: 30, width: 25, height: 20 } }, // Lightweight, can be delivered by drone
 ];
 
 export let suppliers: Supplier[] = [

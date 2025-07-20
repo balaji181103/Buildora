@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { allOrders as customerOrders } from "@/lib/data"
 import { ArrowRight, Package } from "lucide-react"
+import Link from "next/link";
 
 export default function MyOrdersPage() {
   // In a real application, you would fetch orders for the logged-in customer.
@@ -68,11 +69,13 @@ export default function MyOrdersPage() {
                                     <Badge
                                         variant={
                                             order.status === "Delivered" ? "default" :
-                                            order.status === "Processing" ? "secondary" : "destructive"
+                                            order.status === "Processing" ? "secondary" : 
+                                            order.status === "Out for Delivery" ? "secondary" : "destructive"
                                         }
                                         className={
                                             order.status === 'Delivered' ? 'bg-green-500/20 text-green-700' :
                                             order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700' :
+                                            order.status === 'Out for Delivery' ? 'bg-yellow-500/20 text-yellow-700' :
                                             'bg-red-500/20 text-red-700'
                                         }
                                     >
@@ -81,8 +84,10 @@ export default function MyOrdersPage() {
                                 </TableCell>
                                 <TableCell className="text-right">₹{order.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="outline" size="sm">
-                                        View Details <ArrowRight className="ml-2 h-4 w-4" />
+                                    <Button variant="outline" size="sm" asChild>
+                                        <Link href={`/my-orders/${order.id}`}>
+                                            Track Order <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Link>
                                     </Button>
                                 </TableCell>
                             </TableRow>
