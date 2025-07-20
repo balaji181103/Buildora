@@ -16,6 +16,11 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CreditCard, Home, PlusCircle, Rocket, Truck } from "lucide-react"
 import { customers } from "@/lib/data" // Assuming we get the logged in customer's data
 
+const deliveryOptions = {
+    standard: { name: 'Standard', cost: 500, description: '2-3 Business Days (For heavy items)', icon: Truck },
+    express: { name: 'Express Drone', cost: 1200, description: 'Within 24 Hours (For light items)', icon: Rocket },
+};
+
 export default function CheckoutPage() {
     const { cart } = useCart();
     const [selectedAddressId, setSelectedAddressId] = React.useState<string | undefined>(undefined);
@@ -23,6 +28,21 @@ export default function CheckoutPage() {
     
     // In a real app, you'd fetch the logged-in user. We'll use the first customer as a mock.
     const customer = customers[0]; 
+
+    const totalWeight = React.useMemo(() => {
+        return cart.reduce((acc, item) => acc + (item.product.weight * item.quantity), 0);
+    }, [cart]);
+
+    const isDroneDeliveryAvailable = totalWeight <= 5;
+    const [selectedDeliveryMethod, setSelectedDeliveryMethod] = React.useState(
+        isDroneDeliveryAvailable ? 'express' : 'standard'
+    );
+
+    React.useEffect(() => {
+        if (!isDroneDeliveryAvailable) {
+            setSelectedDeliveryMethod('standard');
+        }
+    }, [isDroneDeliveryAvailable]);
 
     React.useEffect(() => {
         if (customer.addresses && customer.addresses.length > 0) {
@@ -37,7 +57,7 @@ export default function CheckoutPage() {
         return cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
     }, [cart]);
 
-    const shippingCost = 500; // Mock shipping cost
+    const shippingCost = deliveryOptions[selectedDeliveryMethod as keyof typeof deliveryOptions]?.cost || 0;
     const taxes = subtotal * 0.18; // Mock 18% tax
     const total = subtotal + shippingCost + taxes;
 
@@ -148,31 +168,31 @@ export default function CheckoutPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Delivery Method</CardTitle>
-                            <CardDescription>Choose how you'd like your items delivered.</CardDescription>
+                            <CardDescription>Total cart weight: {totalWeight.toFixed(2)}kg. {isDroneDeliveryAvailable ? "Drone delivery is available." : "Drone delivery unavailable for orders over 5kg."}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <RadioGroup defaultValue="standard" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <RadioGroup value={selectedDeliveryMethod} onValueChange={setSelectedDeliveryMethod} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Label htmlFor="standard" className="flex flex-col gap-2 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:border-primary">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 font-semibold">
                                             <Truck className="h-5 w-5" />
-                                            Standard
+                                            {deliveryOptions.standard.name}
                                         </div>
                                          <RadioGroupItem value="standard" id="standard" />
                                     </div>
-                                    <p className="text-sm text-muted-foreground">2-3 Business Days (For heavy items)</p>
-                                    <p className="font-bold">₹500.00</p>
+                                    <p className="text-sm text-muted-foreground">{deliveryOptions.standard.description}</p>
+                                    <p className="font-bold">₹{deliveryOptions.standard.cost.toFixed(2)}</p>
                                 </Label>
-                                 <Label htmlFor="express" className="flex flex-col gap-2 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:border-primary">
+                                 <Label htmlFor="express" className={`flex flex-col gap-2 rounded-lg border p-4 ${isDroneDeliveryAvailable ? 'cursor-pointer hover:bg-accent has-[input:checked]:border-primary' : 'cursor-not-allowed bg-muted/50 opacity-50'}`}>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 font-semibold">
                                             <Rocket className="h-5 w-5" />
-                                            Express Drone
+                                            {deliveryOptions.express.name}
                                         </div>
-                                         <RadioGroupItem value="express" id="express" />
+                                         <RadioGroupItem value="express" id="express" disabled={!isDroneDeliveryAvailable} />
                                     </div>
-                                    <p className="text-sm text-muted-foreground">Within 24 Hours (For light items)</p>
-                                    <p className="font-bold">₹1,200.00</p>
+                                    <p className="text-sm text-muted-foreground">{deliveryOptions.express.description}</p>
+                                    <p className="font-bold">₹{deliveryOptions.express.cost.toFixed(2)}</p>
                                 </Label>
                              </RadioGroup>
                         </CardContent>
@@ -291,4 +311,5 @@ export default function CheckoutPage() {
             </div>
         </div>
     )
-}
+
+    
