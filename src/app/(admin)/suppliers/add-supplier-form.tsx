@@ -18,7 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { Supplier } from '@/lib/types';
-import { addSupplier } from '@/app/actions/suppliers';
+import { suppliers } from '@/lib/data';
 
 const SupplierFormSchema = z.object({
   name: z.string().min(1, 'Supplier name is required.'),
@@ -44,23 +44,23 @@ export function AddSupplierForm({ onSupplierAdded }: { onSupplierAdded: (supplie
   });
 
   function onSubmit(values: SupplierFormValues) {
-    startTransition(async () => {
-        const result = await addSupplier(values);
+    startTransition(() => {
+        const newSupplier: Supplier = {
+            id: `SUP-${String(suppliers.length + 1).padStart(3, '0')}`,
+            name: values.name,
+            contactPerson: values.contactPerson,
+            email: values.email,
+            phone: values.phone,
+            productCount: 0,
+        };
         
-        if (result.success && result.supplier) {
-            onSupplierAdded(result.supplier);
-            toast({
-                title: "Success",
-                description: "Supplier added successfully.",
-            });
-            form.reset();
-        } else {
-            toast({
-                variant: "destructive",
-                title: "Error",
-                description: result.error,
-            });
-        }
+        onSupplierAdded(newSupplier);
+        
+        toast({
+            title: "Success",
+            description: "Supplier added successfully.",
+        });
+        form.reset();
     });
   }
 

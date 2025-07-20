@@ -15,7 +15,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Rocket, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { addCustomer } from '@/app/actions/customers';
+import { customers } from '@/lib/data';
+import { Customer } from '@/lib/types';
+
 
 const SignupFormSchema = z.object({
   firstName: z.string().min(1, 'First name is required.'),
@@ -49,26 +51,23 @@ export default function CustomerSignupPage() {
     });
 
     function onSubmit(values: SignupFormValues) {
-        startTransition(async () => {
-            const result = await addCustomer({
-                firstName: values.firstName,
-                lastName: values.lastName,
+        startTransition(() => {
+             const newCustomer: Customer = {
+                id: `CUST-${String(customers.length + 1).padStart(3, '0')}`,
+                name: `${values.firstName} ${values.lastName}`,
                 email: values.email,
-            });
+                status: 'Active',
+                loyaltyPoints: 0,
+                orderCount: 0,
+                addresses: [],
+            };
+            customers.push(newCustomer);
 
-            if (result.success) {
-                toast({
-                    title: "Account Created!",
-                    description: "You have successfully signed up. Please log in.",
-                });
-                router.push('/login/customer');
-            } else {
-                toast({
-                    variant: "destructive",
-                    title: "Signup Failed",
-                    description: result.error,
-                });
-            }
+            toast({
+                title: "Account Created!",
+                description: "You have successfully signed up. Please log in.",
+            });
+            router.push('/login/customer');
         });
     }
 

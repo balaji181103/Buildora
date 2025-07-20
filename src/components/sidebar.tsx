@@ -22,7 +22,6 @@ import {
   Boxes,
   BarChart3,
   Settings,
-  Wrench,
   LogOut,
   Truck,
   Building2,
@@ -39,7 +38,6 @@ const navItems = [
   { href: '/customers', icon: Users, label: 'Customers' },
   { href: '/suppliers', icon: Building2, label: 'Suppliers' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
-  { href: '/ai-tool', icon: Wrench, label: 'AI Maintenance' },
 ];
 
 export function AppSidebar() {
