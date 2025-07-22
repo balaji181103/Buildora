@@ -36,7 +36,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { allOrders, customers, products as allProducts } from "@/lib/data"
 import type { Order } from "@/lib/types";
-import { MoreHorizontal, PlusCircle, Rocket, Truck, FileText, Edit, Package } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Rocket, Truck, FileText, Edit, Package, Waypoints } from "lucide-react"
 import Link from "next/link"
 
 export default function OrdersPage() {
@@ -102,6 +102,7 @@ export default function OrdersPage() {
                       className={
                         order.status === 'Delivered' ? 'bg-green-500/20 text-green-700 dark:text-green-300' :
                         order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300' :
+                        order.status === 'Out for Delivery' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
                         'bg-red-500/20 text-red-700 dark:text-red-300'
                       }
                     >
@@ -126,16 +127,22 @@ export default function OrdersPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                         <DropdownMenuItem asChild>
+                           <Link href={`/orders/${order.id}`}>
+                              <Waypoints className="mr-2 h-4 w-4" />
+                              Track Order
+                           </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => handleViewDetails(order)}>
                             <Package className="mr-2 h-4 w-4" />
                             View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleViewDetails(order)}>
+                        <DropdownMenuItem>
                             <Edit className="mr-2 h-4 w-4" />
                             Update Status
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onSelect={() => handleViewDetails(order)}>
+                        <DropdownMenuItem>
                             <FileText className="mr-2 h-4 w-4" />
                             Generate Invoice
                         </DropdownMenuItem>

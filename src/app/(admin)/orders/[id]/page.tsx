@@ -1,0 +1,170 @@
+
+'use client';
+
+import { notFound, useRouter } from 'next/navigation';
+import { allOrders, customers, drones, trucks } from '@/lib/data';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Map, Waypoints, AlertTriangle, Battery, Gauge, User, MessageSquare, Undo2, Rocket, Truck as TruckIcon } from 'lucide-react';
+import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+
+export default function AdminOrderTrackingPage({ params }: { id: string }) {
+  const router = useRouter();
+  const order = allOrders.find((o) => o.id === params.id);
+  
+  if (!order) {
+    notFound();
+  }
+
+  const vehicle = order.deliveryMethod === 'Drone'
+    ? drones.find(d => d.id === order.deliveryVehicleId)
+    : trucks.find(t => t.id === order.deliveryVehicleId);
+
+  const customer = customers.find(c => c.name === order.customer);
+  
+  const renderVehicleDetails = () => {
+    if (order.deliveryMethod === 'Drone' && vehicle) {
+      const drone = vehicle as typeof drones[0];
+      return (
+        <div className="space-y-4">
+            <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2"><Rocket className="h-5 w-5" /> Drone Details</CardTitle>
+                <Badge variant="outline">{drone.id}</Badge>
+            </div>
+            <div className="text-sm space-y-2">
+                <p className="flex justify-between"><span>Status:</span> <span className="font-medium">{drone.status}</span></p>
+                <p className="flex justify-between"><span>Battery:</span> <span className="font-medium flex items-center gap-2"><Battery className="h-4 w-4" /> {drone.battery}%</span></p>
+                <p className="flex justify-between"><span>Speed:</span> <span className="font-medium flex items-center gap-2"><Gauge className="h-4 w-4" /> 45 km/h</span></p>
+                <p className="flex justify-between"><span>Location:</span> <span className="font-medium">{drone.location}</span></p>
+            </div>
+        </div>
+      );
+    }
+    if (order.deliveryMethod === 'Truck' && vehicle) {
+        const truck = vehicle as typeof trucks[0];
+        return (
+            <div className="space-y-4">
+                 <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2"><TruckIcon className="h-5 w-5" /> Truck Details</CardTitle>
+                    <Badge variant="outline">{truck.id}</Badge>
+                </div>
+                <div className="text-sm space-y-2">
+                    <p className="flex justify-between"><span>Status:</span> <span className="font-medium">{truck.status}</span></p>
+                    <p className="flex justify-between"><span>Speed:</span> <span className="font-medium flex items-center gap-2"><Gauge className="h-4 w-4" /> 60 km/h</span></p>
+                    <p className="flex justify-between"><span>Location:</span> <span className="font-medium">{truck.location}</span></p>
+                    <p className="flex justify-between"><span>Mileage:</span> <span className="font-medium">{truck.mileage.toLocaleString()} km</span></p>
+                </div>
+            </div>
+        );
+    }
+    return <p>Vehicle details not found.</p>;
+  }
+
+  const renderAlerts = () => {
+      if (order.deliveryMethod === 'Drone') {
+          return (
+             <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-1" />
+                <div>
+                    <p className="font-semibold text-yellow-700">Low Battery</p>
+                    <p className="text-sm text-yellow-600">Drone SB-002 battery at 18%. Risk of return-to-home failure.</p>
+                </div>
+            </div>
+          )
+      }
+      return (
+         <div className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+            <AlertTriangle className="h-5 w-5 text-red-600 mt-1" />
+            <div>
+                <p className="font-semibold text-red-700">Delivery Delay</p>
+                <p className="text-sm text-red-600">Truck TR-01 is experiencing traffic delays. Estimated arrival is now 3:45 PM.</p>
+            </div>
+        </div>
+      );
+  }
+
+  const renderActions = () => {
+    return (
+        <div className="grid grid-cols-2 gap-2">
+            {order.deliveryMethod === 'Drone' && (
+                <Button variant="outline"><Undo2 className="mr-2 h-4 w-4" /> Recall Drone</Button>
+            )}
+            <Button variant="outline" className={order.deliveryMethod === 'Truck' ? "col-span-2" : ""}>
+                <MessageSquare className="mr-2 h-4 w-4" /> Message Customer
+            </Button>
+        </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2"><Waypoints className="h-6 w-6" /> Live Order Tracking</h1>
+            <p className="text-muted-foreground">Monitoring Order ID: {order.id}</p>
+            </div>
+        </div>
+        <Badge variant="secondary" className="text-base py-1 px-3">{order.status}</Badge>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Map className="h-5 w-5"/> Delivery Map</CardTitle>
+                    <CardDescription>Real-time location of the delivery vehicle.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="aspect-video bg-muted rounded-lg relative overflow-hidden">
+                         <Image src="https://placehold.co/800x450.png" alt="Map view of delivery route" layout="fill" objectFit="cover" data-ai-hint="map delivery" />
+                         <div className="absolute top-1/4 left-1/4">
+                            <TruckIcon className="h-8 w-8 text-primary drop-shadow-lg animate-pulse" />
+                         </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+
+        <div className="lg:col-span-1 flex flex-col gap-6">
+            <Card>
+                <CardHeader>
+                    {renderVehicleDetails()}
+                </CardHeader>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><User className="h-5 w-5" /> Customer Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="font-semibold">{customer?.name}</p>
+                    <p className="text-sm text-muted-foreground">{customer?.email}</p>
+                    <Link href={`/customers/${customer?.id}`} className="text-sm text-primary hover:underline mt-2 inline-block">View Full Profile</Link>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5" /> Alerts</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {renderAlerts()}
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {renderActions()}
+                </CardContent>
+            </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
