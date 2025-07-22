@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import { allOrders, products as allProducts, drones, trucks, customers } from '@/lib/data';
 import { OrderStatusTracker } from '@/components/ui/order-status-tracker';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +12,10 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Map, Waypoints, AlertTriangle, Battery, Gauge, User, HelpCircle, Rocket, Truck as TruckIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default function CustomerOrderTrackingPage({ params: { id } }: { params: { id: string } }) {
+export default function CustomerOrderTrackingPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const order = allOrders.find(o => o.id === id);
   
   if (!order) {

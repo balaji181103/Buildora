@@ -1,7 +1,7 @@
 
 'use client';
 
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import { customers, allOrders } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,8 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Mail, Phone, Home, Star, Package, Rocket } from 'lucide-react';
 
-export default function CustomerProfilePage({ params: { id } }: { params: { id: string } }) {
+export default function CustomerProfilePage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const customer = customers.find((c) => c.id === id);
   
   if (!customer) {

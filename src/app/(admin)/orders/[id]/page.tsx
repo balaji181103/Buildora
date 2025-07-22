@@ -1,7 +1,7 @@
 
 'use client';
 
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import { allOrders, customers, drones, trucks } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,10 @@ import Link from 'next/link';
 import * as React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-export default function AdminOrderTrackingPage({ params: { id } }: { params: { id: string } }) {
+export default function AdminOrderTrackingPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
   const [isVideoOpen, setIsVideoOpen] = React.useState(false);
   const order = allOrders.find((o) => o.id === id);
   

@@ -54,7 +54,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { products } from "@/lib/data"
-import { notFound } from "next/navigation"
+import { notFound, useParams } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { Product } from "@/lib/types"
@@ -116,9 +116,11 @@ function ProductCard({ product }: { product: any }) {
     );
 }
 
-export default function ProductDetailsPage({ params: { id } }: { params: { id: string } }) {
+export default function ProductDetailsPage() {
     const { cart, addItem, updateQuantity } = useCart();
     const { toast } = useToast();
+    const params = useParams();
+    const id = params.id as string;
     
     const product = products.find(p => p.id === id)
     if (!product) {
