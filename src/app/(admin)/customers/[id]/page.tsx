@@ -10,9 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Mail, Phone, Home, Star, Package, Rocket } from 'lucide-react';
 
-export default function CustomerProfilePage({ params }: { params: { id: string } }) {
+export default function CustomerProfilePage({ params: { id } }: { params: { id: string } }) {
   const router = useRouter();
-  const customer = customers.find((c) => c.id === params.id);
+  const customer = customers.find((c) => c.id === id);
   
   if (!customer) {
     notFound();

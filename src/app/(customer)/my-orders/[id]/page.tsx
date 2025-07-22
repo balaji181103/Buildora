@@ -12,9 +12,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Map, Waypoints, AlertTriangle, Battery, Gauge, User, HelpCircle, Rocket, Truck as TruckIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-export default function CustomerOrderTrackingPage({ params }: { params: { id: string } }) {
+export default function CustomerOrderTrackingPage({ params: { id } }: { params: { id: string } }) {
   const router = useRouter();
-  const order = allOrders.find(o => o.id === params.id);
+  const order = allOrders.find(o => o.id === id);
   
   if (!order) {
     notFound();

@@ -116,11 +116,11 @@ function ProductCard({ product }: { product: any }) {
     );
 }
 
-export default function ProductDetailsPage({ params }: { params: { id: string } }) {
+export default function ProductDetailsPage({ params: { id } }: { params: { id: string } }) {
     const { cart, addItem, updateQuantity } = useCart();
     const { toast } = useToast();
     
-    const product = products.find(p => p.id === params.id)
+    const product = products.find(p => p.id === id)
     if (!product) {
         notFound()
     }
@@ -258,4 +258,3 @@ export default function ProductDetailsPage({ params }: { params: { id: string } 
         </div>
     )
 }
-

@@ -12,10 +12,10 @@ import Link from 'next/link';
 import * as React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-export default function AdminOrderTrackingPage({ params }: { id: string }) {
+export default function AdminOrderTrackingPage({ params: { id } }: { params: { id: string } }) {
   const router = useRouter();
   const [isVideoOpen, setIsVideoOpen] = React.useState(false);
-  const order = allOrders.find((o) => o.id === params.id);
+  const order = allOrders.find((o) => o.id === id);
   
   if (!order) {
     notFound();
