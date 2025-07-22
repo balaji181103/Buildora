@@ -6,46 +6,26 @@ import { cn } from "@/lib/utils";
 import { Check, Package, Rocket, Truck, ClipboardList, CheckCircle2, CircleDot } from "lucide-react";
 import type { OrderStatus } from "@/lib/types";
 
-const statusSteps = [
-    { name: "Order Placed", status: "Pending" },
-    { name: "Processing", status: "Processing" },
-    { name: "Out for Delivery", status: "Out for Delivery" },
-    { name: "Delivered", status: "Delivered" },
+const stepsData = [
+    { name: "Order Placed", icon: ClipboardList, status: 'Pending' },
+    { name: "Processing", icon: Package, status: 'Processing' },
+    { name: "Out for Delivery", icon: null, status: 'Out for Delivery' }, // Icon is dynamic
+    { name: "Delivered", icon: Check, status: 'Delivered' }
 ];
 
 export function OrderStatusTracker({ currentStatus, deliveryMethod }: { currentStatus: OrderStatus, deliveryMethod: 'Drone' | 'Truck' }) {
-    const currentStepIndex = statusSteps.findIndex(step => step.status === currentStatus);
-
-    const getStepIcon = (index: number) => {
-        if (index < currentStepIndex) {
-            return <CheckCircle2 className="h-6 w-6 text-primary" />;
-        }
-        if (index === currentStepIndex) {
-            return <CircleDot className="h-6 w-6 text-primary animate-pulse" />;
-        }
-        return <CircleDot className="h-6 w-6 text-muted-foreground/30" />;
-    };
-
-    const getConnectorClass = (index: number) => {
-        if (index < currentStepIndex) {
-            return "bg-primary";
-        }
-        return "bg-muted";
-    };
-
-    const getDeliveryIcon = () => {
+    const getDeliveryIcon = React.useCallback(() => {
         if (deliveryMethod === 'Drone') {
             return <Rocket className="h-5 w-5" />;
         }
         return <Truck className="h-5 w-5" />;
-    }
+    }, [deliveryMethod]);
 
-    const steps = [
-        { name: "Order Placed", icon: ClipboardList, status: 'Pending' },
-        { name: "Processing", icon: Package, status: 'Processing' },
-        { name: "Out for Delivery", icon: getDeliveryIcon(), status: 'Out for Delivery' },
-        { name: "Delivered", icon: Check, status: 'Delivered' }
-    ];
+    const steps = React.useMemo(() => {
+        return stepsData.map(step => 
+            step.status === 'Out for Delivery' ? { ...step, icon: getDeliveryIcon() } : step
+        );
+    }, [getDeliveryIcon]);
 
     const activeStepIndex = Math.max(0, steps.findIndex(s => s.status === currentStatus));
 
@@ -59,7 +39,7 @@ export function OrderStatusTracker({ currentStatus, deliveryMethod }: { currentS
                                 "flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-300",
                                 index <= activeStepIndex ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                             )}>
-                                {React.cloneElement(step.icon, { className: 'h-6 w-6' })}
+                                {step.icon ? React.cloneElement(step.icon, { className: 'h-6 w-6' }) : null}
                             </div>
                             <p className={cn(
                                 "text-sm font-medium transition-colors duration-300",
