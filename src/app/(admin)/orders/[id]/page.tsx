@@ -5,13 +5,16 @@ import { notFound, useRouter } from 'next/navigation';
 import { allOrders, customers, drones, trucks } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Map, Waypoints, AlertTriangle, Battery, Gauge, User, MessageSquare, Undo2, Rocket, Truck as TruckIcon } from 'lucide-react';
+import { ArrowLeft, Map, Waypoints, AlertTriangle, Battery, Gauge, User, MessageSquare, Undo2, Rocket, Truck as TruckIcon, Video } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import * as React from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export default function AdminOrderTrackingPage({ params }: { id: string }) {
   const router = useRouter();
+  const [isVideoOpen, setIsVideoOpen] = React.useState(false);
   const order = allOrders.find((o) => o.id === params.id);
   
   if (!order) {
@@ -89,9 +92,12 @@ export default function AdminOrderTrackingPage({ params }: { id: string }) {
     return (
         <div className="grid grid-cols-2 gap-2">
             {order.deliveryMethod === 'Drone' && (
-                <Button variant="outline"><Undo2 className="mr-2 h-4 w-4" /> Recall Drone</Button>
+                <>
+                    <Button variant="outline" onClick={() => setIsVideoOpen(true)}><Video className="mr-2 h-4 w-4" /> View Live Feed</Button>
+                    <Button variant="outline"><Undo2 className="mr-2 h-4 w-4" /> Recall Drone</Button>
+                </>
             )}
-            <Button variant="outline" className={order.deliveryMethod === 'Truck' ? "col-span-2" : ""}>
+            <Button variant="outline" className={order.deliveryMethod === 'Truck' ? "col-span-2" : "col-span-2"}>
                 <MessageSquare className="mr-2 h-4 w-4" /> Message Customer
             </Button>
         </div>
@@ -99,6 +105,7 @@ export default function AdminOrderTrackingPage({ params }: { id: string }) {
   }
 
   return (
+    <>
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -124,7 +131,10 @@ export default function AdminOrderTrackingPage({ params }: { id: string }) {
                     <div className="aspect-video bg-muted rounded-lg relative overflow-hidden">
                          <Image src="https://placehold.co/800x450.png" alt="Map view of delivery route" layout="fill" objectFit="cover" data-ai-hint="map delivery" />
                          <div className="absolute top-1/4 left-1/4">
-                            <TruckIcon className="h-8 w-8 text-primary drop-shadow-lg animate-pulse" />
+                            {order.deliveryMethod === 'Drone' ? 
+                                <Rocket className="h-8 w-8 text-primary drop-shadow-lg animate-pulse" /> : 
+                                <TruckIcon className="h-8 w-8 text-primary drop-shadow-lg animate-pulse" />
+                            }
                          </div>
                     </div>
                 </CardContent>
@@ -166,5 +176,20 @@ export default function AdminOrderTrackingPage({ params }: { id: string }) {
         </div>
       </div>
     </div>
+    <Dialog open={isVideoOpen} onOpenChange={setIsVideoOpen}>
+        <DialogContent className="max-w-4xl">
+            <DialogHeader>
+                <DialogTitle>Live Feed: {order.deliveryVehicleId}</DialogTitle>
+                <DialogDescription>
+                    Real-time video footage from the drone.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="aspect-video bg-black rounded-lg">
+                <p className="text-muted-foreground h-full flex items-center justify-center">Video feed placeholder</p>
+                {/* In a real app, a video player component would go here */}
+            </div>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
