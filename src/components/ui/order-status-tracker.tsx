@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import { cn } from "@/lib/utils";
 import { Check, Package, Rocket, Truck, ClipboardList, CheckCircle2, CircleDot } from "lucide-react";
 import type { OrderStatus } from "@/lib/types";
