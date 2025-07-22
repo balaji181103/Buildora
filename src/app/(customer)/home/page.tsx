@@ -7,16 +7,10 @@ import Image from "next/image"
 import {
   ListFilter,
   ShoppingCart,
-  Calculator,
-  Loader2,
-  AlertTriangle,
-  Plus,
-  Minus,
   Trash2,
+  Plus,
+  Minus
 } from "lucide-react"
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 
 import { Badge } from "@/components/ui/badge"
 import {
@@ -40,22 +34,10 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-  } from "@/components/ui/table"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-
 import {
   Select,
   SelectContent,
@@ -67,9 +49,9 @@ import { products } from "@/lib/data"
 import { Product } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast";
-import { Form, FormControl, FormField, FormItem, FormMessage, FormDescription, FormLabel } from "@/components/ui/form";
 import { HeroSection } from "./hero-section"
 import { useCart } from "@/hooks/use-cart";
+import { MaterialEstimator } from "./material-estimator"
 
 
 function ProductCard({ product }: { product: Product }) {
@@ -206,7 +188,11 @@ export default function CustomerHomePage() {
         <HeroSection />
 
         <Separator className="my-6" />
+
+        <MaterialEstimator />
         
+        <Separator className="my-6" />
+
         <ProductCatalog />
 
     </div>
