@@ -65,6 +65,12 @@ export default function CheckoutPage() {
         );
     }, [toast]);
 
+    const handleUseCurrentLocation = React.useCallback(() => {
+        setShowNewAddressForm(true);
+        handleGetLocation();
+    }, [handleGetLocation]);
+
+
     React.useEffect(() => {
         if (!isDroneDeliveryAvailable) {
             setSelectedDeliveryMethod('standard');
@@ -132,7 +138,7 @@ export default function CheckoutPage() {
                                 <CardDescription>Select or add an address for delivery.</CardDescription>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" onClick={() => setShowNewAddressForm(true)}>
+                                <Button variant="outline" size="sm" onClick={handleUseCurrentLocation}>
                                     <LocateFixed className="mr-2 h-4 w-4" />
                                     Current Address
                                 </Button>
@@ -368,5 +374,7 @@ export default function CheckoutPage() {
 
 
 
+
+    
 
     
