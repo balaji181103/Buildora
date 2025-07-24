@@ -4,9 +4,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import Image from 'next/image';
-import { updateDoc, doc } from 'firebase/firestore';
+import { updateDoc, doc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
@@ -20,10 +20,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Product } from '@/lib/types';
-import { ImagePlus, Trash2 } from 'lucide-react';
+import { Product, Supplier } from '@/lib/types';
+import { Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { db, storage } from '@/lib/firebase';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
@@ -51,6 +52,20 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(product.imageUrl || null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  useEffect(() => {
+    const q = query(collection(db, "suppliers"), orderBy("name"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const suppliersData: Supplier[] = [];
+        snapshot.forEach(doc => {
+            suppliersData.push({ id: doc.id, ...doc.data() } as Supplier);
+        });
+        setSuppliers(suppliersData);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(ProductFormSchema),
@@ -72,6 +87,14 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid File Type',
+            description: 'Please upload a PNG, JPG, or WEBP image.',
+        });
+        return;
+      }
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -110,7 +133,6 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
                 },
             };
             
-            // Optimistically update UI
             const updatedProductForUI: Product = { 
                 ...product, 
                 ...productData,
@@ -122,7 +144,6 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
                 description: `${values.name} has been successfully updated.`,
             });
             
-            // Handle image upload if a new image is selected
             if (imageFile) {
                  toast({
                     title: "Uploading Image",
@@ -133,11 +154,9 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
                 const finalImageUrl = await getDownloadURL(imageRef);
                 (productData as any).imageUrl = finalImageUrl;
             } else if (imagePreview === null && product.imageUrl) {
-                // If image was removed
                 (productData as any).imageUrl = '';
             }
 
-            // Update the document in Firestore
             await updateDoc(docRef, productData);
 
         } catch (error) {
@@ -250,11 +269,22 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
                 name="supplier"
                 render={({ field }) => (
                     <FormItem>
-                    <FormLabel>Supplier</FormLabel>
-                    <FormControl>
-                        <Input placeholder="e.g., ToolMaster" {...field} />
-                    </FormControl>
-                    <FormMessage />
+                      <FormLabel>Supplier</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a supplier" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {suppliers.map(supplier => (
+                            <SelectItem key={supplier.id} value={supplier.name}>
+                              {supplier.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
                     </FormItem>
                 )}
             />

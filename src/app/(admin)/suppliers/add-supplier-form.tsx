@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useTransition } from 'react';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,8 +18,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
 import type { Supplier } from '@/lib/types';
-import { suppliers } from '@/lib/data';
+
 
 const SupplierFormSchema = z.object({
   name: z.string().min(1, 'Supplier name is required.'),
@@ -29,7 +31,7 @@ const SupplierFormSchema = z.object({
 
 type SupplierFormValues = z.infer<typeof SupplierFormSchema>;
 
-export function AddSupplierForm({ onSupplierAdded }: { onSupplierAdded: (supplier: Supplier) => void }) {
+export function AddSupplierForm({ onSupplierAdded }: { onSupplierAdded: () => void }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -44,23 +46,33 @@ export function AddSupplierForm({ onSupplierAdded }: { onSupplierAdded: (supplie
   });
 
   function onSubmit(values: SupplierFormValues) {
-    startTransition(() => {
-        const newSupplier: Supplier = {
-            id: `SUP-${String(suppliers.length + 1).padStart(3, '0')}`,
-            name: values.name,
-            contactPerson: values.contactPerson,
-            email: values.email,
-            phone: values.phone,
-            productCount: 0,
-        };
-        
-        onSupplierAdded(newSupplier);
-        
-        toast({
-            title: "Success",
-            description: "Supplier added successfully.",
-        });
-        form.reset();
+    startTransition(async () => {
+        try {
+            const newSupplierData: Omit<Supplier, 'id'> = {
+                name: values.name,
+                contactPerson: values.contactPerson,
+                email: values.email,
+                phone: values.phone,
+                productCount: 0,
+                createdAt: serverTimestamp(),
+            };
+            
+            await addDoc(collection(db, "suppliers"), newSupplierData);
+            
+            toast({
+                title: "Success",
+                description: "Supplier added successfully.",
+            });
+            form.reset();
+            onSupplierAdded();
+        } catch (error) {
+            console.error("Error adding supplier: ", error);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Failed to add supplier. Please try again.",
+            });
+        }
     });
   }
 

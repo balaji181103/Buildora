@@ -34,24 +34,38 @@ import {
   } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { suppliers as initialSuppliers, products } from "@/lib/data"
-import { MoreHorizontal, PlusCircle, Building2 } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Building2, Loader2 } from "lucide-react"
 import type { Supplier } from "@/lib/types";
 import { AddSupplierForm } from "./add-supplier-form";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 export default function SuppliersPage() {
-  const [suppliers, setSuppliers] = React.useState<Supplier[]>(initialSuppliers);
+  const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
-  const handleSupplierAdded = (newSupplier: Supplier) => {
-    setSuppliers(prevSuppliers => [...prevSuppliers, newSupplier]);
+  React.useEffect(() => {
+    const q = query(collection(db, "suppliers"), orderBy("name"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const suppliersData: Supplier[] = [];
+        snapshot.forEach(doc => {
+            suppliersData.push({ id: doc.id, ...doc.data() } as Supplier);
+        });
+        setSuppliers(suppliersData);
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleSupplierAdded = () => {
     setIsDialogOpen(false);
   };
   
   const getSupplierProductCategories = (supplierName: string) => {
-      const supplierProducts = products.filter(p => p.supplier === supplierName);
-      const categories = new Set(supplierProducts.map(p => p.category));
-      return Array.from(categories);
+      // This part will need to be connected to the products collection in the future
+      return [];
   }
 
   return (
@@ -92,15 +106,20 @@ export default function SuppliersPage() {
             <TableRow>
               <TableHead>Supplier Name</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead>Product Categories</TableHead>
-              <TableHead className="text-right">Products</TableHead>
+              <TableHead>Products Linked</TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {suppliers.map((supplier) => (
+            {loading ? (
+                 <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                        <Loader2 className="h-6 w-6 animate-spin" />
+                    </TableCell>
+                </TableRow>
+            ) : suppliers.map((supplier) => (
               <TableRow key={supplier.id}>
                 <TableCell className="font-medium">
                   {supplier.name}
@@ -111,13 +130,9 @@ export default function SuppliersPage() {
                     <div className="text-sm text-muted-foreground">{supplier.phone}</div>
                 </TableCell>
                 <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                        {getSupplierProductCategories(supplier.name).map(category => (
-                            <Badge key={category} variant="secondary">{category}</Badge>
-                        ))}
-                    </div>
+                    {/* This would require querying products collection */}
+                    <Badge variant="secondary">{supplier.productCount || 0}</Badge>
                 </TableCell>
-                <TableCell className="text-right">{supplier.productCount}</TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -130,7 +145,6 @@ export default function SuppliersPage() {
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
                       <DropdownMenuItem>View Products</DropdownMenuItem>
-                      <DropdownMenuItem disabled>View Purchase History</DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

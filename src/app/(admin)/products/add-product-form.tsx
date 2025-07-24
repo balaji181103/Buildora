@@ -4,9 +4,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import Image from 'next/image';
-import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
@@ -20,10 +20,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Product } from '@/lib/types';
+import { Product, Supplier } from '@/lib/types';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { db, storage } from '@/lib/firebase'; // Import db and storage from your Firebase config
+import { db, storage } from '@/lib/firebase';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
@@ -46,6 +47,20 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+
+  useEffect(() => {
+    const q = query(collection(db, "suppliers"), orderBy("name"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const suppliersData: Supplier[] = [];
+        snapshot.forEach(doc => {
+            suppliersData.push({ id: doc.id, ...doc.data() } as Supplier);
+        });
+        setSuppliers(suppliersData);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(ProductFormSchema),
@@ -66,6 +81,14 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid File Type',
+            description: 'Please upload a PNG, JPG, or WEBP image.',
+        });
+        return;
+      }
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -88,7 +111,6 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   async function onSubmit(values: ProductFormValues) {
     startTransition(async () => {
         try {
-            // Step 1: Create product data without imageUrl
             const productData = {
                 name: values.name,
                 category: values.category,
@@ -102,21 +124,18 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
                     width: values.width,
                     height: values.height,
                 },
-                imageUrl: '', // Initially empty
+                imageUrl: '',
                 createdAt: serverTimestamp(),
             };
 
-            // Step 2: Create the document in Firestore
             const docRef = await addDoc(collection(db, "products"), productData);
             
-            // Step 3: Optimistically update the UI right away
             const newProductForUI: Product = { 
                 id: docRef.id, 
                 ...productData, 
                 imageUrl: '', 
                 createdAt: new Date() 
             };
-            // Pass local image preview for immediate display
             onProductAdded(newProductForUI, imagePreview || undefined);
 
             toast({
@@ -127,13 +146,10 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
             form.reset();
             removeImage();
 
-            // Step 4: If there's an image, upload it in the background
             if (imageFile) {
                 const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
                 await uploadBytes(imageRef, imageFile);
                 const finalImageUrl = await getDownloadURL(imageRef);
-
-                // Step 5: Update the document with the final imageUrl
                 await updateDoc(doc(db, "products", docRef.id), { imageUrl: finalImageUrl });
             }
 
@@ -242,18 +258,29 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <FormField
-                control={form.control}
-                name="supplier"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Supplier</FormLabel>
+            <FormField
+              control={form.control}
+              name="supplier"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Supplier</FormLabel>
+                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                        <Input placeholder="e.g., ToolMaster" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a supplier" />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )}
+                    <SelectContent>
+                      {suppliers.map(supplier => (
+                        <SelectItem key={supplier.id} value={supplier.name}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
              <FormField
                 control={form.control}

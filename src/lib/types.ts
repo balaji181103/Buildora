@@ -1,6 +1,5 @@
 
 
-
 export type Drone = {
   id: string;
   status: 'Idle' | 'Delivering' | 'Returning' | 'Maintenance';
@@ -65,6 +64,7 @@ export type Supplier = {
     email: string;
     phone: string;
     productCount: number;
+    createdAt?: any;
 };
 
 export type Address = {
