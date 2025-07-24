@@ -72,6 +72,9 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   const removeImage = () => {
     setImagePreview(null);
     form.setValue('image', null);
+     // Also reset the file input
+    const fileInput = document.getElementById('image-upload') as HTMLInputElement;
+    if(fileInput) fileInput.value = '';
   }
 
   function onSubmit(values: ProductFormValues) {
@@ -110,36 +113,27 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
           control={form.control}
           name="image"
           render={({ field }) => (
-            <FormItem>
+             <FormItem>
               <FormLabel>Product Image</FormLabel>
-              <FormControl>
-                <div className="w-full">
-                  <label htmlFor="image-upload" className="cursor-pointer">
-                    <div className="relative w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center text-muted-foreground hover:border-primary/80 hover:bg-muted/50 transition-all">
-                      {imagePreview ? (
-                        <>
-                          <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-lg p-2" />
-                          <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 z-10 h-7 w-7" onClick={removeImage}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2">
-                          <ImagePlus className="h-8 w-8" />
-                          <span>Upload an image</span>
-                        </div>
-                      )}
-                    </div>
-                  </label>
-                  <Input 
+              <div className="flex items-center gap-4">
+                <FormControl>
+                   <Input 
                     id="image-upload"
                     type="file" 
-                    className="hidden" 
                     accept="image/*"
                     onChange={handleImageChange}
+                    className="max-w-xs"
                   />
-                </div>
-              </FormControl>
+                </FormControl>
+                 {imagePreview && (
+                  <div className="relative h-20 w-20 shrink-0">
+                    <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-md border p-1" />
+                    <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 z-10 h-6 w-6" onClick={removeImage}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
               <FormMessage />
             </FormItem>
           )}
