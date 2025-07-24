@@ -203,11 +203,10 @@ export default function LandingPage() {
           <nav className="flex gap-4">
             <Link href="#" className="text-sm hover:underline">Terms of Service</Link>
             <Link href="#" className="text-sm hover:underline">Privacy Policy</Link>
+            <Link href="/login/admin" className="text-sm hover:underline">Admin Login</Link>
           </nav>
         </div>
       </footer>
     </div>
   );
 }
-
-    
