@@ -7,7 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { allOrders } from '@/lib/data';
-import { CheckCircle2, FileText, ShoppingBag, ArrowRight } from 'lucide-react';
+import { CheckCircle2, FileText, ShoppingBag, ArrowRight, Package } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function OrderSuccessPage() {
