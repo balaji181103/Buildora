@@ -65,12 +65,6 @@ export default function CheckoutPage() {
         );
     }, [toast]);
 
-    const handleUseCurrentLocation = () => {
-        setShowNewAddressForm(true);
-        handleGetLocation();
-    }
-
-
     React.useEffect(() => {
         if (!isDroneDeliveryAvailable) {
             setSelectedDeliveryMethod('standard');
@@ -138,7 +132,7 @@ export default function CheckoutPage() {
                                 <CardDescription>Select or add an address for delivery.</CardDescription>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" onClick={handleUseCurrentLocation}>
+                                <Button variant="outline" size="sm" onClick={() => setShowNewAddressForm(true)}>
                                     <LocateFixed className="mr-2 h-4 w-4" />
                                     Current Address
                                 </Button>
@@ -315,7 +309,7 @@ export default function CheckoutPage() {
                                     <AccordionContent className="pt-4 space-y-2">
                                         <Label htmlFor="upi-id">Your UPI ID</Label>
                                         <Input id="upi-id" placeholder="yourname@bank" />
-                                        <Button>Verify & Pay</Button>
+                                        <Button>Verify &amp; Pay</Button>
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
