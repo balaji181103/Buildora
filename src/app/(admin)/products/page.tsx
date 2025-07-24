@@ -62,9 +62,18 @@ export default function ProductsPage() {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const productsData: Product[] = [];
       querySnapshot.forEach((doc) => {
-        productsData.push({ id: doc.id, ...doc.data() } as Product);
+        const data = doc.data();
+        productsData.push({ 
+          id: doc.id, 
+          ...data,
+          // Ensure dimensions exist to prevent runtime errors
+          dimensions: data.dimensions || { length: 0, width: 0, height: 0 } 
+        } as Product);
       });
       setProducts(productsData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching products from Firestore:", error);
       setLoading(false);
     });
 
@@ -76,6 +85,8 @@ export default function ProductsPage() {
   }, [isNewProductFlow]);
 
   const handleProductAdded = (newProduct: Product) => {
+    // Optimistically add to the top of the list
+    // Firestore's real-time listener will soon replace this with the actual data
     setProducts(prevProducts => [newProduct, ...prevProducts]);
     setIsDialogOpen(false);
   };

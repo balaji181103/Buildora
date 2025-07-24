@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useState, useTransition } from 'react';
 import Image from 'next/image';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
@@ -87,13 +87,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   async function onSubmit(values: ProductFormValues) {
     startTransition(async () => {
       try {
-        let imageUrl = '';
-        if (imageFile) {
-          const imageRef = ref(storage, `product_images/${imageFile.name}`);
-          await uploadBytes(imageRef, imageFile);
-          imageUrl = await getDownloadURL(imageRef);
-        }
-
+        // Step 1: Create the product document in Firestore without the imageUrl
         const productData = {
           name: values.name,
           category: values.category,
@@ -107,20 +101,32 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
             width: values.width,
             height: values.height,
           },
-          imageUrl: imageUrl,
+          imageUrl: '', // Initially empty
           createdAt: serverTimestamp(),
         };
 
         const docRef = await addDoc(collection(db, "products"), productData);
         
+        // Step 2: Optimistically update the UI
         onProductAdded({ id: docRef.id, ...productData });
-
         toast({
-          title: "Success",
-          description: "Product added successfully to Firestore.",
+          title: "Product Added",
+          description: `${values.name} is now in your inventory. Image is being uploaded.`,
         });
         form.reset();
         removeImage();
+
+        // Step 3: Upload image in the background
+        if (imageFile) {
+          const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
+          await uploadBytes(imageRef, imageFile);
+          const imageUrl = await getDownloadURL(imageRef);
+
+          // Step 4: Update the document with the imageUrl
+          await updateDoc(doc(db, "products", docRef.id), { imageUrl: imageUrl });
+          console.log("Image URL updated for product:", docRef.id);
+        }
+
       } catch (error) {
         console.error("Error adding product: ", error);
         toast({
