@@ -202,7 +202,7 @@ export default function CustomerSettingsPage() {
             <CardHeader>
                 <CardTitle className="text-destructive">Delete Account</CardTitle>
                 <CardDescription>Permanently delete your account and all associated data. This action cannot be undone.</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent>
                 <Button variant="destructive">Delete My Account</Button>
             </CardContent>
