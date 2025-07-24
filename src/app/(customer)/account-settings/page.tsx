@@ -98,7 +98,7 @@ export default function CustomerSettingsPage() {
            <Button disabled><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait...</Button>
         </CardContent>
       </Card>
-  )
+  );
 
   return (
     <div className="mx-auto grid w-full max-w-4xl gap-6">
@@ -179,7 +179,7 @@ export default function CustomerSettingsPage() {
             <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
                 <CardDescription>Choose how you want to be notified.</CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                     <div>
