@@ -43,7 +43,7 @@ type ProductFormValues = z.infer<typeof ProductFormSchema>;
 
 interface EditProductFormProps {
     product: Product;
-    onProductUpdated: (product: Product) => void;
+    onProductUpdated: (product: Product, localImageUrl?: string) => void;
 }
 
 export function EditProductForm({ product, onProductUpdated }: EditProductFormProps) {
@@ -75,7 +75,8 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        const result = reader.result as string;
+        setImagePreview(result);
         form.setValue('image', file);
       };
       reader.readAsDataURL(file);
@@ -109,30 +110,36 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
                 },
             };
             
-            // Handle image upload if a new image is selected
-            let finalImageUrl = product.imageUrl;
-            if (imageFile) {
-                const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
-                await uploadBytes(imageRef, imageFile);
-                finalImageUrl = await getDownloadURL(imageRef);
-                (productData as any).imageUrl = finalImageUrl;
-            }
-
-            // Update the document in Firestore
-            await updateDoc(docRef, productData);
-            
-            const updatedProduct: Product = { 
+            // Optimistically update UI
+            const updatedProductForUI: Product = { 
                 ...product, 
                 ...productData,
-                imageUrl: finalImageUrl 
             };
-            onProductUpdated(updatedProduct);
+            onProductUpdated(updatedProductForUI, imagePreview || undefined);
 
             toast({
                 title: "Product Updated",
                 description: `${values.name} has been successfully updated.`,
             });
             
+            // Handle image upload if a new image is selected
+            if (imageFile) {
+                 toast({
+                    title: "Uploading Image",
+                    description: "The new image is being uploaded in the background.",
+                });
+                const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
+                await uploadBytes(imageRef, imageFile);
+                const finalImageUrl = await getDownloadURL(imageRef);
+                (productData as any).imageUrl = finalImageUrl;
+            } else if (imagePreview === null && product.imageUrl) {
+                // If image was removed
+                (productData as any).imageUrl = '';
+            }
+
+            // Update the document in Firestore
+            await updateDoc(docRef, productData);
+
         } catch (error) {
             console.error("Error updating product: ", error);
             toast({

@@ -41,7 +41,7 @@ const ProductFormSchema = z.object({
 
 type ProductFormValues = z.infer<typeof ProductFormSchema>;
 
-export function AddProductForm({ onProductAdded }: { onProductAdded: (product: Product) => void }) {
+export function AddProductForm({ onProductAdded }: { onProductAdded: (product: Product, localImageUrl?: string) => void }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -69,7 +69,8 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        const result = reader.result as string;
+        setImagePreview(result);
         form.setValue('image', file);
       };
       reader.readAsDataURL(file);
@@ -85,7 +86,6 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   }
 
   async function onSubmit(values: ProductFormValues) {
-    let docRef: any; // Keep a reference to the document
     startTransition(async () => {
         try {
             // Step 1: Create product data without imageUrl
@@ -107,35 +107,35 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
             };
 
             // Step 2: Create the document in Firestore
-            docRef = await addDoc(collection(db, "products"), productData);
+            const docRef = await addDoc(collection(db, "products"), productData);
             
-            // Step 3: If there's an image, upload it
-            let finalImageUrl = '';
-            if (imageFile) {
-                const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
-                await uploadBytes(imageRef, imageFile);
-                finalImageUrl = await getDownloadURL(imageRef);
-
-                // Step 4: Update the document with the imageUrl
-                await updateDoc(doc(db, "products", docRef.id), { imageUrl: finalImageUrl });
-            }
-
-            // Step 5: Optimistically update the UI with the final data
-            const newProduct: Product = { 
+            // Step 3: Optimistically update the UI right away
+            const newProductForUI: Product = { 
                 id: docRef.id, 
                 ...productData, 
-                imageUrl: finalImageUrl, 
+                imageUrl: '', 
                 createdAt: new Date() 
             };
-            onProductAdded(newProduct);
-            
+            // Pass local image preview for immediate display
+            onProductAdded(newProductForUI, imagePreview || undefined);
+
             toast({
                 title: "Product Added",
-                description: `${values.name} is now in your inventory.`,
+                description: `${values.name} is now in your inventory. Image is uploading in the background.`,
             });
             
             form.reset();
             removeImage();
+
+            // Step 4: If there's an image, upload it in the background
+            if (imageFile) {
+                const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
+                await uploadBytes(imageRef, imageFile);
+                const finalImageUrl = await getDownloadURL(imageRef);
+
+                // Step 5: Update the document with the final imageUrl
+                await updateDoc(doc(db, "products", docRef.id), { imageUrl: finalImageUrl });
+            }
 
         } catch (error) {
            console.error("Error adding product: ", error);

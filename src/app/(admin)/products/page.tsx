@@ -47,15 +47,17 @@ import { Input } from "@/components/ui/input";
 import { db } from "@/lib/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 
+type ProductWithLocalImage = Product & { localImageUrl?: string };
+
 export default function ProductsPage() {
   const searchParams = useSearchParams();
-  const [products, setProducts] = React.useState<Product[]>([]);
+  const [products, setProducts] = React.useState<ProductWithLocalImage[]>([]);
   const [loading, setLoading] = React.useState(true);
   
   const isNewProductFlow = searchParams.get('new') === 'true';
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(isNewProductFlow);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = React.useState<ProductWithLocalImage | null>(null);
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
@@ -63,7 +65,7 @@ export default function ProductsPage() {
   React.useEffect(() => {
     const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const productsData: Product[] = [];
+      const productsData: ProductWithLocalImage[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         productsData.push({ 
@@ -71,9 +73,19 @@ export default function ProductsPage() {
           ...data,
           dimensions: data.dimensions || { length: 0, width: 0, height: 0 },
           createdAt: data.createdAt?.toDate() || new Date()
-        } as Product);
+        } as ProductWithLocalImage);
       });
-      setProducts(productsData);
+      setProducts(prevProducts => {
+        // This logic helps preserve local image previews while backend data updates
+        const updatedProducts = productsData.map(newProd => {
+            const existing = prevProducts.find(p => p.id === newProd.id);
+            if (existing && existing.localImageUrl && !newProd.imageUrl) {
+                return { ...newProd, localImageUrl: existing.localImageUrl };
+            }
+            return newProd;
+        });
+        return updatedProducts;
+      });
       setLoading(false);
     }, (error) => {
       console.error("Error fetching products from Firestore:", error);
@@ -87,14 +99,16 @@ export default function ProductsPage() {
     setIsAddDialogOpen(isNewProductFlow);
   }, [isNewProductFlow]);
 
-  const handleProductAdded = (newProduct: Product) => {
-    setProducts(prevProducts => [newProduct, ...prevProducts]);
+  const handleProductAdded = (newProduct: Product, localImageUrl?: string) => {
+    const newProductWithLocalImage: ProductWithLocalImage = { ...newProduct, localImageUrl };
+    setProducts(prevProducts => [newProductWithLocalImage, ...prevProducts]);
     setIsAddDialogOpen(false);
   };
   
-  const handleProductUpdated = (updatedProduct: Product) => {
+  const handleProductUpdated = (updatedProduct: Product, localImageUrl?: string) => {
+     const productWithLocalImage: ProductWithLocalImage = { ...updatedProduct, localImageUrl };
      setProducts(prevProducts => 
-        prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+        prevProducts.map(p => p.id === productWithLocalImage.id ? productWithLocalImage : p)
      );
     setIsEditDialogOpen(false);
   };
@@ -222,9 +236,9 @@ export default function ProductsPage() {
               <TableRow key={product.id}>
                 <TableCell>
                   <div className="h-12 w-12 bg-muted rounded-md flex items-center justify-center">
-                    {product.imageUrl ? (
+                    {product.imageUrl || product.localImageUrl ? (
                       <Image 
-                        src={product.imageUrl}
+                        src={product.imageUrl || product.localImageUrl!}
                         alt={product.name}
                         width={48}
                         height={48}
@@ -241,7 +255,7 @@ export default function ProductsPage() {
                 </TableCell>
                 <TableCell>
                   {product.stock <= 3 && product.stock > 0 ? (
-                    <span className="text-destructive font-semibold">{product.stock} (Low)</span>
+                    <span className="text-amber-600 font-semibold">{product.stock} (Low)</span>
                   ) : product.stock === 0 ? (
                     <span className="text-destructive font-semibold">{product.stock} (Out of stock)</span>
                   ) : (
