@@ -8,6 +8,7 @@ import { Rocket, Hammer, ShieldCheck, BrainCircuit, ArrowRight, Calculator, Moon
 import Image from "next/image";
 import Link from "next/link";
 import { useTheme } from "next-themes";
+import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useInView } from 'react-intersection-observer';
 import { cn } from '@/lib/utils';
@@ -15,6 +16,7 @@ import { cn } from '@/lib/utils';
 
 export default function LandingPage() {
     const { setTheme } = useTheme();
+    const router = useRouter();
 
     const { ref: featuresRef, inView: featuresInView } = useInView({
         triggerOnce: true,
@@ -38,9 +40,9 @@ export default function LandingPage() {
             <Link href="/login/customer" className="text-sm font-medium hover:underline underline-offset-4">
               Login
             </Link>
-             <Link href="/signup" className="text-sm font-medium hover:underline underline-offset-4">
+             <button onClick={() => router.push('/signup')} className="text-sm font-medium hover:underline underline-offset-4">
               Register
-            </Link>
+            </button>
             <Link href="#about" className="text-sm font-medium hover:underline underline-offset-4">
               About
             </Link>
@@ -207,3 +209,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
