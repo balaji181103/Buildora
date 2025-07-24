@@ -1,9 +1,11 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useState, useTransition } from 'react';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/lib/types';
 import { products } from '@/lib/data';
+import { ImagePlus, Trash2 } from 'lucide-react';
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
@@ -29,6 +32,7 @@ const ProductFormSchema = z.object({
   length: z.coerce.number().min(0, 'Length must be a positive number.'),
   width: z.coerce.number().min(0, 'Width must be a positive number.'),
   height: z.coerce.number().min(0, 'Height must be a positive number.'),
+  image: z.any().optional(),
 });
 
 type ProductFormValues = z.infer<typeof ProductFormSchema>;
@@ -36,6 +40,7 @@ type ProductFormValues = z.infer<typeof ProductFormSchema>;
 export function AddProductForm({ onProductAdded }: { onProductAdded: (product: Product) => void }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(ProductFormSchema),
@@ -52,6 +57,23 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
     },
   });
 
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+        form.setValue('image', file);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImagePreview(null);
+    form.setValue('image', null);
+  }
+
   function onSubmit(values: ProductFormValues) {
     startTransition(() => {
         const newProduct: Product = {
@@ -66,7 +88,8 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
                 length: values.length,
                 width: values.width,
                 height: values.height,
-            }
+            },
+            imageUrl: imagePreview || undefined,
         };
         
         onProductAdded(newProduct);
@@ -76,12 +99,52 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
             description: "Product added successfully.",
         });
         form.reset();
+        setImagePreview(null);
     });
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <FormField
+          control={form.control}
+          name="image"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Product Image</FormLabel>
+              <FormControl>
+                <div className="w-full">
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="relative w-full h-48 border-2 border-dashed border-muted-foreground/30 rounded-lg flex items-center justify-center text-muted-foreground hover:border-primary/80 hover:bg-muted/50 transition-all">
+                      {imagePreview ? (
+                        <>
+                          <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-lg p-2" />
+                          <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2 z-10 h-7 w-7" onClick={removeImage}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <ImagePlus className="h-8 w-8" />
+                          <span>Upload an image</span>
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                  <Input 
+                    id="image-upload"
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}

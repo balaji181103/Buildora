@@ -3,6 +3,7 @@
 
 import * as React from "react";
 import { useSearchParams } from 'next/navigation';
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -38,7 +39,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { products as initialProducts } from "@/lib/data"
-import { MoreHorizontal, PlusCircle, Search, ListFilter } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, ListFilter, Image as ImageIcon } from "lucide-react"
 import type { Product } from "@/lib/types";
 import { AddProductForm } from "./add-product-form";
 import { Input } from "@/components/ui/input";
@@ -131,7 +132,7 @@ export default function ProductsPage() {
                   Add Product
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[625px]">
+              <DialogContent className="sm:max-w-3xl">
                 <DialogHeader>
                   <DialogTitle>Add New Product</DialogTitle>
                   <DialogDescription>
@@ -148,6 +149,7 @@ export default function ProductsPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[80px]">Image</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Stock</TableHead>
@@ -163,6 +165,21 @@ export default function ProductsPage() {
           <TableBody>
             {filteredProducts.map((product) => (
               <TableRow key={product.id}>
+                <TableCell>
+                  <div className="h-12 w-12 bg-muted rounded-md flex items-center justify-center">
+                    {product.imageUrl ? (
+                      <Image 
+                        src={product.imageUrl}
+                        alt={product.name}
+                        width={48}
+                        height={48}
+                        className="h-full w-full object-contain rounded-md"
+                      />
+                    ) : (
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline">{product.category}</Badge>

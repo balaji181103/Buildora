@@ -4,7 +4,6 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
 import { CartProvider } from '@/hooks/use-cart';
-
 export const metadata: Metadata = {
   title: 'Buildora',
   description: 'Drone delivery for construction sites',

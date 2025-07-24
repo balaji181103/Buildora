@@ -42,6 +42,7 @@ export type Product = {
     width: number;
     height: number;
   };
+  imageUrl?: string;
 };
 
 export type Supplier = {
