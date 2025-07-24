@@ -85,89 +85,67 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   }
 
   async function onSubmit(values: ProductFormValues) {
-    let docRef;
-    try {
-      // Step 1: Create the product document in Firestore without the imageUrl, inside a transition
-      const productData = {
-        name: values.name,
-        category: values.category,
-        description: values.description || '',
-        stock: values.stock,
-        price: values.price,
-        supplier: values.supplier,
-        weight: values.weight,
-        dimensions: {
-          length: values.length,
-          width: values.width,
-          height: values.height,
-        },
-        imageUrl: '', // Initially empty
-        createdAt: serverTimestamp(),
-      };
+    let docRef: any; // Keep a reference to the document
+    startTransition(async () => {
+        try {
+            // Step 1: Create product data without imageUrl
+            const productData = {
+                name: values.name,
+                category: values.category,
+                description: values.description || '',
+                stock: values.stock,
+                price: values.price,
+                supplier: values.supplier,
+                weight: values.weight,
+                dimensions: {
+                    length: values.length,
+                    width: values.width,
+                    height: values.height,
+                },
+                imageUrl: '', // Initially empty
+                createdAt: serverTimestamp(),
+            };
 
-      let newProduct: Product;
+            // Step 2: Create the document in Firestore
+            docRef = await addDoc(collection(db, "products"), productData);
+            
+            // Step 3: If there's an image, upload it
+            let finalImageUrl = '';
+            if (imageFile) {
+                const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
+                await uploadBytes(imageRef, imageFile);
+                finalImageUrl = await getDownloadURL(imageRef);
 
-      await new Promise<void>((resolve, reject) => {
-        startTransition(async () => {
-          try {
-            const addedDoc = await addDoc(collection(db, "products"), productData);
-            docRef = addedDoc;
+                // Step 4: Update the document with the imageUrl
+                await updateDoc(doc(db, "products", docRef.id), { imageUrl: finalImageUrl });
+            }
 
-            // Step 2: Optimistically update the UI
-            newProduct = { id: docRef.id, ...productData, createdAt: new Date() };
+            // Step 5: Optimistically update the UI with the final data
+            const newProduct: Product = { 
+                id: docRef.id, 
+                ...productData, 
+                imageUrl: finalImageUrl, 
+                createdAt: new Date() 
+            };
             onProductAdded(newProduct);
             
             toast({
-              title: "Product Added",
-              description: `${values.name} is now in your inventory. Image is being uploaded.`,
+                title: "Product Added",
+                description: `${values.name} is now in your inventory.`,
             });
             
-            // Reset the form right after the optimistic update
             form.reset();
             removeImage();
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        });
-      });
 
-    } catch (error) {
-       console.error("Error adding product document: ", error);
-       toast({
-         variant: 'destructive',
-         title: "Error",
-         description: "Failed to add product document. Please try again.",
-       });
-       return; // Stop execution if document creation fails
-    }
-
-    // Step 3: Handle the image upload in the background, outside the transition
-    if (imageFile && docRef) {
-      const finalDocRef = docRef; // Capture docRef for use in the promise chain
-      const imageRef = ref(storage, `product_images/${finalDocRef.id}_${imageFile.name}`);
-      
-      uploadBytes(imageRef, imageFile).then(snapshot => {
-        getDownloadURL(snapshot.ref).then(imageUrl => {
-          // Update the document with the final imageUrl
-          updateDoc(doc(db, "products", finalDocRef.id), { imageUrl: imageUrl });
-        }).catch(urlError => {
-            console.error("Error getting download URL: ", urlError);
-            toast({
-              variant: 'destructive',
-              title: "Image URL Failed",
-              description: `Could not get the image URL for ${values.name}.`,
-            });
-        });
-      }).catch(uploadError => {
-         console.error("Error uploading image: ", uploadError);
-         toast({
-            variant: 'destructive',
-            title: "Image Upload Failed",
-            description: `Product was added, but the image for ${values.name} failed to upload.`,
-         });
-      });
-    }
+        } catch (error) {
+           console.error("Error adding product: ", error);
+           toast({
+             variant: 'destructive',
+             title: "Error",
+             description: "Failed to add product. Please try again.",
+           });
+        }
+    });
   }
 
 

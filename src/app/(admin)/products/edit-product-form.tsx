@@ -91,81 +91,57 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
   }
 
   async function onSubmit(values: ProductFormValues) {
-    const docRef = doc(db, "products", product.id);
+    startTransition(async () => {
+        const docRef = doc(db, "products", product.id);
+        try {
+            const productData: Partial<Product> = {
+                name: values.name,
+                category: values.category,
+                description: values.description || '',
+                stock: values.stock,
+                price: values.price,
+                supplier: values.supplier,
+                weight: values.weight,
+                dimensions: {
+                    length: values.length,
+                    width: values.width,
+                    height: values.height,
+                },
+            };
+            
+            // Handle image upload if a new image is selected
+            let finalImageUrl = product.imageUrl;
+            if (imageFile) {
+                const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
+                await uploadBytes(imageRef, imageFile);
+                finalImageUrl = await getDownloadURL(imageRef);
+                (productData as any).imageUrl = finalImageUrl;
+            }
 
-    try {
-        const productData: Partial<Product> = {
-            name: values.name,
-            category: values.category,
-            description: values.description || '',
-            stock: values.stock,
-            price: values.price,
-            supplier: values.supplier,
-            weight: values.weight,
-            dimensions: {
-                length: values.length,
-                width: values.width,
-                height: values.height,
-            },
-        };
+            // Update the document in Firestore
+            await updateDoc(docRef, productData);
+            
+            const updatedProduct: Product = { 
+                ...product, 
+                ...productData,
+                imageUrl: finalImageUrl 
+            };
+            onProductUpdated(updatedProduct);
 
-        let updatedProduct: Product;
-        
-        await new Promise<void>((resolve, reject) => {
-            startTransition(async () => {
-                try {
-                    await updateDoc(docRef, productData);
-                    
-                    updatedProduct = { ...product, ...productData };
-                    onProductUpdated(updatedProduct);
-
-                    toast({
-                        title: "Product Updated",
-                        description: `${values.name} has been successfully updated.`,
-                    });
-                    
-                    resolve();
-
-                } catch (error) {
-                    reject(error);
-                }
-            });
-        });
-
-    } catch (error) {
-        console.error("Error updating product document: ", error);
-        toast({
-            variant: 'destructive',
-            title: "Error",
-            description: "Failed to update product document. Please try again.",
-        });
-        return;
-    }
-
-    // Handle the image upload in the background, outside the transition
-    if (imageFile) {
-      const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
-      
-      uploadBytes(imageRef, imageFile).then(snapshot => {
-        getDownloadURL(snapshot.ref).then(imageUrl => {
-          updateDoc(docRef, { imageUrl: imageUrl });
-        }).catch(urlError => {
-            console.error("Error getting download URL: ", urlError);
             toast({
-              variant: 'destructive',
-              title: "Image URL Failed",
-              description: `Could not get the image URL for ${values.name}.`,
+                title: "Product Updated",
+                description: `${values.name} has been successfully updated.`,
             });
-        });
-      }).catch(uploadError => {
-         console.error("Error uploading image: ", uploadError);
-         toast({
-            variant: 'destructive',
-            title: "Image Upload Failed",
-            description: `Product was updated, but the new image for ${values.name} failed to upload.`,
-         });
-      });
-    }
+            
+        } catch (error) {
+            console.error("Error updating product: ", error);
+            toast({
+                variant: 'destructive',
+                title: "Error",
+                description: "Failed to update product. Please try again.",
+            });
+        }
+    });
   }
 
 
