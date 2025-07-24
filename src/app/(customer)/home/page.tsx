@@ -51,7 +51,7 @@ import { useToast } from "@/hooks/use-toast";
 import { HeroSection } from "./hero-section"
 import { useCart } from "@/hooks/use-cart";
 import { MaterialEstimator } from "./material-estimator"
-import { collection, getDocs } from "firebase/firestore"
+import { collection, getDocs, query, orderBy } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -123,7 +123,8 @@ function ProductCatalog() {
     React.useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const querySnapshot = await getDocs(collection(db, "products"));
+                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
                 const productsData: Product[] = [];
                 querySnapshot.forEach((doc) => {
                     productsData.push({ id: doc.id, ...doc.data() } as Product);

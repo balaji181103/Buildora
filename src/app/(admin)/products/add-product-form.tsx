@@ -85,71 +85,91 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   }
 
   async function onSubmit(values: ProductFormValues) {
-    // We only want to block the UI for the initial, fast operations.
-    // The slow image upload will happen in the background.
-    startTransition(async () => {
-      try {
-        // Step 1: Create the product document in Firestore without the imageUrl
-        const productData = {
-          name: values.name,
-          category: values.category,
-          description: values.description || '',
-          stock: values.stock,
-          price: values.price,
-          supplier: values.supplier,
-          weight: values.weight,
-          dimensions: {
-            length: values.length,
-            width: values.width,
-            height: values.height,
-          },
-          imageUrl: '', // Initially empty
-          createdAt: serverTimestamp(),
-        };
+    let docRef;
+    try {
+      // Step 1: Create the product document in Firestore without the imageUrl, inside a transition
+      const productData = {
+        name: values.name,
+        category: values.category,
+        description: values.description || '',
+        stock: values.stock,
+        price: values.price,
+        supplier: values.supplier,
+        weight: values.weight,
+        dimensions: {
+          length: values.length,
+          width: values.width,
+          height: values.height,
+        },
+        imageUrl: '', // Initially empty
+        createdAt: serverTimestamp(),
+      };
 
-        const docRef = await addDoc(collection(db, "products"), productData);
-        
-        // Step 2: Optimistically update the UI and show toast
-        onProductAdded({ id: docRef.id, ...productData, createdAt: new Date() });
-        toast({
-          title: "Product Added",
-          description: `${values.name} is now in your inventory. Image is being uploaded.`,
-        });
-        
-        // Step 3: Now that the UI is updated and responsive, handle the image upload
-        // This part runs in the background and does not block the UI or keep the button in a pending state.
-        if (imageFile) {
-          const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
-          uploadBytes(imageRef, imageFile).then(snapshot => {
-            getDownloadURL(snapshot.ref).then(imageUrl => {
-              // Update the document with the final imageUrl
-              updateDoc(doc(db, "products", docRef.id), { imageUrl: imageUrl });
-              console.log("Image URL updated for product:", docRef.id);
+      let newProduct: Product;
+
+      await new Promise<void>((resolve, reject) => {
+        startTransition(async () => {
+          try {
+            const addedDoc = await addDoc(collection(db, "products"), productData);
+            docRef = addedDoc;
+
+            // Step 2: Optimistically update the UI
+            newProduct = { id: docRef.id, ...productData, createdAt: new Date() };
+            onProductAdded(newProduct);
+            
+            toast({
+              title: "Product Added",
+              description: `${values.name} is now in your inventory. Image is being uploaded.`,
             });
-          }).catch(uploadError => {
-             console.error("Error uploading image: ", uploadError);
-             toast({
-                variant: 'destructive',
-                title: "Image Upload Failed",
-                description: `Product was added, but the image for ${values.name} failed to upload.`,
-             });
-          });
-        }
-        
-        // Reset the form right after the optimistic update
-        form.reset();
-        removeImage();
-
-      } catch (error) {
-        console.error("Error adding product: ", error);
-        toast({
-          variant: 'destructive',
-          title: "Error",
-          description: "Failed to add product. Please try again.",
+            
+            // Reset the form right after the optimistic update
+            form.reset();
+            removeImage();
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
         });
-      }
-    });
+      });
+
+    } catch (error) {
+       console.error("Error adding product document: ", error);
+       toast({
+         variant: 'destructive',
+         title: "Error",
+         description: "Failed to add product document. Please try again.",
+       });
+       return; // Stop execution if document creation fails
+    }
+
+    // Step 3: Handle the image upload in the background, outside the transition
+    if (imageFile && docRef) {
+      const finalDocRef = docRef; // Capture docRef for use in the promise chain
+      const imageRef = ref(storage, `product_images/${finalDocRef.id}_${imageFile.name}`);
+      
+      uploadBytes(imageRef, imageFile).then(snapshot => {
+        getDownloadURL(snapshot.ref).then(imageUrl => {
+          // Update the document with the final imageUrl
+          updateDoc(doc(db, "products", finalDocRef.id), { imageUrl: imageUrl });
+        }).catch(urlError => {
+            console.error("Error getting download URL: ", urlError);
+            toast({
+              variant: 'destructive',
+              title: "Image URL Failed",
+              description: `Could not get the image URL for ${values.name}.`,
+            });
+        });
+      }).catch(uploadError => {
+         console.error("Error uploading image: ", uploadError);
+         toast({
+            variant: 'destructive',
+            title: "Image Upload Failed",
+            description: `Product was added, but the image for ${values.name} failed to upload.`,
+         });
+      });
+    }
   }
+
 
   return (
     <Form {...form}>

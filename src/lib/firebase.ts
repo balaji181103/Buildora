@@ -4,12 +4,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "API_KEY",
-  authDomain: "projectId.firebaseapp.com",
-  projectId: "projectId",
-  storageBucket: "projectId.appspot.com",
-  messagingSenderId: "12345",
-  appId: "1:12345:web:67890"
+  "projectId": "buildora-cq4sb",
+  "appId": "1:781630668768:web:f8fb8a203896a24c26f585",
+  "storageBucket": "buildora-cq4sb.firebasestorage.app",
+  "apiKey": "AIzaSyAQkxZr8X8xQZwDMxYLRu1b47AZlcvmhVs",
+  "authDomain": "buildora-cq4sb.firebaseapp.com",
+  "messagingSenderId": "781630668768"
 };
 
 // Initialize Firebase
