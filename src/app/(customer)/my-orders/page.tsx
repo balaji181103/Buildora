@@ -41,8 +41,9 @@ export default function MyOrdersPage() {
 
     const q = query(
         collection(db, "orders"), 
-        where("customerId", "==", customerId),
-        orderBy("date", "desc")
+        where("customerId", "==", customerId)
+        // Note: Ordering by date was removed to prevent a missing-index error.
+        // We will sort the data on the client side instead.
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -55,6 +56,8 @@ export default function MyOrdersPage() {
                 date: data.date.toDate() // Convert Firestore Timestamp to JS Date
             } as Order);
         });
+        // Sort the orders by date client-side
+        customerOrders.sort((a, b) => b.date.getTime() - a.date.getTime());
         setOrders(customerOrders);
         setLoading(false);
     });
