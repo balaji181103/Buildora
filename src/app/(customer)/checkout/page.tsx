@@ -18,7 +18,7 @@ import { CreditCard, Home, PlusCircle, Rocket, Truck, LocateFixed, Loader2 } fro
 import { useToast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid'
 import { db } from "@/lib/firebase";
-import { collection, doc, getDocs, onSnapshot, runTransaction, serverTimestamp, writeBatch, limit, query as firestoreQuery } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, runTransaction, serverTimestamp, writeBatch, limit, query as firestoreQuery, updateDoc, arrayUnion } from "firebase/firestore";
 import type { Customer, Address, Order } from "@/lib/types";
 
 
@@ -34,38 +34,48 @@ export default function CheckoutPage() {
     const [selectedAddressId, setSelectedAddressId] = React.useState<string | undefined>(undefined);
     const [showNewAddressForm, setShowNewAddressForm] = React.useState(false);
     const [isLocating, setIsLocating] = React.useState(false);
+    
+    // New Address Form State
+    const [newAddressLabel, setNewAddressLabel] = React.useState('');
+    const [newAddressLine1, setNewAddressLine1] = React.useState('');
+    const [newAddressCity, setNewAddressCity] = React.useState('');
+    const [newAddressState, setNewAddressState] = React.useState('');
+    const [newAddressPincode, setNewAddressPincode] = React.useState('');
     const [latitude, setLatitude] = React.useState<number | null>(null);
     const [longitude, setLongitude] = React.useState<number | null>(null);
+
     const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
     const [customer, setCustomer] = React.useState<Customer | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [isSavingAddress, setIsSavingAddress] = React.useState(false);
 
-    // In a real app, you'd fetch the logged-in user. We'll use the first customer as a mock.
     React.useEffect(() => {
-        // Mocking fetching the first customer
-        const fetchCustomer = async () => {
-            // In a real app, you would get the logged-in user's ID.
-            // For now, we'll just grab the first customer from the database.
-            const q = firestoreQuery(collection(db, "customers"), limit(1));
-            const querySnapshot = await getDocs(q);
+        const customerId = localStorage.getItem('loggedInCustomerId');
+        if (!customerId) {
+            setLoading(false);
+            // Optionally redirect to login
+            return;
+        }
 
-            if (!querySnapshot.empty) {
-                const firstCustomerDoc = querySnapshot.docs[0];
-                const customerData = { id: firstCustomerDoc.id, ...firstCustomerDoc.data() } as Customer;
+        const unsubscribe = onSnapshot(doc(db, "customers", customerId), (docSnap) => {
+            if (docSnap.exists()) {
+                const customerData = { id: docSnap.id, ...docSnap.data() } as Customer;
                 setCustomer(customerData);
                  if (customerData.addresses && customerData.addresses.length > 0) {
-                    setSelectedAddressId(customerData.addresses[0].id);
+                    if (!selectedAddressId) {
+                        setSelectedAddressId(customerData.addresses[0].id);
+                    }
                 } else {
                     setShowNewAddressForm(true);
                 }
             } else {
-                // Handle case where there are no customers yet, maybe by creating one or redirecting
-                 setShowNewAddressForm(true); // Default to showing the form if no customer/address
+                setShowNewAddressForm(true);
             }
             setLoading(false);
-        };
-        fetchCustomer();
-    }, []);
+        });
+        
+        return () => unsubscribe();
+    }, [selectedAddressId]);
 
 
     const totalWeight = React.useMemo(() => {
@@ -120,6 +130,38 @@ export default function CheckoutPage() {
     const taxes = subtotal * 0.18; // Mock 18% tax
     const total = subtotal + shippingCost + taxes;
 
+    const handleSaveAddress = async () => {
+        if (!customer) return;
+        setIsSavingAddress(true);
+        const newAddress: Address = {
+            id: nanoid(),
+            label: newAddressLabel,
+            line1: newAddressLine1,
+            city: newAddressCity,
+            state: newAddressState,
+            pincode: newAddressPincode,
+            latitude: latitude || undefined,
+            longitude: longitude || undefined,
+        };
+
+        const customerRef = doc(db, 'customers', customer.id);
+        try {
+            await updateDoc(customerRef, {
+                addresses: arrayUnion(newAddress)
+            });
+            toast({ title: 'Address saved successfully!' });
+            setShowNewAddressForm(false);
+            setSelectedAddressId(newAddress.id);
+            // Reset form
+            setNewAddressLabel(''); setNewAddressLine1(''); setNewAddressCity(''); setNewAddressState(''); setNewAddressPincode(''); setLatitude(null); setLongitude(null);
+        } catch (error) {
+            console.error("Error saving address: ", error);
+            toast({ variant: 'destructive', title: 'Could not save address.' });
+        } finally {
+            setIsSavingAddress(false);
+        }
+    };
+
     const handlePlaceOrder = async () => {
         if (!customer || !selectedAddressId) {
             toast({ variant: 'destructive', title: 'Please select a shipping address.'});
@@ -135,8 +177,6 @@ export default function CheckoutPage() {
         setIsPlacingOrder(true);
         
         try {
-            // In a real app, use the actual order ID generated by Firestore.
-            // Using a nanoid here for the success page redirect is a temporary workaround.
             const tempOrderId = nanoid(10);
             
             await runTransaction(db, async (transaction) => {
@@ -147,7 +187,6 @@ export default function CheckoutPage() {
                     price: item.product.price
                 }));
 
-                // 1. Create the new order
                 const newOrderRef = doc(collection(db, "orders"));
                 const newOrder: Omit<Order, 'id' | 'date'> & { date: any } = {
                     customerName: customer.name,
@@ -156,13 +195,12 @@ export default function CheckoutPage() {
                     date: serverTimestamp(),
                     total,
                     deliveryMethod: selectedDeliveryMethod === 'express' ? 'Drone' : 'Truck',
-                    deliveryVehicleId: selectedDeliveryMethod === 'express' ? 'SB-005' : 'TR-02', // Mock vehicle
+                    deliveryVehicleId: selectedDeliveryMethod === 'express' ? 'SB-005' : 'TR-02',
                     items: orderItems,
                     shippingAddress: shippingAddress,
                 };
                 transaction.set(newOrderRef, newOrder);
 
-                // 2. Update product stock
                 for (const item of cart) {
                     const productRef = doc(db, "products", item.product.id);
                     const productDoc = await transaction.get(productRef);
@@ -176,7 +214,6 @@ export default function CheckoutPage() {
                     transaction.update(productRef, { stock: newStock });
                 }
 
-                // 3. Update customer order count
                 const customerRef = doc(db, "customers", customer.id);
                 transaction.update(customerRef, { orderCount: (customer.orderCount || 0) + 1 });
             });
@@ -254,7 +291,7 @@ export default function CheckoutPage() {
                             <div className="flex items-center gap-2">
                                 <Button variant="outline" size="sm" onClick={handleUseCurrentLocation}>
                                     <LocateFixed className="mr-2 h-4 w-4" />
-                                    Current Address
+                                    Use Current Location
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={() => setShowNewAddressForm(true)} disabled={showNewAddressForm}>
                                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -284,29 +321,25 @@ export default function CheckoutPage() {
                                 <div className="p-4 border-t mt-4 space-y-4">
                                      <h3 className="font-semibold">Add a New Address</h3>
                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="name">Full Name</Label>
-                                            <Input id="name" placeholder="Priya Sharma" defaultValue={customer?.name} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="phone">Phone Number</Label>
-                                            <Input id="phone" placeholder="+91 98765 43210" />
+                                        <div className="space-y-2 md:col-span-2">
+                                            <Label htmlFor="label">Address Label</Label>
+                                            <Input id="label" placeholder="e.g., Home, Work Site" value={newAddressLabel} onChange={e => setNewAddressLabel(e.target.value)} />
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
                                             <Label htmlFor="address">Address Line 1</Label>
-                                            <Input id="address" placeholder="123, Blossom Heights, Hiranandani Gardens" />
+                                            <Input id="address" placeholder="123, Blossom Heights, Hiranandani Gardens" value={newAddressLine1} onChange={e => setNewAddressLine1(e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="city">City</Label>
-                                            <Input id="city" placeholder="Mumbai" />
+                                            <Input id="city" placeholder="Mumbai" value={newAddressCity} onChange={e => setNewAddressCity(e.target.value)} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="state">State</Label>
-                                            <Input id="state" placeholder="Maharashtra" />
+                                            <Input id="state" placeholder="Maharashtra" value={newAddressState} onChange={e => setNewAddressState(e.target.value)} />
                                         </div>
                                          <div className="space-y-2">
                                             <Label htmlFor="pincode">PIN Code</Label>
-                                            <Input id="pincode" placeholder="400076" />
+                                            <Input id="pincode" placeholder="400076" value={newAddressPincode} onChange={e => setNewAddressPincode(e.target.value)} />
                                         </div>
                                     </div>
                                     <div className="p-4 rounded-md border bg-muted/50 space-y-3">
@@ -329,7 +362,10 @@ export default function CheckoutPage() {
                                          </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <Button>Save Address</Button>
+                                        <Button onClick={handleSaveAddress} disabled={isSavingAddress}>
+                                            {isSavingAddress ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            Save Address
+                                        </Button>
                                         <Button variant="ghost" onClick={() => setShowNewAddressForm(false)}>Cancel</Button>
                                     </div>
                                 </div>
@@ -489,5 +525,3 @@ export default function CheckoutPage() {
         </div>
     )
 }
-
-    

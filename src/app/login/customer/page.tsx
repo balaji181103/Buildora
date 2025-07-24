@@ -6,10 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Rocket, ArrowLeft } from "lucide-react";
+import { Rocket, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { Customer } from '@/lib/types';
 
 export default function CustomerLoginPage() {
     const router = useRouter();
@@ -18,25 +21,46 @@ export default function CustomerLoginPage() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-
     const handleSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
+        try {
+            const q = query(
+                collection(db, "customers"), 
+                where("email", "==", email),
+                limit(1)
+            );
+            
+            const querySnapshot = await getDocs(q);
 
-        if (email === 'customer@gmail.com' && password === 'customer') {
+            if (querySnapshot.empty) {
+                throw new Error("Invalid credentials.");
+            }
+
+            const customerDoc = querySnapshot.docs[0];
+            const customerData = customerDoc.data() as Customer;
+            
+            // In a real app, use a secure password hashing and comparison method.
+            // This is for demonstration purposes only.
+            if (customerData.password !== password) {
+                 throw new Error("Invalid credentials.");
+            }
+            
+            // Store user ID in localStorage to simulate a session
+            localStorage.setItem('loggedInCustomerId', customerDoc.id);
+
             toast({
                 title: "Login Successful",
                 description: "Welcome back! Redirecting...",
             });
             router.push('/home');
-        } else {
-             toast({
+
+        } catch (error: any) {
+            toast({
                 variant: "destructive",
                 title: "Login Failed",
-                description: "Invalid credentials. Please try again.",
+                description: error.message || "Invalid credentials. Please try again.",
             });
             setIsLoading(false);
         }
@@ -90,6 +114,7 @@ export default function CustomerLoginPage() {
                         </CardContent>
                         <CardFooter className="flex flex-col gap-4">
                             <Button className="w-full" type="submit" disabled={isLoading}>
+                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                 {isLoading ? 'Signing In...' : 'Sign In'}
                             </Button>
                             <p className="text-xs text-muted-foreground text-center">

@@ -2,15 +2,104 @@
 
 'use client'
 
+import * as React from 'react';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import { Home, Trash2 } from "lucide-react"
+import { Home, Loader2, Trash2 } from "lucide-react"
+import { useToast } from '@/hooks/use-toast';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Customer } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CustomerSettingsPage() {
+  const { toast } = useToast();
+  const [customer, setCustomer] = React.useState<Customer | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [isSaving, setIsSaving] = React.useState(false);
+
+  // States for the form fields
+  const [name, setName] = React.useState('');
+  const [email, setEmail] = React.useState('');
+  const [phone, setPhone] = React.useState('');
+
+  React.useEffect(() => {
+    const customerId = localStorage.getItem('loggedInCustomerId');
+    if (!customerId) {
+      // Handle not logged in case, maybe redirect to login
+      setLoading(false);
+      return;
+    }
+
+    const fetchCustomer = async () => {
+      const docRef = doc(db, 'customers', customerId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const customerData = { id: docSnap.id, ...docSnap.data() } as Customer;
+        setCustomer(customerData);
+        // Initialize form states
+        setName(customerData.name);
+        setEmail(customerData.email);
+        setPhone(customerData.phone);
+      } else {
+        console.log("No such document!");
+      }
+      setLoading(false);
+    };
+
+    fetchCustomer();
+  }, []);
+
+  const handleSaveChanges = async () => {
+    if (!customer) return;
+    setIsSaving(true);
+    const customerRef = doc(db, 'customers', customer.id);
+    try {
+      await updateDoc(customerRef, {
+        name: name,
+        email: email,
+        phone: phone,
+      });
+      toast({ title: 'Success', description: 'Profile updated successfully.' });
+    } catch (error) {
+      console.error("Error updating profile: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not update profile.' });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  const ProfileSkeleton = () => (
+     <Card>
+        <CardHeader>
+          <CardTitle>Edit Profile</CardTitle>
+          <CardDescription>Update your personal information.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="first-name">Full Name</Label>
+              <Skeleton className="h-10 w-full" />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Skeleton className="h-10 w-full" />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </CardContent>
+        <CardContent>
+           <Button disabled><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait...</Button>
+        </CardContent>
+      </Card>
+  )
+
   return (
     <div className="mx-auto grid w-full max-w-4xl gap-6">
       <div>
@@ -18,61 +107,40 @@ export default function CustomerSettingsPage() {
         <p className="text-muted-foreground">Manage your profile, addresses, and notification preferences.</p>
       </div>
       <div className="grid gap-8">
-        {/* Edit Profile Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Edit Profile</CardTitle>
-            <CardDescription>Update your personal information.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first-name">First Name</Label>
-                <Input id="first-name" defaultValue="Priya" />
+        {loading ? (
+           <ProfileSkeleton />
+        ) : !customer ? (
+            <p>Please log in to view your settings.</p>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Profile</CardTitle>
+              <CardDescription>Update your personal information.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last-name">Last Name</Label>
-                <Input id="last-name" defaultValue="Sharma" />
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" defaultValue="priya.sharma@example.com" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" defaultValue="+91 98765 43210" />
-            </div>
-          </CardContent>
-          <CardContent>
-             <Button>Save Changes</Button>
-          </CardContent>
-        </Card>
-
-        {/* Change Password Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>For your security, we recommend using a strong password.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-             <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-          </CardContent>
-           <CardContent>
-             <Button>Update Password</Button>
-          </CardContent>
-        </Card>
+            </CardContent>
+            <CardContent>
+              <Button onClick={handleSaveChanges} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Manage Addresses Card */}
         <Card>
@@ -84,18 +152,25 @@ export default function CustomerSettingsPage() {
             <Button>Add New Address</Button>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border p-4 flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                    <Home className="h-6 w-6 text-muted-foreground" />
-                    <div>
-                        <p className="font-semibold">Main Residence</p>
-                        <p className="text-sm text-muted-foreground">123, Blossom Heights, Hiranandani Gardens, Powai, Mumbai - 400076</p>
+            {loading ? <Skeleton className="h-20 w-full" /> : 
+            customer?.addresses && customer.addresses.length > 0 ? (
+                customer.addresses.map(address => (
+                     <div key={address.id} className="rounded-lg border p-4 flex items-start justify-between">
+                        <div className="flex items-center gap-4">
+                            <Home className="h-6 w-6 text-muted-foreground" />
+                            <div>
+                                <p className="font-semibold">{address.label}</p>
+                                <p className="text-sm text-muted-foreground">{address.line1}, {address.city} - {address.pincode}</p>
+                            </div>
+                        </div>
+                        <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
                     </div>
-                </div>
-                <Button variant="ghost" size="icon">
-                    <Trash2 className="h-4 w-4" />
-                </Button>
-            </div>
+                ))
+            ) : (
+                 <p className="text-sm text-muted-foreground">You have no saved addresses.</p>
+            )}
           </CardContent>
         </Card>
         
@@ -128,7 +203,7 @@ export default function CustomerSettingsPage() {
             <CardHeader>
                 <CardTitle className="text-destructive">Delete Account</CardTitle>
                 <CardDescription>Permanently delete your account and all associated data. This action cannot be undone.</CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
                 <Button variant="destructive">Delete My Account</Button>
             </CardContent>

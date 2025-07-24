@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -11,6 +12,9 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCart } from "@/hooks/use-cart.tsx";
+import { db } from '@/lib/firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { Customer } from '@/lib/types';
 
 export default function CustomerLayout({
   children,
@@ -21,14 +25,40 @@ export default function CustomerLayout({
   const pathname = usePathname();
   const { setTheme } = useTheme();
   const { cart } = useCart();
+  const [customer, setCustomer] = React.useState<Customer | null>(null);
+
+  React.useEffect(() => {
+    const customerId = localStorage.getItem('loggedInCustomerId');
+    if (customerId) {
+        const fetchCustomer = async () => {
+            const docRef = doc(db, 'customers', customerId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                setCustomer({ id: docSnap.id, ...docSnap.data() } as Customer);
+            }
+        };
+        fetchCustomer();
+    }
+  }, []);
 
   const handleLogout = () => {
+    localStorage.removeItem('loggedInCustomerId');
+    setCustomer(null);
     router.push('/');
   };
+  
+  const getInitials = (name: string) => {
+    const names = name.split(' ');
+    if (names.length > 1) {
+      return `${names[0][0]}${names[names.length - 1][0]}`;
+    }
+    return names[0]?.[0] || '';
+  };
+
 
   const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const showFloatingCart = pathname !== '/cart';
+  const showFloatingCart = pathname !== '/cart' && pathname !== '/checkout';
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
@@ -106,13 +136,13 @@ export default function CustomerLayout({
                 className="overflow-hidden rounded-full"
               >
                 <Avatar>
-                  <AvatarImage src="https://placehold.co/100x100.png" alt="Customer" data-ai-hint="profile picture" />
-                  <AvatarFallback>PS</AvatarFallback>
+                  <AvatarImage src={`https://placehold.co/100x100.png`} alt={customer?.name} data-ai-hint="profile picture" />
+                  <AvatarFallback>{customer ? getInitials(customer.name) : '...'}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{customer?.name || 'My Account'}</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push('/account-settings')}>
                 <Settings className="mr-2 h-4 w-4" />

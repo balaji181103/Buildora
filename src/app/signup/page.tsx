@@ -4,24 +4,24 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Rocket, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { customers } from '@/lib/data';
-import { Customer } from '@/lib/types';
+import { db } from '@/lib/firebase';
+import type { Customer } from '@/lib/types';
 
 
 const SignupFormSchema = z.object({
-  firstName: z.string().min(1, 'First name is required.'),
-  lastName: z.string().min(1, 'Last name is required.'),
+  name: z.string().min(1, 'Name is required.'),
   email: z.string().email('Invalid email address.'),
   phone: z.string().min(1, 'Phone number is required.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
@@ -41,8 +41,7 @@ export default function CustomerSignupPage() {
     const form = useForm<SignupFormValues>({
         resolver: zodResolver(SignupFormSchema),
         defaultValues: {
-            firstName: '',
-            lastName: '',
+            name: '',
             email: '',
             phone: '',
             password: '',
@@ -51,23 +50,35 @@ export default function CustomerSignupPage() {
     });
 
     function onSubmit(values: SignupFormValues) {
-        startTransition(() => {
-             const newCustomer: Customer = {
-                id: `CUST-${String(customers.length + 1).padStart(3, '0')}`,
-                name: `${values.firstName} ${values.lastName}`,
-                email: values.email,
-                status: 'Active',
-                loyaltyPoints: 0,
-                orderCount: 0,
-                addresses: [],
-            };
-            customers.push(newCustomer);
+        startTransition(async () => {
+            try {
+                const newCustomerData: Omit<Customer, 'id'> = {
+                    name: values.name,
+                    email: values.email,
+                    phone: values.phone,
+                    password: values.password, // In a real app, use Firebase Auth. Do not store plain text passwords.
+                    status: 'Active',
+                    loyaltyPoints: 0,
+                    orderCount: 0,
+                    addresses: [],
+                    createdAt: serverTimestamp(),
+                };
+                
+                await addDoc(collection(db, "customers"), newCustomerData);
 
-            toast({
-                title: "Account Created!",
-                description: "You have successfully signed up. Please log in.",
-            });
-            router.push('/login/customer');
+                toast({
+                    title: "Account Created!",
+                    description: "You have successfully signed up. Please log in.",
+                });
+                router.push('/login/customer');
+            } catch (error) {
+                console.error("Error creating customer account: ", error);
+                toast({
+                    variant: 'destructive',
+                    title: "Signup Failed",
+                    description: "There was an error creating your account. Please try again.",
+                });
+            }
         });
     }
 
@@ -90,34 +101,19 @@ export default function CustomerSignupPage() {
                     <CardContent>
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="firstName"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <Label>First Name</Label>
-                                                <FormControl>
-                                                    <Input {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    <FormField
-                                        control={form.control}
-                                        name="lastName"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <Label>Last Name</Label>
-                                                <FormControl>
-                                                    <Input {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="name"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <Label>Full Name</Label>
+                                            <FormControl>
+                                                <Input {...field} placeholder="e.g., Priya Sharma" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField
                                     control={form.control}
                                     name="email"

@@ -1,5 +1,6 @@
 
 
+
 export type Drone = {
   id: string;
   status: 'Idle' | 'Delivering' | 'Returning' | 'Maintenance';
@@ -82,10 +83,13 @@ export type Customer = {
   id: string;
   name: string;
   email: string;
+  phone: string;
+  password?: string; // Should be handled by Auth in a real app
   status: 'Active' | 'Inactive';
   loyaltyPoints: number;
   orderCount: number;
   addresses: Address[];
+  createdAt?: any;
 };
 
 export type LoyaltyHistoryItem = {
@@ -110,5 +114,3 @@ export type CartItem = {
   product: Product;
   quantity: number;
 };
-
-    
