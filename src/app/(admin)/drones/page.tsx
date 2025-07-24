@@ -1,3 +1,4 @@
+
 import {
   Card,
   CardContent,
@@ -41,12 +42,20 @@ export default function DronesPage() {
             <CardTitle>Drones</CardTitle>
             <CardDescription>Manage your fleet of delivery drones.</CardDescription>
           </div>
-          <Button asChild size="sm" className="gap-1">
-            <Link href="#">
-              <PlusCircle className="h-4 w-4" />
-              Add Drone
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" size="sm" className="gap-1">
+                <Link href="/ai-tool">
+                  <Bot className="h-4 w-4" />
+                  AI Maintenance Tool
+                </Link>
+            </Button>
+            <Button asChild size="sm" className="gap-1">
+              <Link href="#">
+                <PlusCircle className="h-4 w-4" />
+                Add Drone
+              </Link>
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
