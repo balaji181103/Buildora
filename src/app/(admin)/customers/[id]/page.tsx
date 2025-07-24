@@ -136,7 +136,7 @@ export default function CustomerProfilePage() {
               ) : (
                 customer.addresses.map((address) => (
                     <div key={address.id} className="text-sm border-b pb-4 last:border-b-0 last:pb-0">
-                       <p className="font-semibold flex items-center justify-between">
+                       <div className="font-semibold flex items-center justify-between">
                            <span className="flex items-center gap-2"><Home className="h-4 w-4" /> {address.label}</span>
                            {address.latitude && address.longitude && (
                                <Link
@@ -151,7 +151,7 @@ export default function CustomerProfilePage() {
                                   </Badge>
                                </Link>
                            )}
-                       </p>
+                       </div>
                        <div className="text-muted-foreground pl-6">
                            <p>{address.line1}</p>
                            {address.line2 && <p>{address.line2}</p>}
