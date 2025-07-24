@@ -266,7 +266,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
                         <Input 
                             id="image-upload"
                             type="file" 
-                            accept="image/*"
+                            accept="image/png, image/jpeg, image/webp"
                             onChange={handleImageChange}
                             className="max-w-xs"
                         />

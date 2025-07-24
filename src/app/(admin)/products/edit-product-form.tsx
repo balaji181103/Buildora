@@ -269,7 +269,7 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
                         <Input 
                             id="image-upload-edit"
                             type="file" 
-                            accept="image/*"
+                            accept="image/png, image/jpeg, image/webp"
                             onChange={handleImageChange}
                             className="max-w-xs"
                         />
