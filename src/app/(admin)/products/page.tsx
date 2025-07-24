@@ -67,7 +67,9 @@ export default function ProductsPage() {
           id: doc.id, 
           ...data,
           // Ensure dimensions exist to prevent runtime errors
-          dimensions: data.dimensions || { length: 0, width: 0, height: 0 } 
+          dimensions: data.dimensions || { length: 0, width: 0, height: 0 },
+          // Convert Firestore Timestamp to Date object for consistent sorting
+          createdAt: data.createdAt?.toDate() || new Date()
         } as Product);
       });
       setProducts(productsData);
@@ -86,7 +88,6 @@ export default function ProductsPage() {
 
   const handleProductAdded = (newProduct: Product) => {
     // Optimistically add to the top of the list
-    // Firestore's real-time listener will soon replace this with the actual data
     setProducts(prevProducts => [newProduct, ...prevProducts]);
     setIsDialogOpen(false);
   };

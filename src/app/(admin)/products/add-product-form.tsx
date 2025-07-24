@@ -107,8 +107,8 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
 
         const docRef = await addDoc(collection(db, "products"), productData);
         
-        // Step 2: Optimistically update the UI
-        onProductAdded({ id: docRef.id, ...productData });
+        // Step 2: Optimistically update the UI and show toast
+        onProductAdded({ id: docRef.id, ...productData, createdAt: new Date() });
         toast({
           title: "Product Added",
           description: `${values.name} is now in your inventory. Image is being uploaded.`,
