@@ -6,6 +6,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useState, useTransition } from 'react';
 import Image from 'next/image';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -19,9 +21,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/lib/types';
-import { products } from '@/lib/data';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { db, storage } from '@/lib/firebase'; // Import db and storage from your Firebase config
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
@@ -43,6 +45,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(ProductFormSchema),
@@ -63,6 +66,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -74,39 +78,57 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
 
   const removeImage = () => {
     setImagePreview(null);
+    setImageFile(null);
     form.setValue('image', null);
-     // Also reset the file input
     const fileInput = document.getElementById('image-upload') as HTMLInputElement;
-    if(fileInput) fileInput.value = '';
+    if (fileInput) fileInput.value = '';
   }
 
-  function onSubmit(values: ProductFormValues) {
-    startTransition(() => {
-        const newProduct: Product = {
-            id: `PROD-${String(products.length + 1).padStart(3, '0')}`,
-            name: values.name,
-            category: values.category,
-            description: values.description,
-            stock: values.stock,
-            price: values.price,
-            supplier: values.supplier,
-            weight: values.weight,
-            dimensions: {
-                length: values.length,
-                width: values.width,
-                height: values.height,
-            },
-            imageUrl: imagePreview || undefined,
+  async function onSubmit(values: ProductFormValues) {
+    startTransition(async () => {
+      try {
+        let imageUrl = '';
+        if (imageFile) {
+          const imageRef = ref(storage, `product_images/${imageFile.name}`);
+          await uploadBytes(imageRef, imageFile);
+          imageUrl = await getDownloadURL(imageRef);
+        }
+
+        const productData = {
+          name: values.name,
+          category: values.category,
+          description: values.description || '',
+          stock: values.stock,
+          price: values.price,
+          supplier: values.supplier,
+          weight: values.weight,
+          dimensions: {
+            length: values.length,
+            width: values.width,
+            height: values.height,
+          },
+          imageUrl: imageUrl,
+          createdAt: serverTimestamp(),
         };
+
+        const docRef = await addDoc(collection(db, "products"), productData);
         
-        onProductAdded(newProduct);
-        
+        onProductAdded({ id: docRef.id, ...productData });
+
         toast({
-            title: "Success",
-            description: "Product added successfully.",
+          title: "Success",
+          description: "Product added successfully to Firestore.",
         });
         form.reset();
-        setImagePreview(null);
+        removeImage();
+      } catch (error) {
+        console.error("Error adding product: ", error);
+        toast({
+          variant: 'destructive',
+          title: "Error",
+          description: "Failed to add product. Please try again.",
+        });
+      }
     });
   }
 

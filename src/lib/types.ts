@@ -44,6 +44,7 @@ export type Product = {
   };
   imageUrl?: string;
   description?: string;
+  createdAt?: any;
 };
 
 export type Supplier = {

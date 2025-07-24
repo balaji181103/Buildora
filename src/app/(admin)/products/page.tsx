@@ -4,6 +4,7 @@
 import * as React from "react";
 import { useSearchParams } from 'next/navigation';
 import Image from "next/image";
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import {
   Card,
   CardContent,
@@ -38,31 +39,44 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { products as initialProducts } from "@/lib/data"
 import { MoreHorizontal, PlusCircle, Search, ListFilter, Image as ImageIcon } from "lucide-react"
 import type { Product } from "@/lib/types";
 import { AddProductForm } from "./add-product-form";
 import { Input } from "@/components/ui/input";
+import { db } from "@/lib/firebase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
-  const [products, setProducts] = React.useState<Product[]>(initialProducts);
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [loading, setLoading] = React.useState(true);
   
-  // Control dialog state based on URL search parameter
   const isNewProductFlow = searchParams.get('new') === 'true';
   const [isDialogOpen, setIsDialogOpen] = React.useState(isNewProductFlow);
 
-  // State for search and filter
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
 
-  // Sync dialog state if the prop changes (e.g., from navigation)
+  React.useEffect(() => {
+    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const productsData: Product[] = [];
+      querySnapshot.forEach((doc) => {
+        productsData.push({ id: doc.id, ...doc.data() } as Product);
+      });
+      setProducts(productsData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+  
   React.useEffect(() => {
     setIsDialogOpen(isNewProductFlow);
   }, [isNewProductFlow]);
 
   const handleProductAdded = (newProduct: Product) => {
-    setProducts(prevProducts => [...prevProducts, newProduct]);
+    setProducts(prevProducts => [newProduct, ...prevProducts]);
     setIsDialogOpen(false);
   };
 
@@ -163,7 +177,21 @@ export default function ProductsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.map((product) => (
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-12 w-12 rounded-md" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell className="text-right"><Skeleton className="h-4 w-[80px] ml-auto" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-8 ml-auto rounded-full" /></TableCell>
+                </TableRow>
+              ))
+            ) : filteredProducts.map((product) => (
               <TableRow key={product.id}>
                 <TableCell>
                   <div className="h-12 w-12 bg-muted rounded-md flex items-center justify-center">
