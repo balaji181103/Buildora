@@ -14,6 +14,36 @@ import { db } from '@/lib/firebase';
 import { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
+function ProfileSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Edit Profile</CardTitle>
+        <CardDescription>Update your personal information.</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="first-name">Full Name</Label>
+            <Skeleton className="h-10 w-full" />
+          </div>
+            <div className="space-y-2">
+            <Label htmlFor="phone">Phone Number</Label>
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </CardContent>
+      <CardContent>
+          <Button disabled><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait...</Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function CustomerSettingsPage() {
   const { toast } = useToast();
   const [customer, setCustomer] = React.useState<Customer | null>(null);
@@ -70,34 +100,6 @@ export default function CustomerSettingsPage() {
       setIsSaving(false);
     }
   };
-  
-  const ProfileSkeleton = () => (
-     <Card>
-        <CardHeader>
-          <CardTitle>Edit Profile</CardTitle>
-          <CardDescription>Update your personal information.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="first-name">Full Name</Label>
-              <Skeleton className="h-10 w-full" />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Skeleton className="h-10 w-full" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </CardContent>
-        <CardContent>
-           <Button disabled><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait...</Button>
-        </CardContent>
-      </Card>
-  );
 
   return (
     <div className="mx-auto grid w-full max-w-4xl gap-6">
@@ -178,7 +180,7 @@ export default function CustomerSettingsPage() {
             <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
                 <CardDescription>Choose how you want to be notified.</CardDescription>
-            </Header>
+            </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-center justify-between rounded-lg border p-4">
                     <div>
