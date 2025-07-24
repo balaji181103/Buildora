@@ -1,3 +1,7 @@
+
+'use client';
+
+import * as React from "react";
 import {
   Card,
   CardContent,
@@ -22,11 +26,31 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { trucks } from "@/lib/data"
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { db } from "@/lib/firebase"
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import type { Truck } from "@/lib/types";
+
 
 export default function TrucksPage() {
+    const [trucks, setTrucks] = React.useState<Truck[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const q = query(collection(db, "trucks"), orderBy("id"));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const trucksData: Truck[] = [];
+            snapshot.forEach(doc => {
+                trucksData.push({ ...doc.data() } as Truck);
+            });
+            setTrucks(trucksData);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
   return (
     <Card>
       <CardHeader>
@@ -57,7 +81,13 @@ export default function TrucksPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {trucks.map((truck) => (
+             {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </TableCell>
+              </TableRow>
+            ) : trucks.map((truck) => (
               <TableRow key={truck.id}>
                 <TableCell className="font-medium">{truck.id}</TableCell>
                 <TableCell>

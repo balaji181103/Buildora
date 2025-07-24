@@ -1,4 +1,7 @@
 
+'use client';
+
+import * as React from "react";
 import {
   Card,
   CardContent,
@@ -23,9 +26,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { drones } from "@/lib/data"
-import { MoreHorizontal, PlusCircle, Battery, BatteryFull, BatteryMedium, BatteryLow, Bot } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Battery, BatteryFull, BatteryMedium, BatteryLow, Bot, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { db } from "@/lib/firebase"
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import type { Drone } from "@/lib/types";
 
 function BatteryIcon({ level }: { level: number }) {
   if (level > 70) return <BatteryFull className="h-4 w-4 text-green-500" />;
@@ -34,6 +39,23 @@ function BatteryIcon({ level }: { level: number }) {
 }
 
 export default function DronesPage() {
+  const [drones, setDrones] = React.useState<Drone[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const q = query(collection(db, "drones"), orderBy("id"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const dronesData: Drone[] = [];
+        snapshot.forEach(doc => {
+            dronesData.push({ ...doc.data() } as Drone);
+        });
+        setDrones(dronesData);
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <Card>
       <CardHeader>
@@ -72,7 +94,13 @@ export default function DronesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {drones.map((drone) => (
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </TableCell>
+              </TableRow>
+            ) : drones.map((drone) => (
               <TableRow key={drone.id}>
                 <TableCell className="font-medium">{drone.id}</TableCell>
                 <TableCell>

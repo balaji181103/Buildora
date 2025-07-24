@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import type { Order, Drone, Truck } from '@/lib/types';
-import { drones, trucks } from '@/lib/data'; // Keep mock vehicle data for now
 
 
 export default function CustomerOrderTrackingPage() {
@@ -22,17 +21,31 @@ export default function CustomerOrderTrackingPage() {
   const id = params.id as string;
   
   const [order, setOrder] = React.useState<Order | null>(null);
+  const [vehicle, setVehicle] = React.useState<Drone | Truck | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     if (!id) return;
     const unsubscribe = onSnapshot(doc(db, "orders", id), (docSnap) => {
       if (docSnap.exists()) {
-        setOrder({ id: docSnap.id, ...docSnap.data() } as Order);
+        const orderData = { id: docSnap.id, ...docSnap.data() } as Order;
+        setOrder(orderData);
+
+        if (orderData.deliveryVehicleId) {
+            const vehicleCollection = orderData.deliveryMethod === 'Drone' ? 'drones' : 'trucks';
+            const unsubVehicle = onSnapshot(doc(db, vehicleCollection, orderData.deliveryVehicleId), (vehicleSnap) => {
+                if (vehicleSnap.exists()) {
+                    setVehicle(vehicleSnap.data() as Drone | Truck);
+                }
+                setLoading(false);
+            });
+            return () => unsubVehicle();
+        } else {
+             setLoading(false);
+        }
       } else {
         notFound();
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -46,12 +59,10 @@ export default function CustomerOrderTrackingPage() {
     )
   }
 
-  const vehicle = order.deliveryMethod === 'Drone'
-    ? drones.find(d => d.id === order.deliveryVehicleId)
-    : trucks.find(t => t.id === order.deliveryVehicleId);
-
   const renderVehicleDetails = () => {
-    if (order.deliveryMethod === 'Drone' && vehicle) {
+     if (!vehicle) return <p>Vehicle details not found.</p>;
+
+    if (order.deliveryMethod === 'Drone') {
       const drone = vehicle as Drone;
       return (
         <div className="space-y-4">
@@ -66,7 +77,7 @@ export default function CustomerOrderTrackingPage() {
         </div>
       );
     }
-    if (order.deliveryMethod === 'Truck' && vehicle) {
+    if (order.deliveryMethod === 'Truck') {
         const truck = vehicle as Truck;
         return (
             <div className="space-y-4">

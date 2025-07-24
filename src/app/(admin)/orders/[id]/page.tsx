@@ -13,7 +13,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { db } from '@/lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import type { Order, Customer, Drone, Truck } from '@/lib/types';
-import { drones, trucks } from '@/lib/data'; // Keep mock vehicle data for now
 
 
 export default function AdminOrderTrackingPage() {
@@ -24,23 +23,40 @@ export default function AdminOrderTrackingPage() {
   
   const [order, setOrder] = React.useState<Order | null>(null);
   const [customer, setCustomer] = React.useState<Customer | null>(null);
+  const [vehicle, setVehicle] = React.useState<Drone | Truck | null>(null);
   const [loading, setLoading] = React.useState(true);
   
   React.useEffect(() => {
     if (!id) return;
-    const unsubscribeOrder = onSnapshot(doc(db, "orders", id), (docSnap) => {
+    const unsubscribeOrder = onSnapshot(doc(db, "orders", id), async (docSnap) => {
       if (docSnap.exists()) {
         const orderData = { id: docSnap.id, ...docSnap.data() } as Order;
         setOrder(orderData);
         
-        // Fetch customer details once order is fetched
-        const unsubscribeCustomer = onSnapshot(doc(db, "customers", orderData.customerId), (custSnap) => {
+        // Fetch customer details
+        const unsubCustomer = onSnapshot(doc(db, "customers", orderData.customerId), (custSnap) => {
              if (custSnap.exists()) {
                  setCustomer({ id: custSnap.id, ...custSnap.data() } as Customer);
              }
-             setLoading(false);
         });
-        return () => unsubscribeCustomer();
+
+        // Fetch vehicle details
+        if (orderData.deliveryVehicleId) {
+            const vehicleCollection = orderData.deliveryMethod === 'Drone' ? 'drones' : 'trucks';
+            const unsubVehicle = onSnapshot(doc(db, vehicleCollection, orderData.deliveryVehicleId), (vehicleSnap) => {
+                if (vehicleSnap.exists()) {
+                    setVehicle(vehicleSnap.data() as Drone | Truck);
+                }
+                setLoading(false);
+            });
+            return () => {
+                unsubCustomer();
+                unsubVehicle();
+            };
+        } else {
+            setLoading(false);
+        }
+        
       } else {
         notFound();
       }
@@ -57,14 +73,11 @@ export default function AdminOrderTrackingPage() {
       </div>
     );
   }
-
-  const vehicle = order.deliveryMethod === 'Drone'
-    ? drones.find(d => d.id === order.deliveryVehicleId)
-    : trucks.find(t => t.id === order.deliveryVehicleId);
-
   
   const renderVehicleDetails = () => {
-    if (order.deliveryMethod === 'Drone' && vehicle) {
+    if (!vehicle) return <p>Vehicle details not found.</p>;
+
+    if (order.deliveryMethod === 'Drone') {
       const drone = vehicle as Drone;
       return (
         <div className="space-y-4">
@@ -81,7 +94,7 @@ export default function AdminOrderTrackingPage() {
         </div>
       );
     }
-    if (order.deliveryMethod === 'Truck' && vehicle) {
+    if (order.deliveryMethod === 'Truck') {
         const truck = vehicle as Truck;
         return (
             <div className="space-y-4">
