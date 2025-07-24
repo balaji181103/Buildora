@@ -65,6 +65,11 @@ export default function CheckoutPage() {
         );
     };
 
+    const handleUseCurrentLocation = () => {
+        setShowNewAddressForm(true);
+        handleGetLocation();
+    }
+
 
     React.useEffect(() => {
         if (!isDroneDeliveryAvailable) {
@@ -132,10 +137,16 @@ export default function CheckoutPage() {
                                 <CardTitle>Shipping Address</CardTitle>
                                 <CardDescription>Select or add an address for delivery.</CardDescription>
                             </div>
-                            <Button variant="outline" size="sm" onClick={() => setShowNewAddressForm(true)} disabled={showNewAddressForm}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add New Address
-                            </Button>
+                            <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm" onClick={handleUseCurrentLocation} disabled={showNewAddressForm}>
+                                    <LocateFixed className="mr-2 h-4 w-4" />
+                                    Current Address
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => setShowNewAddressForm(true)} disabled={showNewAddressForm}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add New Address
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId} className="space-y-4">
@@ -360,4 +371,5 @@ export default function CheckoutPage() {
     )
 
     
+
 
