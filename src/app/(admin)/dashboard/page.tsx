@@ -26,20 +26,24 @@ import {
   Wrench,
   AlertTriangle,
   Loader2,
+  TrendingUp,
+  DollarSign,
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { OverviewChart } from "./overview-chart"
 import { db } from "@/lib/firebase"
-import { collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore"
+import { collection, query, where, onSnapshot, orderBy, limit, Timestamp } from "firebase/firestore"
 import type { Order, Product } from "@/lib/types"
 import { ActionCard } from "@/components/ui/action-card"
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
 export default function DashboardPage() {
   const [lowStockProducts, setLowStockProducts] = React.useState<Product[]>([]);
   const [recentOrders, setRecentOrders] = React.useState<Order[]>([]);
   const [totalRevenue, setTotalRevenue] = React.useState<number | null>(null);
+  const [todaysSales, setTodaysSales] = React.useState<number | null>(null);
+  const [monthlySales, setMonthlySales] = React.useState<number | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -79,70 +83,105 @@ export default function DashboardPage() {
         setLoading(false);
     });
 
+    // Listener for today's sales
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const todayTimestamp = Timestamp.fromDate(startOfToday);
+
+    const todaysSalesQuery = query(collection(db, "orders"), where("date", ">=", todayTimestamp));
+    const unsubscribeTodaysSales = onSnapshot(todaysSalesQuery, (snapshot) => {
+      let salesCount = 0;
+      snapshot.forEach(() => {
+        salesCount++;
+      });
+      setTodaysSales(salesCount);
+    });
+    
+    // Listener for monthly sales
+    const startOf30DaysAgo = subDays(new Date(), 30);
+    const thirtyDaysAgoTimestamp = Timestamp.fromDate(startOf30DaysAgo);
+    
+    const monthlySalesQuery = query(collection(db, "orders"), where("date", ">=", thirtyDaysAgoTimestamp));
+    const unsubscribeMonthlySales = onSnapshot(monthlySalesQuery, (snapshot) => {
+      let salesCount = 0;
+      snapshot.forEach(() => {
+        salesCount++;
+      });
+      setMonthlySales(salesCount);
+    });
+
+
     return () => {
       unsubscribeLowStock();
       unsubscribeRecentOrders();
       unsubscribeRevenue();
+      unsubscribeTodaysSales();
+      unsubscribeMonthlySales();
     };
   }, []);
 
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Link href="/orders">
-          <Card className="hover:bg-muted/50 transition-colors">
+        <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium">
                 Total Revenue
-              </CardTitle>
-              <IndianRupee className="h-4 w-4 text-muted-foreground" />
+            </CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              {loading ? (
+            {loading ? (
                 <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
+            ) : (
                 <>
                 <div className="text-2xl font-bold">₹{totalRevenue?.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) ?? '0.00'}</div>
                 <p className="text-xs text-muted-foreground">
-                  From all delivered orders
+                    From all delivered orders
                 </p>
                 </>
-              )}
+            )}
             </CardContent>
-          </Card>
-        </Link>
-        <Link href="/orders">
-            <Card className="hover:bg-muted/50 transition-colors">
+        </Card>
+        <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
-                Active Deliveries
+                Today's Sales
                 </CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-xs text-muted-foreground">
-                No active delivery routes
-                </p>
+                {loading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                    <>
+                    <div className="text-2xl font-bold">+{todaysSales ?? 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                        New orders placed today
+                    </p>
+                    </>
+                )}
             </CardContent>
-            </Card>
-        </Link>
-        <Link href="/orders">
-            <Card className="hover:bg-muted/50 transition-colors">
+        </Card>
+        <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Sales</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-xs text-muted-foreground">
-                No sales this month
-                </p>
+                 {loading ? (
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                    <>
+                    <div className="text-2xl font-bold">+{monthlySales ?? 0}</div>
+                    <p className="text-xs text-muted-foreground">
+                        New orders in the last 30 days
+                    </p>
+                    </>
+                )}
             </CardContent>
-            </Card>
-        </Link>
-        <Link href="/drones">
-            <Card className="hover:bg-muted/50 transition-colors">
+        </Card>
+        <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                 System Status
@@ -157,8 +196,7 @@ export default function DashboardPage() {
                 As of the last check
                 </p>
             </CardContent>
-            </Card>
-        </Link>
+        </Card>
         <ActionCard href={{ pathname: '/products', query: { new: 'true' } }}>
           Add New Product
         </ActionCard>
@@ -274,3 +312,5 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+    
