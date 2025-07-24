@@ -42,6 +42,12 @@ import Link from "next/link"
 export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
+  const [orders, setOrders] = React.useState<Order[]>(allOrders);
+
+  // This effect will re-sync the state if the underlying data changes
+  React.useEffect(() => {
+    setOrders(allOrders);
+  }, []);
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
@@ -83,13 +89,13 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {allOrders.length === 0 ? (
+              {orders.length === 0 ? (
                   <TableRow>
                       <TableCell colSpan={7} className="h-24 text-center">
                           No orders found.
                       </TableCell>
                   </TableRow>
-              ) : allOrders.map((order) => (
+              ) : orders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">{order.id}</TableCell>
                   <TableCell>{order.customer}</TableCell>

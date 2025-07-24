@@ -4,6 +4,7 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,8 +15,9 @@ import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { CreditCard, Home, PlusCircle, Rocket, Truck, LocateFixed, Loader2 } from "lucide-react"
-import { customers } from "@/lib/data" // Assuming we get the logged in customer's data
+import { customers, allOrders } from "@/lib/data" // Assuming we get the logged in customer's data
 import { useToast } from "@/hooks/use-toast";
+import { nanoid } from 'nanoid'
 
 const deliveryOptions = {
     standard: { name: 'Standard', cost: 500, description: '2-3 Business Days (For heavy items)', icon: Truck },
@@ -23,13 +25,15 @@ const deliveryOptions = {
 };
 
 export default function CheckoutPage() {
-    const { cart } = useCart();
+    const { cart, clearCart } = useCart();
+    const router = useRouter();
     const { toast } = useToast();
     const [selectedAddressId, setSelectedAddressId] = React.useState<string | undefined>(undefined);
     const [showNewAddressForm, setShowNewAddressForm] = React.useState(false);
     const [isLocating, setIsLocating] = React.useState(false);
     const [latitude, setLatitude] = React.useState<number | null>(null);
     const [longitude, setLongitude] = React.useState<number | null>(null);
+    const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
 
     // In a real app, you'd fetch the logged-in user. We'll use the first customer as a mock.
     const customer = customers[0]; 
@@ -94,7 +98,33 @@ export default function CheckoutPage() {
     const taxes = subtotal * 0.18; // Mock 18% tax
     const total = subtotal + shippingCost + taxes;
 
-    if (cart.length === 0) {
+    const handlePlaceOrder = () => {
+        setIsPlacingOrder(true);
+        // Simulate API call
+        setTimeout(() => {
+            const newOrder = {
+                id: `ORD-${nanoid(5).toUpperCase()}`,
+                customer: customer.name,
+                status: 'Processing' as const,
+                date: new Date().toLocaleDateString('en-CA'),
+                total: total,
+                deliveryMethod: selectedDeliveryMethod === 'express' ? 'Drone' as const : 'Truck' as const,
+                deliveryVehicleId: selectedDeliveryMethod === 'express' ? 'SB-005' : 'TR-02', // Mock vehicle
+            };
+            
+            allOrders.unshift(newOrder); // Add to the beginning of the list
+            
+            toast({
+                title: "Order Placed!",
+                description: `Your order ${newOrder.id} has been successfully placed.`,
+            });
+            clearCart();
+            setIsPlacingOrder(false);
+            router.push(`/checkout/success?orderId=${newOrder.id}`);
+        }, 1500);
+    }
+
+    if (cart.length === 0 && !isPlacingOrder) {
         return (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
                  <h1 className="text-2xl font-bold">Your Cart is Empty</h1>
@@ -364,17 +394,12 @@ export default function CheckoutPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <Button size="lg" className="w-full">Place Order</Button>
+                    <Button size="lg" className="w-full" onClick={handlePlaceOrder} disabled={!selectedAddressId || isPlacingOrder}>
+                        {isPlacingOrder ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
+                    </Button>
                 </div>
             </div>
         </div>
     )
-
-    
-
-
-
-
-    
-
-    
+}
