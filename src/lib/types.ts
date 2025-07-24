@@ -19,14 +19,24 @@ export type Truck = {
 
 export type OrderStatus = 'Pending' | 'Processing' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
 
+export type OrderItem = {
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+};
+
 export type Order = {
   id: string;
-  customer: string;
+  customerName: string;
+  customerId: string;
   status: OrderStatus;
-  date: string;
+  date: any; // Using 'any' for Firestore ServerTimestamp
   total: number;
   deliveryMethod: 'Drone' | 'Truck';
   deliveryVehicleId: string;
+  items: OrderItem[];
+  shippingAddress: Address;
 };
 
 export type Product = {

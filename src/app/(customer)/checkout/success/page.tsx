@@ -6,18 +6,55 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { allOrders } from '@/lib/data';
-import { CheckCircle2, FileText, ShoppingBag, ArrowRight, Package } from 'lucide-react';
+import { CheckCircle2, FileText, ShoppingBag, ArrowRight, Package, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import type { Order } from '@/lib/types';
+import { format } from 'date-fns';
 
 export default function OrderSuccessPage() {
     const searchParams = useSearchParams();
-    const orderId = searchParams.get('orderId');
+    const orderIdParam = searchParams.get('orderId'); // This is a dummy param now
     const { toast } = useToast();
+    const [order, setOrder] = React.useState<Order | null>(null);
+    const [loading, setLoading] = React.useState(true);
 
-    const order = React.useMemo(() => {
-        return allOrders.find(o => o.id === orderId);
-    }, [orderId]);
+
+    React.useEffect(() => {
+        const fetchLatestOrder = async () => {
+            // Since we can't easily get the ID from the transaction,
+            // we'll fetch the most recent order for a mock user.
+            // In a real app with auth, you'd fetch for the current userId.
+            try {
+                 const q = query(
+                    collection(db, "orders"),
+                    orderBy("date", "desc"),
+                    limit(1)
+                );
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const doc = querySnapshot.docs[0];
+                    const data = doc.data();
+                    setOrder({ 
+                        id: doc.id,
+                        ...data,
+                        date: data.date.toDate() 
+                    } as Order);
+                }
+            } catch (error) {
+                console.error("Error fetching latest order:", error);
+                 toast({
+                    variant: 'destructive',
+                    title: "Could not fetch order details.",
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchLatestOrder();
+    }, [toast]);
+
 
     const handleDownloadInvoice = () => {
         toast({
@@ -25,12 +62,20 @@ export default function OrderSuccessPage() {
             description: "PDF invoice generation is not yet implemented.",
         });
     }
+    
+    if (loading) {
+        return (
+             <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        )
+    }
 
     if (!order) {
         return (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
                 <h1 className="text-2xl font-bold">Order Not Found</h1>
-                <p className="text-muted-foreground">We couldn't find the details for this order.</p>
+                <p className="text-muted-foreground">We couldn't find the details for your recent order.</p>
                 <Button asChild>
                     <Link href="/my-orders">View Your Orders</Link>
                 </Button>
@@ -64,7 +109,7 @@ export default function OrderSuccessPage() {
                         <div className="grid grid-cols-2 gap-2">
                            <div>
                                 <p className="font-semibold">Order Date:</p>
-                                <p className="text-muted-foreground">{order.date}</p>
+                                <p className="text-muted-foreground">{format(order.date, 'PPP')}</p>
                            </div>
                            <div>
                                 <p className="font-semibold">Order Total:</p>

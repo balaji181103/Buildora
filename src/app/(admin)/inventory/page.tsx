@@ -27,18 +27,39 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { products as initialProducts } from "@/lib/data"
-import { ClipboardList, Search, AlertTriangle, History } from "lucide-react"
+import { ClipboardList, Search, AlertTriangle, History, Loader2 } from "lucide-react"
 import type { Product } from "@/lib/types";
 import { Input } from "@/components/ui/input";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 export default function InventoryPage() {
-  const [products, setProducts] = React.useState<Product[]>(initialProducts);
+  const [products, setProducts] = React.useState<Product[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState("");
+
+  React.useEffect(() => {
+    const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const productsData: Product[] = [];
+      snapshot.forEach((doc) => {
+        productsData.push({ id: doc.id, ...doc.data() } as Product);
+      });
+      setProducts(productsData);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching products:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const getStockStatus = (stock: number) => {
     if (stock === 0) return { text: "Out of Stock", variant: "destructive" as const, icon: <AlertTriangle className="h-4 w-4 mr-2 text-destructive" /> };
-    if (stock < 10) return { text: "Low Stock", variant: "secondary" as const, icon: <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" /> };
+    if (stock <= 3) return { text: "Low Stock", variant: "secondary" as const, icon: <AlertTriangle className="h-4 w-4 mr-2 text-amber-500" /> };
     return { text: "In Stock", variant: "default" as const };
   };
 
@@ -83,7 +104,15 @@ export default function InventoryPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-             {filteredProducts.length === 0 ? (
+             {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell colSpan={5}>
+                            <Skeleton className="h-8 w-full" />
+                        </TableCell>
+                    </TableRow>
+                ))
+             ) : filteredProducts.length === 0 ? (
                 <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
                         No products found.

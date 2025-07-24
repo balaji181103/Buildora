@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Card,
@@ -27,20 +27,55 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { customers as initialCustomers } from "@/lib/data"
-import { MoreHorizontal, PlusCircle, Star, Package } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Star, Package, Loader2 } from "lucide-react"
 import type { Customer } from "@/lib/types";
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, doc, updateDoc, query, orderBy } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const handleDeactivate = (customerId: string) => {
-    setCustomers(prevCustomers =>
-      prevCustomers.map(customer =>
-        customer.id === customerId ? { ...customer, status: 'Inactive' } : customer
-      )
-    );
+  useEffect(() => {
+    const q = query(collection(db, "customers"), orderBy("name"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const customersData: Customer[] = [];
+      snapshot.forEach(doc => {
+        customersData.push({ id: doc.id, ...doc.data() } as Customer);
+      });
+      setCustomers(customersData);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleDeactivate = async (customerId: string) => {
+    const customerRef = doc(db, "customers", customerId);
+    try {
+      await updateDoc(customerRef, { status: "Inactive" });
+      toast({
+        title: "Customer Deactivated",
+        description: "The customer account has been marked as inactive.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Could not deactivate the customer account.",
+      });
+    }
   };
+  
+   if (loading) {
+        return (
+             <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        )
+    }
 
   return (
     <Card>

@@ -15,9 +15,12 @@ import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { CreditCard, Home, PlusCircle, Rocket, Truck, LocateFixed, Loader2 } from "lucide-react"
-import { customers, allOrders } from "@/lib/data" // Assuming we get the logged in customer's data
 import { useToast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid'
+import { db } from "@/lib/firebase";
+import { collection, doc, getDocs, onSnapshot, runTransaction, serverTimestamp, writeBatch } from "firebase/firestore";
+import type { Customer, Address, Order } from "@/lib/types";
+
 
 const deliveryOptions = {
     standard: { name: 'Standard', cost: 500, description: '2-3 Business Days (For heavy items)', icon: Truck },
@@ -34,9 +37,27 @@ export default function CheckoutPage() {
     const [latitude, setLatitude] = React.useState<number | null>(null);
     const [longitude, setLongitude] = React.useState<number | null>(null);
     const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
+    const [customer, setCustomer] = React.useState<Customer | null>(null);
 
     // In a real app, you'd fetch the logged-in user. We'll use the first customer as a mock.
-    const customer = customers[0]; 
+    React.useEffect(() => {
+        // Mocking fetching the first customer
+        const fetchCustomer = async () => {
+            const querySnapshot = await getDocs(collection(db, "customers"));
+            if (!querySnapshot.empty) {
+                const firstCustomerDoc = querySnapshot.docs[0];
+                const customerData = { id: firstCustomerDoc.id, ...firstCustomerDoc.data() } as Customer;
+                setCustomer(customerData);
+                 if (customerData.addresses && customerData.addresses.length > 0) {
+                    setSelectedAddressId(customerData.addresses[0].id);
+                } else {
+                    setShowNewAddressForm(true);
+                }
+            }
+        };
+        fetchCustomer();
+    }, []);
+
 
     const totalWeight = React.useMemo(() => {
         return cart.reduce((acc, item) => acc + (item.product.weight * item.quantity), 0);
@@ -81,14 +102,6 @@ export default function CheckoutPage() {
         }
     }, [isDroneDeliveryAvailable]);
 
-    React.useEffect(() => {
-        if (customer.addresses && customer.addresses.length > 0) {
-            setSelectedAddressId(customer.addresses[0].id);
-        } else {
-            setShowNewAddressForm(true);
-        }
-    }, [customer]);
-
 
     const subtotal = React.useMemo(() => {
         return cart.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
@@ -98,30 +111,89 @@ export default function CheckoutPage() {
     const taxes = subtotal * 0.18; // Mock 18% tax
     const total = subtotal + shippingCost + taxes;
 
-    const handlePlaceOrder = () => {
+    const handlePlaceOrder = async () => {
+        if (!customer || !selectedAddressId) {
+            toast({ variant: 'destructive', title: 'Please select a shipping address.'});
+            return;
+        }
+        
+        const shippingAddress = customer.addresses.find(a => a.id === selectedAddressId);
+        if (!shippingAddress) {
+             toast({ variant: 'destructive', title: 'Selected address not found.'});
+            return;
+        }
+
         setIsPlacingOrder(true);
-        // Simulate API call
-        setTimeout(() => {
-            const newOrder = {
-                id: `ORD-${nanoid(5).toUpperCase()}`,
-                customer: customer.name,
-                status: 'Processing' as const,
-                date: new Date().toLocaleDateString('en-CA'),
-                total: total,
-                deliveryMethod: selectedDeliveryMethod === 'express' ? 'Drone' as const : 'Truck' as const,
-                deliveryVehicleId: selectedDeliveryMethod === 'express' ? 'SB-005' : 'TR-02', // Mock vehicle
-            };
-            
-            allOrders.unshift(newOrder); // Add to the beginning of the list
+        
+        try {
+            await runTransaction(db, async (transaction) => {
+                const orderItems = cart.map(item => ({
+                    productId: item.product.id,
+                    name: item.product.name,
+                    quantity: item.quantity,
+                    price: item.product.price
+                }));
+
+                // 1. Create the new order
+                const newOrderRef = doc(collection(db, "orders"));
+                const newOrder: Order = {
+                    id: newOrderRef.id,
+                    customerName: customer.name,
+                    customerId: customer.id,
+                    status: 'Processing',
+                    date: serverTimestamp(),
+                    total,
+                    deliveryMethod: selectedDeliveryMethod === 'express' ? 'Drone' : 'Truck',
+                    deliveryVehicleId: selectedDeliveryMethod === 'express' ? 'SB-005' : 'TR-02', // Mock vehicle
+                    items: orderItems,
+                    shippingAddress: shippingAddress,
+                };
+                transaction.set(newOrderRef, newOrder);
+
+                // 2. Update product stock
+                for (const item of cart) {
+                    const productRef = doc(db, "products", item.product.id);
+                    const productDoc = await transaction.get(productRef);
+                    if (!productDoc.exists()) {
+                        throw new Error(`Product ${item.product.name} not found!`);
+                    }
+                    const newStock = productDoc.data().stock - item.quantity;
+                    if (newStock < 0) {
+                        throw new Error(`Not enough stock for ${item.product.name}.`);
+                    }
+                    transaction.update(productRef, { stock: newStock });
+                }
+
+                // 3. Update customer order count
+                const customerRef = doc(db, "customers", customer.id);
+                transaction.update(customerRef, { orderCount: (customer.orderCount || 0) + 1 });
+            });
             
             toast({
                 title: "Order Placed!",
-                description: `Your order ${newOrder.id} has been successfully placed.`,
+                description: `Your order has been successfully placed.`,
             });
             clearCart();
+            router.push(`/checkout/success?orderId=${nanoid(10)}`); // a bit of a hack, but order ID isn't available outside transaction
+
+        } catch (error: any) {
+            console.error("Transaction failed: ", error);
+            toast({
+                variant: 'destructive',
+                title: "Order Failed",
+                description: error.message || "There was an issue placing your order. Please try again.",
+            });
+        } finally {
             setIsPlacingOrder(false);
-            router.push(`/checkout/success?orderId=${newOrder.id}`);
-        }, 1500);
+        }
+    }
+
+    if (!customer) {
+        return (
+             <div className="flex h-96 items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        )
     }
 
     if (cart.length === 0 && !isPlacingOrder) {
@@ -200,7 +272,7 @@ export default function CheckoutPage() {
                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="name">Full Name</Label>
-                                            <Input id="name" placeholder="Priya Sharma" />
+                                            <Input id="name" placeholder="Priya Sharma" defaultValue={customer.name} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="phone">Phone Number</Label>
@@ -363,7 +435,7 @@ export default function CheckoutPage() {
                                     <div key={item.product.id} className="flex justify-between items-center text-sm">
                                         <div className="flex items-center gap-2">
                                             <div className="relative h-12 w-12">
-                                                <Image src="https://placehold.co/64x64.png" alt={item.product.name} fill className="rounded-md object-cover" data-ai-hint="product image"/>
+                                                <Image src={item.product.imageUrl || "https://placehold.co/64x64.png"} alt={item.product.name} fill className="rounded-md object-cover" data-ai-hint="product image"/>
                                                 <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{item.quantity}</span>
                                             </div>
                                             <span>{item.product.name}</span>

@@ -3,25 +3,69 @@
 
 import Link from 'next/link';
 import { notFound, useRouter, useParams } from 'next/navigation';
-import { customers, allOrders } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Mail, Phone, Home, Star, Package, MapPin, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Home, Star, Package, MapPin, ExternalLink, Loader2 } from 'lucide-react';
+import * as React from 'react';
+import { db } from '@/lib/firebase';
+import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { Customer, Order } from '@/lib/types';
+import { format } from 'date-fns';
 
 export default function CustomerProfilePage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const customer = customers.find((c) => c.id === id);
   
-  if (!customer) {
-    notFound();
+  const [customer, setCustomer] = React.useState<Customer | null>(null);
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!id) return;
+    
+    const fetchCustomer = async () => {
+        const docRef = doc(db, 'customers', id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            setCustomer({ id: docSnap.id, ...docSnap.data() } as Customer);
+        } else {
+            notFound();
+        }
+    }
+
+    fetchCustomer();
+
+    const ordersQuery = query(collection(db, "orders"), where("customerId", "==", id));
+    const unsubscribe = onSnapshot(ordersQuery, (snapshot) => {
+        const customerOrders: Order[] = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            customerOrders.push({
+                id: doc.id,
+                ...data,
+                date: data.date.toDate()
+            } as Order);
+        });
+        setOrders(customerOrders);
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
+
+  }, [id]);
+  
+  if (loading || !customer) {
+    return (
+        <div className="flex h-96 items-center justify-center">
+           <Loader2 className="h-8 w-8 animate-spin" />
+       </div>
+    )
   }
 
-  const customerOrders = allOrders.filter(order => order.customer === customer.name);
   const getInitials = (name: string) => {
     const names = name.split(' ');
     if (names.length > 1) {
@@ -143,17 +187,17 @@ export default function CustomerProfilePage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                             {customerOrders.length === 0 ? (
+                             {orders.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={4} className="h-24 text-center">
                                         No orders found for this customer.
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                customerOrders.map((order) => (
+                                orders.map((order) => (
                                     <TableRow key={order.id}>
                                         <TableCell className="font-medium">{order.id}</TableCell>
-                                        <TableCell>{order.date}</TableCell>
+                                        <TableCell>{format(order.date, 'PPP')}</TableCell>
                                         <TableCell>
                                             <Badge
                                                 variant={

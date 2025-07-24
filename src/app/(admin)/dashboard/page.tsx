@@ -1,4 +1,7 @@
 
+'use client';
+
+import * as React from 'react';
 import {
   Card,
   CardContent,
@@ -22,16 +25,66 @@ import {
   Package,
   Wrench,
   AlertTriangle,
-  Plus,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { OverviewChart } from "./overview-chart"
-import { recentOrders, products } from "@/lib/data"
+import { db } from "@/lib/firebase"
+import { collection, query, where, onSnapshot, orderBy, limit } from "firebase/firestore"
+import type { Order, Product } from "@/lib/types"
 import { ActionCard } from "@/components/ui/action-card"
+import { format } from 'date-fns';
 
 export default function DashboardPage() {
-  const lowStockProducts = products.filter(p => p.stock < 10);
+  const [lowStockProducts, setLowStockProducts] = React.useState<Product[]>([]);
+  const [recentOrders, setRecentOrders] = React.useState<Order[]>([]);
+  const [totalRevenue, setTotalRevenue] = React.useState<number | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Listener for low stock products
+    const lowStockQuery = query(collection(db, "products"), where("stock", "<=", 3));
+    const unsubscribeLowStock = onSnapshot(lowStockQuery, (snapshot) => {
+      const products: Product[] = [];
+      snapshot.forEach((doc) => {
+        products.push({ id: doc.id, ...doc.data() } as Product);
+      });
+      setLowStockProducts(products);
+    });
+
+    // Listener for recent orders
+    const recentOrdersQuery = query(collection(db, "orders"), orderBy("date", "desc"), limit(5));
+    const unsubscribeRecentOrders = onSnapshot(recentOrdersQuery, (snapshot) => {
+      const orders: Order[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        orders.push({ 
+          id: doc.id, 
+          ...data,
+          date: data.date.toDate()
+        } as Order);
+      });
+      setRecentOrders(orders);
+    });
+    
+    // Listener for total revenue
+    const revenueQuery = query(collection(db, "orders"), where("status", "==", "Delivered"));
+    const unsubscribeRevenue = onSnapshot(revenueQuery, (snapshot) => {
+        let currentRevenue = 0;
+        snapshot.forEach((doc) => {
+            currentRevenue += doc.data().total;
+        });
+        setTotalRevenue(currentRevenue);
+        setLoading(false);
+    });
+
+    return () => {
+      unsubscribeLowStock();
+      unsubscribeRecentOrders();
+      unsubscribeRevenue();
+    };
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -45,10 +98,16 @@ export default function DashboardPage() {
               <IndianRupee className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹0.00</div>
-              <p className="text-xs text-muted-foreground">
-                No data available yet
-              </p>
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <>
+                <div className="text-2xl font-bold">₹{totalRevenue?.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) ?? '0.00'}</div>
+                <p className="text-xs text-muted-foreground">
+                  From all delivered orders
+                </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </Link>
@@ -117,7 +176,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle>Recent Orders</CardTitle>
             <CardDescription>
-              There are no recent orders.
+              {recentOrders.length === 0 ? "You have no recent orders." : `You have ${recentOrders.length} recent orders.`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -136,9 +195,9 @@ export default function DashboardPage() {
                     {recentOrders.map((order) => (
                     <TableRow key={order.id}>
                         <TableCell>
-                        <div className="font-medium">{order.customer}</div>
+                        <div className="font-medium">{order.customerName}</div>
                         <div className="hidden text-sm text-muted-foreground md:inline">
-                            {order.id}
+                            {format(order.date, 'PPP')}
                         </div>
                         </TableCell>
                         <TableCell>
@@ -170,7 +229,7 @@ export default function DashboardPage() {
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                     <CardTitle>Inventory & Maintenance Alerts</CardTitle>
-                    <CardDescription>Critical alerts that require immediate attention. For lightweight products, drones will be used for delivery. For heavy products, trucks will be used.</CardDescription>
+                    <CardDescription>Critical alerts that require immediate attention.</CardDescription>
                 </div>
                 <Button asChild size="sm" className="ml-auto gap-1">
                   <Link href="/products">
@@ -203,7 +262,7 @@ export default function DashboardPage() {
                             <TableCell><div className="font-medium flex items-center gap-2"><AlertTriangle className="h-4 w-4"/> {product.name}</div></TableCell>
                             <TableCell><Badge variant="destructive">Low Stock</Badge></TableCell>
                             <TableCell>{product.stock} units remaining</TableCell>
-                            <TableCell className="text-right"><Button variant="outline" size="sm">Restock</Button></TableCell>
+                            <TableCell className="text-right"><Button variant="outline" size="sm" asChild><Link href="/products">Restock</Link></Button></TableCell>
                         </TableRow>
                         ))}
                     </TableBody>

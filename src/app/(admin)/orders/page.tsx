@@ -34,25 +34,72 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { allOrders, customers, products as allProducts } from "@/lib/data"
 import type { Order } from "@/lib/types";
-import { MoreHorizontal, PlusCircle, Rocket, Truck, FileText, Edit, Package, Waypoints } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Rocket, Truck, FileText, Edit, Package, Waypoints, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { db } from "@/lib/firebase";
+import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
-  const [orders, setOrders] = React.useState<Order[]>(allOrders);
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const { toast } = useToast();
 
-  // This effect will re-sync the state if the underlying data changes
   React.useEffect(() => {
-    setOrders(allOrders);
+    const q = query(collection(db, "orders"), orderBy("date", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const ordersData: Order[] = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            ordersData.push({ 
+                id: doc.id,
+                ...data,
+                date: data.date.toDate() // Convert Firestore Timestamp to JS Date
+            } as Order);
+        });
+        setOrders(ordersData);
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
     setIsDetailsOpen(true);
   };
+
+  const handleUpdateStatus = async (orderId: string, status: Order['status']) => {
+    const orderRef = doc(db, "orders", orderId);
+    try {
+        await updateDoc(orderRef, { status });
+        toast({
+            title: "Status Updated",
+            description: `Order ${orderId} has been updated to ${status}.`
+        })
+        if (selectedOrder?.id === orderId) {
+            setSelectedOrder(prev => prev ? {...prev, status} : null);
+        }
+    } catch (error) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not update order status."
+        })
+    }
+  }
+  
+  if (loading) {
+    return (
+        <div className="flex h-96 items-center justify-center">
+           <Loader2 className="h-8 w-8 animate-spin" />
+       </div>
+    )
+  }
 
   return (
     <>
@@ -98,7 +145,7 @@ export default function OrdersPage() {
               ) : orders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">{order.id}</TableCell>
-                  <TableCell>{order.customer}</TableCell>
+                  <TableCell>{order.customerName}</TableCell>
                   <TableCell>
                     <Badge 
                       variant={
@@ -115,7 +162,7 @@ export default function OrdersPage() {
                       {order.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{order.date}</TableCell>
+                  <TableCell>{format(order.date, 'PPP')}</TableCell>
                   <TableCell>
                       <div className="flex items-center gap-2">
                           {order.deliveryMethod === 'Drone' ? <Rocket className="h-4 w-4 text-muted-foreground" /> : <Truck className="h-4 w-4 text-muted-foreground" />}
@@ -143,9 +190,9 @@ export default function OrdersPage() {
                             <Package className="mr-2 h-4 w-4" />
                             View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleUpdateStatus(order.id, 'Out for Delivery')} disabled={order.status === 'Out for Delivery' || order.status === 'Delivered'}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Update Status
+                            Set Out for Delivery
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
@@ -169,29 +216,49 @@ export default function OrdersPage() {
                     <DialogHeader>
                         <DialogTitle>Order Details: {selectedOrder.id}</DialogTitle>
                         <DialogDescription>
-                            Full details for the order placed by {selectedOrder.customer} on {selectedOrder.date}.
+                            Full details for the order placed by {selectedOrder.customerName} on {format(selectedOrder.date, 'PPP')}.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
                         <div className="space-y-2">
-                            <h4 className="font-semibold">Customer Information</h4>
-                            <p className="text-sm text-muted-foreground">{selectedOrder.customer}</p>
-                            <p className="text-sm text-muted-foreground">{customers.find(c => c.name === selectedOrder.customer)?.email}</p>
+                            <h4 className="font-semibold">Items Ordered</h4>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Product</TableHead>
+                                        <TableHead className="text-right">Qty</TableHead>
+                                        <TableHead className="text-right">Price</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {selectedOrder.items.map(item => (
+                                        <TableRow key={item.productId}>
+                                            <TableCell>{item.name}</TableCell>
+                                            <TableCell className="text-right">{item.quantity}</TableCell>
+                                            <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
                          <div className="space-y-2">
                             <h4 className="font-semibold">Order Status</h4>
                             <p className="text-sm text-muted-foreground">Current Status: {selectedOrder.status}</p>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" disabled>Set to Processing</Button>
-                                <Button variant="outline" size="sm" disabled>Set to Delivered</Button>
-                                <Button variant="destructive" size="sm" disabled>Cancel Order</Button>
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Processing')} disabled={selectedOrder.status === 'Processing'}>Set to Processing</Button>
+                                <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Out for Delivery')} disabled={selectedOrder.status === 'Out for Delivery'}>Set to Out for Delivery</Button>
+                                <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Delivered')} disabled={selectedOrder.status === 'Delivered'}>Set to Delivered</Button>
+                                <Button variant="destructive" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Cancelled')} disabled={selectedOrder.status === 'Cancelled'}>Cancel Order</Button>
                             </div>
-                            <p className="text-xs text-muted-foreground">Status update functionality is coming soon.</p>
                         </div>
                          <div className="space-y-2">
                             <h4 className="font-semibold">Delivery Information</h4>
                              <p className="text-sm text-muted-foreground">Method: {selectedOrder.deliveryMethod}</p>
                              <p className="text-sm text-muted-foreground">Vehicle ID: {selectedOrder.deliveryVehicleId}</p>
+                             <p className="text-sm font-medium mt-2">Shipping Address:</p>
+                             <p className="text-sm text-muted-foreground">
+                                {selectedOrder.shippingAddress.line1}, {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.pincode}
+                             </p>
                         </div>
                          <div className="space-y-2">
                             <h4 className="font-semibold">Invoice</h4>

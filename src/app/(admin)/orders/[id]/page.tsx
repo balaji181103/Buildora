@@ -2,36 +2,70 @@
 'use client';
 
 import { notFound, useRouter, useParams } from 'next/navigation';
-import { allOrders, customers, drones, trucks } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Map, Waypoints, AlertTriangle, Battery, Gauge, User, MessageSquare, Undo2, Rocket, Truck as TruckIcon, Video } from 'lucide-react';
+import { ArrowLeft, Map, Waypoints, AlertTriangle, Battery, Gauge, User, MessageSquare, Undo2, Rocket, Truck as TruckIcon, Video, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import * as React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { db } from '@/lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import type { Order, Customer, Drone, Truck } from '@/lib/types';
+import { drones, trucks } from '@/lib/data'; // Keep mock vehicle data for now
+
 
 export default function AdminOrderTrackingPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
   const [isVideoOpen, setIsVideoOpen] = React.useState(false);
-  const order = allOrders.find((o) => o.id === id);
   
-  if (!order) {
-    notFound();
+  const [order, setOrder] = React.useState<Order | null>(null);
+  const [customer, setCustomer] = React.useState<Customer | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  
+  React.useEffect(() => {
+    if (!id) return;
+    const unsubscribeOrder = onSnapshot(doc(db, "orders", id), (docSnap) => {
+      if (docSnap.exists()) {
+        const orderData = { id: docSnap.id, ...docSnap.data() } as Order;
+        setOrder(orderData);
+        
+        // Fetch customer details once order is fetched
+        const unsubscribeCustomer = onSnapshot(doc(db, "customers", orderData.customerId), (custSnap) => {
+             if (custSnap.exists()) {
+                 setCustomer({ id: custSnap.id, ...custSnap.data() } as Customer);
+             }
+             setLoading(false);
+        });
+        return () => unsubscribeCustomer();
+      } else {
+        notFound();
+      }
+    });
+
+    return () => unsubscribeOrder();
+  }, [id]);
+
+
+  if (loading || !order) {
+    return (
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   const vehicle = order.deliveryMethod === 'Drone'
     ? drones.find(d => d.id === order.deliveryVehicleId)
     : trucks.find(t => t.id === order.deliveryVehicleId);
 
-  const customer = customers.find(c => c.name === order.customer);
   
   const renderVehicleDetails = () => {
     if (order.deliveryMethod === 'Drone' && vehicle) {
-      const drone = vehicle as typeof drones[0];
+      const drone = vehicle as Drone;
       return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -48,7 +82,7 @@ export default function AdminOrderTrackingPage() {
       );
     }
     if (order.deliveryMethod === 'Truck' && vehicle) {
-        const truck = vehicle as typeof trucks[0];
+        const truck = vehicle as Truck;
         return (
             <div className="space-y-4">
                  <div className="flex items-center justify-between">
