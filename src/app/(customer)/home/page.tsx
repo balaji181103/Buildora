@@ -45,13 +45,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { products } from "@/lib/data"
 import { Product } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast";
 import { HeroSection } from "./hero-section"
 import { useCart } from "@/hooks/use-cart";
 import { MaterialEstimator } from "./material-estimator"
+import { collection, getDocs } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { Skeleton } from "@/components/ui/skeleton"
 
 
 function ProductCard({ product }: { product: Product }) {
@@ -76,7 +78,7 @@ function ProductCard({ product }: { product: Product }) {
                     alt={product.name}
                     className="aspect-square w-full rounded-t-lg object-cover"
                     height="250"
-                    src={`https://placehold.co/250x250.png`}
+                    src={product.imageUrl || `https://placehold.co/250x250.png`}
                     width="250"
                     data-ai-hint="product image"
                 />
@@ -115,6 +117,28 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 function ProductCatalog() {
+    const [products, setProducts] = React.useState<Product[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                const productsData: Product[] = [];
+                querySnapshot.forEach((doc) => {
+                    productsData.push({ id: doc.id, ...doc.data() } as Product);
+                });
+                setProducts(productsData);
+            } catch (error) {
+                console.error("Error fetching products: ", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
     return (
         <div id="products" className="flex flex-col gap-4 scroll-mt-20">
              <div className="flex items-center justify-between">
@@ -160,9 +184,28 @@ function ProductCatalog() {
                 </div>
             </div>
             <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                {products.map((product) => (
-                    <ProductCard key={product.id} product={product} />
-                ))}
+                {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                        <Card key={i}>
+                            <Skeleton className="aspect-square w-full rounded-t-lg" />
+                            <CardContent className="p-4 space-y-2">
+                                <Skeleton className="h-4 w-1/3" />
+                                <Skeleton className="h-5 w-4/5" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </CardContent>
+                            <CardFooter className="p-4 pt-0 flex justify-between items-center">
+                                <Skeleton className="h-8 w-1/3" />
+                                <Skeleton className="h-9 w-1/2" />
+                            </CardFooter>
+                        </Card>
+                    ))
+                ) : products.length > 0 ? (
+                    products.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                    ))
+                ) : (
+                    <p className="col-span-full text-center text-muted-foreground">No products found.</p>
+                )}
             </section>
         </div>
     )

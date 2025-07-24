@@ -25,13 +25,7 @@ export const allOrders: Order[] = [
 ];
 
 
-export let products: Product[] = [
-    { id: 'PROD-001', name: 'Power Drill Kit', category: 'Tools', stock: 0, price: 4200, supplier: 'ToolMaster', weight: 5, dimensions: { length: 40, width: 30, height: 15 } }, // Lightweight, can be delivered by drone
-    { id: 'PROD-002', name: 'Concrete Mix (50lb)', category: 'Materials', stock: 0, price: 500, supplier: 'Cemex', weight: 22.7, dimensions: { length: 60, width: 40, height: 15 } }, // Heavy, requires a truck
-    { id: 'PROD-003', name: 'Safety Goggles (12-pack)', category: 'Safety Gear', stock: 0, price: 1200, supplier: 'SafeCo', weight: 1, dimensions: { length: 25, width: 20, height: 10 } }, // Lightweight, can be delivered by drone
-    { id: 'PROD-004', name: 'I-Beam Steel 10ft', category: 'Structural', stock: 0, price: 15000, supplier: 'SteelWorks', weight: 90, dimensions: { length: 305, width: 10, height: 10 } }, // Heavy, requires a truck
-    { id: 'PROD-005', name: 'Hard Hat - Orange', category: 'Safety Gear', stock: 0, price: 800, supplier: 'SafeCo', weight: 0.5, dimensions: { length: 30, width: 25, height: 20 } }, // Lightweight, can be delivered by drone
-];
+export let products: Product[] = [];
 
 export let suppliers: Supplier[] = [
     { id: 'SUP-001', name: 'ToolMaster', contactPerson: 'Rajesh Kumar', email: 'rajesh@toolmaster.com', phone: '+91 8877665544', productCount: 1 },

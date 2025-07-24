@@ -21,6 +21,7 @@ import {
     Minus,
     Plus,
     Trash2,
+    Loader2
   } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -53,13 +54,15 @@ import {
   } from "@/components/ui/carousel"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { products } from "@/lib/data"
 import { notFound, useParams } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { Product } from "@/lib/types"
+import { db } from "@/lib/firebase"
+import { doc, getDoc, collection, getDocs, query, where, limit } from "firebase/firestore"
+import { Skeleton } from "@/components/ui/skeleton"
 
-function ProductCard({ product }: { product: any }) {
+function ProductCard({ product }: { product: Product }) {
     const { cart, addItem, updateQuantity, removeItem } = useCart();
     const { toast } = useToast();
 
@@ -81,7 +84,7 @@ function ProductCard({ product }: { product: any }) {
                     alt={product.name}
                     className="aspect-square w-full rounded-t-lg object-cover"
                     height="200"
-                    src={`https://placehold.co/200x200.png`}
+                    src={product.imageUrl || `https://placehold.co/200x200.png`}
                     width="200"
                     data-ai-hint="product image"
                 />
@@ -122,14 +125,55 @@ export default function ProductDetailsPage() {
     const params = useParams();
     const id = params.id as string;
     
-    const product = products.find(p => p.id === id)
-    if (!product) {
-        notFound()
-    }
+    const [product, setProduct] = React.useState<Product | null>(null);
+    const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
+    const [loading, setLoading] = React.useState(true);
 
-    const cartItem = cart.find(item => item.product.id === product.id);
+    const cartItem = cart.find(item => item.product.id === id);
     const [quantity, setQuantity] = React.useState(cartItem ? cartItem.quantity : 1);
     
+    React.useEffect(() => {
+        if (!id) return;
+
+        const fetchProduct = async () => {
+            setLoading(true);
+            try {
+                const docRef = doc(db, "products", id);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const productData = { id: docSnap.id, ...docSnap.data() } as Product;
+                    setProduct(productData);
+
+                    // Fetch related products
+                    if (productData.category) {
+                        const q = query(
+                            collection(db, "products"),
+                            where("category", "==", productData.category),
+                            where("__name__", "!=", id),
+                            limit(4)
+                        );
+                        const querySnapshot = await getDocs(q);
+                        const fetchedRelatedProducts: Product[] = [];
+                        querySnapshot.forEach((doc) => {
+                            fetchedRelatedProducts.push({ id: doc.id, ...doc.data() } as Product);
+                        });
+                        setRelatedProducts(fetchedRelatedProducts);
+                    }
+                } else {
+                    notFound();
+                }
+            } catch (error) {
+                console.error("Error fetching product:", error);
+                notFound();
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProduct();
+    }, [id]);
+
     React.useEffect(() => {
         if (cartItem) {
             setQuantity(cartItem.quantity);
@@ -139,6 +183,7 @@ export default function ProductDetailsPage() {
     }, [cartItem]);
 
     const handleAddToCart = () => {
+        if (!product) return;
         addItem(product, quantity);
         toast({
             title: "Added to Cart",
@@ -150,14 +195,57 @@ export default function ProductDetailsPage() {
         if (newQuantity > 0) {
             setQuantity(newQuantity);
             if(cartItem) {
-                updateQuantity(product.id, newQuantity);
+                updateQuantity(id, newQuantity);
             }
         } else if (cartItem) {
-             updateQuantity(product.id, 0); // This will remove the item
+             updateQuantity(id, 0); // This will remove the item
         }
     }
 
-    const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+    if (loading) {
+        return (
+             <div className="flex flex-col gap-8">
+                <Skeleton className="h-6 w-1/2" />
+                <div className="grid md:grid-cols-2 gap-8">
+                    <Skeleton className="aspect-square w-full" />
+                    <div className="flex flex-col gap-4">
+                        <Skeleton className="h-9 w-3/4" />
+                        <Skeleton className="h-5 w-1/4" />
+                        <Separator />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3" />
+                        <Skeleton className="h-9 w-1/3" />
+                        <Skeleton className="h-6 w-1/2" />
+                        <div className="flex items-center gap-4">
+                            <Skeleton className="h-10 w-32" />
+                            <Skeleton className="h-12 flex-1" />
+                        </div>
+                    </div>
+                </div>
+                 <div>
+                    <Skeleton className="h-8 w-1/4 mb-4" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {Array.from({ length: 4 }).map((_, i) => (
+                           <Card key={i}>
+                                <Skeleton className="aspect-square w-full rounded-t-lg" />
+                                <CardContent className="p-4 space-y-2">
+                                    <Skeleton className="h-5 w-4/5" />
+                                </CardContent>
+                                <CardFooter className="p-4 pt-0">
+                                    <Skeleton className="h-9 w-full" />
+                                </CardFooter>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    
+    if (!product) {
+        return notFound();
+    }
 
     return (
         <div className="flex flex-col gap-8">
@@ -191,7 +279,7 @@ export default function ProductDetailsPage() {
                                 <Card>
                                     <CardContent className="flex aspect-square items-center justify-center p-0">
                                         <Image 
-                                            src={`https://placehold.co/600x600.png`}
+                                            src={product.imageUrl || `https://placehold.co/600x600.png`}
                                             alt={`${product.name} image ${index + 1}`}
                                             width={600}
                                             height={600}
@@ -216,7 +304,7 @@ export default function ProductDetailsPage() {
                     </div>
                     <Separator />
                     <p className="text-muted-foreground">
-                        Detailed description of {product.name}. This section would highlight key features, benefits, and specifications. It is designed to give the customer all the information they need to make a purchasing decision. 
+                        {product.description || 'No description available.'}
                     </p>
                     <div className="text-3xl font-bold">
                        ₹{product.price.toFixed(2)}
