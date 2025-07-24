@@ -21,10 +21,12 @@ import { useToast } from '@/hooks/use-toast';
 import { Product } from '@/lib/types';
 import { products } from '@/lib/data';
 import { ImagePlus, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
   category: z.string().min(1, 'Category is required.'),
+  description: z.string().optional(),
   stock: z.coerce.number().min(0, 'Stock must be a positive number.'),
   price: z.coerce.number().min(0, 'Price must be a positive number.'),
   supplier: z.string().min(1, 'Supplier is required.'),
@@ -47,6 +49,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
     defaultValues: {
       name: '',
       category: '',
+      description: '',
       stock: 0,
       price: 0,
       supplier: '',
@@ -83,6 +86,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
             id: `PROD-${String(products.length + 1).padStart(3, '0')}`,
             name: values.name,
             category: values.category,
+            description: values.description,
             stock: values.stock,
             price: values.price,
             supplier: values.supplier,
@@ -109,37 +113,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field }) => (
-             <FormItem>
-              <FormLabel>Product Image</FormLabel>
-              <div className="flex items-center gap-4">
-                <FormControl>
-                   <Input 
-                    id="image-upload"
-                    type="file" 
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="max-w-xs"
-                  />
-                </FormControl>
-                 {imagePreview && (
-                  <div className="relative h-20 w-20 shrink-0">
-                    <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-md border p-1" />
-                    <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 z-10 h-6 w-6" onClick={removeImage}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="name"
@@ -167,6 +141,25 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
               )}
             />
         </div>
+
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Tell us a little bit about the product"
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+       
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
             control={form.control}
@@ -208,19 +201,52 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
             )}
             />
         </div>
-        <FormField
-            control={form.control}
-            name="supplier"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Supplier</FormLabel>
-                <FormControl>
-                    <Input placeholder="e.g., ToolMaster" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <FormField
+                control={form.control}
+                name="supplier"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Supplier</FormLabel>
+                    <FormControl>
+                        <Input placeholder="e.g., ToolMaster" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
+             <FormField
+                control={form.control}
+                name="image"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Product Image</FormLabel>
+                    <div className="flex items-center gap-4">
+                        <FormControl>
+                        <Input 
+                            id="image-upload"
+                            type="file" 
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="max-w-xs"
+                        />
+                        </FormControl>
+                        {imagePreview && (
+                        <div className="relative h-20 w-20 shrink-0">
+                            <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-md border p-1" />
+                            <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 z-10 h-6 w-6" onClick={removeImage}>
+                            <Trash2 className="h-3 w-3" />
+                            </Button>
+                        </div>
+                        )}
+                    </div>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+        </div>
+       
         <div>
             <FormLabel>Dimensions (cm)</FormLabel>
             <div className="grid grid-cols-3 gap-4 mt-2">
