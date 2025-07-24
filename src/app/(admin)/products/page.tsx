@@ -240,8 +240,10 @@ export default function ProductsPage() {
                   <Badge variant="outline">{product.category}</Badge>
                 </TableCell>
                 <TableCell>
-                  {product.stock < 10 ? (
+                  {product.stock <= 3 && product.stock > 0 ? (
                     <span className="text-destructive font-semibold">{product.stock} (Low)</span>
+                  ) : product.stock === 0 ? (
+                    <span className="text-destructive font-semibold">{product.stock} (Out of stock)</span>
                   ) : (
                     <span>{product.stock}</span>
                   )}
