@@ -180,14 +180,30 @@ export default function CheckoutPage() {
             const tempOrderId = nanoid(10);
             
             await runTransaction(db, async (transaction) => {
+                // READ operations first
+                const productRefs = cart.map(item => doc(db, "products", item.product.id));
+                const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
+
+                for (let i = 0; i < productDocs.length; i++) {
+                    const productDoc = productDocs[i];
+                    const cartItem = cart[i];
+                    if (!productDoc.exists()) {
+                        throw new Error(`Product ${cartItem.product.name} not found!`);
+                    }
+                    const currentStock = productDoc.data().stock;
+                    if (currentStock < cartItem.quantity) {
+                         throw new Error(`Not enough stock for ${cartItem.product.name}. Only ${currentStock} available.`);
+                    }
+                }
+
+                // WRITE operations last
+                const newOrderRef = doc(collection(db, "orders"));
                 const orderItems = cart.map(item => ({
                     productId: item.product.id,
                     name: item.product.name,
                     quantity: item.quantity,
                     price: item.product.price
                 }));
-
-                const newOrderRef = doc(collection(db, "orders"));
                 const newOrder: Omit<Order, 'id' | 'date'> & { date: any } = {
                     customerName: customer.name,
                     customerId: customer.id,
@@ -201,17 +217,11 @@ export default function CheckoutPage() {
                 };
                 transaction.set(newOrderRef, newOrder);
 
-                for (const item of cart) {
-                    const productRef = doc(db, "products", item.product.id);
-                    const productDoc = await transaction.get(productRef);
-                    if (!productDoc.exists()) {
-                        throw new Error(`Product ${item.product.name} not found!`);
-                    }
-                    const newStock = productDoc.data().stock - item.quantity;
-                    if (newStock < 0) {
-                        throw new Error(`Not enough stock for ${item.product.name}.`);
-                    }
-                    transaction.update(productRef, { stock: newStock });
+                for (let i = 0; i < productDocs.length; i++) {
+                    const productDoc = productDocs[i];
+                    const cartItem = cart[i];
+                    const newStock = productDoc.data().stock - cartItem.quantity;
+                    transaction.update(productDoc.ref, { stock: newStock });
                 }
 
                 const customerRef = doc(db, "customers", customer.id);
