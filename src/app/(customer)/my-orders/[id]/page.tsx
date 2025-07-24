@@ -5,21 +5,45 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound, useRouter, useParams } from 'next/navigation';
-import { allOrders, drones, trucks, customers } from '@/lib/data';
 import { OrderStatusTracker } from '@/components/ui/order-status-tracker';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Map, AlertTriangle, Rocket, Truck as TruckIcon, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Map, AlertTriangle, Rocket, Truck as TruckIcon, HelpCircle, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { db } from '@/lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
+import type { Order, Drone, Truck } from '@/lib/types';
+import { drones, trucks } from '@/lib/data'; // Keep mock vehicle data for now
+
 
 export default function CustomerOrderTrackingPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  const order = allOrders.find(o => o.id === id);
   
-  if (!order) {
-    notFound();
+  const [order, setOrder] = React.useState<Order | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!id) return;
+    const unsubscribe = onSnapshot(doc(db, "orders", id), (docSnap) => {
+      if (docSnap.exists()) {
+        setOrder({ id: docSnap.id, ...docSnap.data() } as Order);
+      } else {
+        notFound();
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [id]);
+
+  if (loading || !order) {
+    return (
+        <div className="flex h-96 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
   }
 
   const vehicle = order.deliveryMethod === 'Drone'
@@ -28,7 +52,7 @@ export default function CustomerOrderTrackingPage() {
 
   const renderVehicleDetails = () => {
     if (order.deliveryMethod === 'Drone' && vehicle) {
-      const drone = vehicle as typeof drones[0];
+      const drone = vehicle as Drone;
       return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -43,7 +67,7 @@ export default function CustomerOrderTrackingPage() {
       );
     }
     if (order.deliveryMethod === 'Truck' && vehicle) {
-        const truck = vehicle as typeof trucks[0];
+        const truck = vehicle as Truck;
         return (
             <div className="space-y-4">
                  <div className="flex items-center justify-between">

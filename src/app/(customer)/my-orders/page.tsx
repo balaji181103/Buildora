@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import {
   Card,
   CardContent,
@@ -18,13 +19,48 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { allOrders as customerOrders } from "@/lib/data"
-import { ArrowRight, Package } from "lucide-react"
+import { ArrowRight, Package, Loader2 } from "lucide-react"
 import Link from "next/link";
+import { db } from '@/lib/firebase';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { Order } from '@/lib/types';
+import { format } from 'date-fns';
 
 export default function MyOrdersPage() {
-  // In a real application, you would fetch orders for the logged-in customer.
-  // For now, we'll use the mock data.
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const customerId = localStorage.getItem('loggedInCustomerId');
+    if (!customerId) {
+        setLoading(false);
+        // In a real app with proper auth, you might redirect to login.
+        // For now, we'll just show an empty state.
+        return;
+    }
+
+    const q = query(
+        collection(db, "orders"), 
+        where("customerId", "==", customerId),
+        orderBy("date", "desc")
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const customerOrders: Order[] = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            customerOrders.push({
+                id: doc.id,
+                ...data,
+                date: data.date.toDate() // Convert Firestore Timestamp to JS Date
+            } as Order);
+        });
+        setOrders(customerOrders);
+        setLoading(false);
+    });
+
+    return () => unsubscribe(); // Cleanup listener on component unmount
+  }, []);
 
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6">
@@ -54,17 +90,23 @@ export default function MyOrdersPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {customerOrders.length === 0 ? (
+                    {loading ? (
+                         <TableRow>
+                            <TableCell colSpan={5} className="h-24 text-center">
+                                <Loader2 className="h-6 w-6 animate-spin" />
+                            </TableCell>
+                        </TableRow>
+                    ) : orders.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                                 You have no orders yet.
                             </TableCell>
                         </TableRow>
                     ) : (
-                        customerOrders.map((order) => (
+                        orders.map((order) => (
                             <TableRow key={order.id}>
                                 <TableCell className="font-medium">{order.id}</TableCell>
-                                <TableCell>{order.date}</TableCell>
+                                <TableCell>{format(order.date, 'PPP')}</TableCell>
                                 <TableCell>
                                     <Badge
                                         variant={
