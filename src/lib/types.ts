@@ -63,6 +63,8 @@ export type Address = {
     city: string;
     state: string;
     pincode: string;
+    latitude?: number;
+    longitude?: number;
 };
 
 export type Customer = {

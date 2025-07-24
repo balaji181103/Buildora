@@ -42,8 +42,8 @@ export let suppliers: Supplier[] = [
 
 
 const priyaAddresses: Address[] = [
-    { id: 'ADDR-001', label: 'Main Residence', line1: '123, Blossom Heights', line2: 'Hiranandani Gardens, Powai', city: 'Mumbai', state: 'Maharashtra', pincode: '400076' },
-    { id: 'ADDR-002', label: 'Work Site', line1: 'Sector 5, Airoli Knowledge Park', line2: '', city: 'Navi Mumbai', state: 'Maharashtra', pincode: '400708' },
+    { id: 'ADDR-001', label: 'Main Residence', line1: '123, Blossom Heights', line2: 'Hiranandani Gardens, Powai', city: 'Mumbai', state: 'Maharashtra', pincode: '400076', latitude: 19.1176, longitude: 72.9060 },
+    { id: 'ADDR-002', label: 'Work Site', line1: 'Sector 5, Airoli Knowledge Park', line2: '', city: 'Navi Mumbai', state: 'Maharashtra', pincode: '400708', latitude: 19.1586, longitude: 72.9997 },
 ];
 
 

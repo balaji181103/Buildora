@@ -1,6 +1,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import { notFound, useRouter, useParams } from 'next/navigation';
 import { customers, allOrders } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Mail, Phone, Home, Star, Package, Rocket } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, Home, Star, Package, MapPin, ExternalLink } from 'lucide-react';
 
 export default function CustomerProfilePage() {
   const router = useRouter();
@@ -90,11 +91,33 @@ export default function CustomerProfilePage() {
                 <p className="text-sm text-muted-foreground">No addresses found.</p>
               ) : (
                 customer.addresses.map((address) => (
-                    <div key={address.id} className="text-sm">
-                       <p className="font-semibold flex items-center gap-2"><Home className="h-4 w-4" /> {address.label}</p>
-                       <p className="text-muted-foreground pl-6">{address.line1}</p>
-                       {address.line2 && <p className="text-muted-foreground pl-6">{address.line2}</p>}
-                       <p className="text-muted-foreground pl-6">{address.city}, {address.state} - {address.pincode}</p>
+                    <div key={address.id} className="text-sm border-b pb-4 last:border-b-0 last:pb-0">
+                       <p className="font-semibold flex items-center justify-between">
+                           <span className="flex items-center gap-2"><Home className="h-4 w-4" /> {address.label}</span>
+                           {address.latitude && address.longitude && (
+                               <Link
+                                    href={`https://www.google.com/maps/search/?api=1&query=${address.latitude},${address.longitude}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                               >
+                                  <Badge variant="outline">
+                                      <MapPin className="h-3 w-3 mr-1" />
+                                      View on Map
+                                      <ExternalLink className="h-3 w-3 ml-1" />
+                                  </Badge>
+                               </Link>
+                           )}
+                       </p>
+                       <div className="text-muted-foreground pl-6">
+                           <p>{address.line1}</p>
+                           {address.line2 && <p>{address.line2}</p>}
+                           <p>{address.city}, {address.state} - {address.pincode}</p>
+                           {address.latitude && address.longitude && (
+                               <p className="text-xs mt-1">
+                                   Lat: {address.latitude.toFixed(4)}, Lon: {address.longitude.toFixed(4)}
+                                </p>
+                           )}
+                       </div>
                     </div>
                 ))
               )}

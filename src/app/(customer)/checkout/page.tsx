@@ -13,8 +13,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CreditCard, Home, PlusCircle, Rocket, Truck } from "lucide-react"
+import { CreditCard, Home, PlusCircle, Rocket, Truck, LocateFixed, Loader2 } from "lucide-react"
 import { customers } from "@/lib/data" // Assuming we get the logged in customer's data
+import { useToast } from "@/hooks/use-toast";
 
 const deliveryOptions = {
     standard: { name: 'Standard', cost: 500, description: '2-3 Business Days (For heavy items)', icon: Truck },
@@ -23,9 +24,13 @@ const deliveryOptions = {
 
 export default function CheckoutPage() {
     const { cart } = useCart();
+    const { toast } = useToast();
     const [selectedAddressId, setSelectedAddressId] = React.useState<string | undefined>(undefined);
     const [showNewAddressForm, setShowNewAddressForm] = React.useState(false);
-    
+    const [isLocating, setIsLocating] = React.useState(false);
+    const [latitude, setLatitude] = React.useState<number | null>(null);
+    const [longitude, setLongitude] = React.useState<number | null>(null);
+
     // In a real app, you'd fetch the logged-in user. We'll use the first customer as a mock.
     const customer = customers[0]; 
 
@@ -37,6 +42,29 @@ export default function CheckoutPage() {
     const [selectedDeliveryMethod, setSelectedDeliveryMethod] = React.useState(
         isDroneDeliveryAvailable ? 'express' : 'standard'
     );
+     
+    const handleGetLocation = () => {
+        if (!navigator.geolocation) {
+            toast({ variant: 'destructive', title: 'Geolocation is not supported by your browser.' });
+            return;
+        }
+
+        setIsLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setLatitude(position.coords.latitude);
+                setLongitude(position.coords.longitude);
+                setIsLocating(false);
+                toast({ title: 'Location captured successfully!' });
+            },
+            (error) => {
+                console.error("Location access denied or unavailable", error);
+                toast({ variant: 'destructive', title: 'Could not get location.', description: 'Please ensure location access is enabled for this site.' });
+                setIsLocating(false);
+            }
+        );
+    };
+
 
     React.useEffect(() => {
         if (!isDroneDeliveryAvailable) {
@@ -153,6 +181,25 @@ export default function CheckoutPage() {
                                             <Label htmlFor="pincode">PIN Code</Label>
                                             <Input id="pincode" placeholder="400076" />
                                         </div>
+                                    </div>
+                                    <div className="p-4 rounded-md border bg-muted/50 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="font-medium">Precise Location (Optional)</Label>
+                                             <Button type="button" variant="secondary" size="sm" onClick={handleGetLocation} disabled={isLocating}>
+                                                {isLocating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LocateFixed className="mr-2 h-4 w-4" />}
+                                                {isLocating ? 'Locating...' : 'Get Current Location'}
+                                            </Button>
+                                        </div>
+                                         <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="latitude">Latitude</Label>
+                                                <Input id="latitude" readOnly value={latitude ?? ''} placeholder="e.g. 19.1176" />
+                                            </div>
+                                             <div className="space-y-2">
+                                                <Label htmlFor="longitude">Longitude</Label>
+                                                <Input id="longitude" readOnly value={longitude ?? ''} placeholder="e.g. 72.9060" />
+                                            </div>
+                                         </div>
                                     </div>
                                     <div className="flex gap-2">
                                         <Button>Save Address</Button>
