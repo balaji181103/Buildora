@@ -30,7 +30,7 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm shadow-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/login/admin" className="flex items-center gap-2 font-bold text-xl">
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
             <Rocket className="w-7 h-7 text-primary" />
             <span>Buildora</span>
           </Link>
@@ -207,5 +207,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    
