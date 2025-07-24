@@ -43,7 +43,7 @@ export default function CheckoutPage() {
         isDroneDeliveryAvailable ? 'express' : 'standard'
     );
      
-    const handleGetLocation = () => {
+    const handleGetLocation = React.useCallback(() => {
         if (!navigator.geolocation) {
             toast({ variant: 'destructive', title: 'Geolocation is not supported by your browser.' });
             return;
@@ -63,7 +63,7 @@ export default function CheckoutPage() {
                 setIsLocating(false);
             }
         );
-    };
+    }, [toast]);
 
     const handleUseCurrentLocation = () => {
         setShowNewAddressForm(true);
@@ -138,7 +138,7 @@ export default function CheckoutPage() {
                                 <CardDescription>Select or add an address for delivery.</CardDescription>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" onClick={handleUseCurrentLocation} disabled={showNewAddressForm}>
+                                <Button variant="outline" size="sm" onClick={handleUseCurrentLocation}>
                                     <LocateFixed className="mr-2 h-4 w-4" />
                                     Current Address
                                 </Button>
@@ -373,3 +373,6 @@ export default function CheckoutPage() {
     
 
 
+
+
+    
