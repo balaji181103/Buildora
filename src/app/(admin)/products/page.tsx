@@ -164,7 +164,9 @@ export default function ProductsPage() {
                     Enter the details of the new product below.
                   </DialogDescription>
                 </DialogHeader>
-                <AddProductForm onProductAdded={handleProductAdded} />
+                <div className="max-h-[70vh] overflow-y-auto pr-4">
+                  <AddProductForm onProductAdded={handleProductAdded} />
+                </div>
               </DialogContent>
             </Dialog>
           </div>
