@@ -42,6 +42,7 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Search, ListFilter, Image as ImageIcon } from "lucide-react"
 import type { Product } from "@/lib/types";
 import { AddProductForm } from "./add-product-form";
+import { EditProductForm } from "./edit-product-form";
 import { Input } from "@/components/ui/input";
 import { db } from "@/lib/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -52,7 +53,9 @@ export default function ProductsPage() {
   const [loading, setLoading] = React.useState(true);
   
   const isNewProductFlow = searchParams.get('new') === 'true';
-  const [isDialogOpen, setIsDialogOpen] = React.useState(isNewProductFlow);
+  const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(isNewProductFlow);
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
@@ -66,9 +69,7 @@ export default function ProductsPage() {
         productsData.push({ 
           id: doc.id, 
           ...data,
-          // Ensure dimensions exist to prevent runtime errors
           dimensions: data.dimensions || { length: 0, width: 0, height: 0 },
-          // Convert Firestore Timestamp to Date object for consistent sorting
           createdAt: data.createdAt?.toDate() || new Date()
         } as Product);
       });
@@ -83,14 +84,25 @@ export default function ProductsPage() {
   }, []);
   
   React.useEffect(() => {
-    setIsDialogOpen(isNewProductFlow);
+    setIsAddDialogOpen(isNewProductFlow);
   }, [isNewProductFlow]);
 
   const handleProductAdded = (newProduct: Product) => {
-    // Optimistically add to the top of the list
     setProducts(prevProducts => [newProduct, ...prevProducts]);
-    setIsDialogOpen(false);
+    setIsAddDialogOpen(false);
   };
+  
+  const handleProductUpdated = (updatedProduct: Product) => {
+     setProducts(prevProducts => 
+        prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+     );
+    setIsEditDialogOpen(false);
+  };
+
+  const openEditDialog = (product: Product) => {
+    setSelectedProduct(product);
+    setIsEditDialogOpen(true);
+  }
 
   const allCategories = React.useMemo(() => {
     const categories = new Set(products.map(p => p.category));
@@ -106,6 +118,7 @@ export default function ProductsPage() {
   }, [products, searchTerm, selectedCategories]);
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between gap-4">
@@ -151,7 +164,7 @@ export default function ProductsPage() {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-1 h-9">
                   <PlusCircle className="h-4 w-4" />
@@ -247,7 +260,7 @@ export default function ProductsPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openEditDialog(product)}>Edit</DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -258,5 +271,25 @@ export default function ProductsPage() {
         </Table>
       </CardContent>
     </Card>
+
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-3xl">
+            <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <DialogDescription>
+                Update the details for {selectedProduct?.name}.
+            </DialogDescription>
+            </DialogHeader>
+            <div className="max-h-[70vh] overflow-y-auto pr-4">
+                {selectedProduct && (
+                    <EditProductForm 
+                        product={selectedProduct}
+                        onProductUpdated={handleProductUpdated} 
+                    />
+                )}
+            </div>
+        </DialogContent>
+    </Dialog>
+    </>
   )
 }
