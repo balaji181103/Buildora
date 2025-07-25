@@ -1,7 +1,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { v2 as cloudinary } from 'cloudinary';
-import { Writable } from 'stream';
+import { IncomingForm, type File } from 'formidable';
 
 // Configure Cloudinary with your credentials from environment variables
 cloudinary.config({
@@ -19,53 +19,46 @@ export const config = {
 };
 
 // Helper function to parse the form data and upload the file
-const uploadFromFile = (req: NextApiRequest): Promise<{ url: string; public_id: string }> => {
+const uploadFromFile = async (req: NextApiRequest): Promise<{ url: string; public_id: string }> => {
   return new Promise((resolve, reject) => {
-    const chunks: any[] = [];
-    const writable = new Writable({
-      write: (chunk, encoding, next) => {
-        chunks.push(chunk);
-        next();
-      },
-      destroy: (err) => {
+    const form = new IncomingForm();
+
+    form.parse(req, (err, fields, files) => {
         if (err) {
-          reject(err);
+            console.error('Formidable Parse Error:', err);
+            return reject(new Error('Failed to parse form data.'));
         }
-      },
-    });
 
-    req.pipe(writable);
+        const file = (files.file as File[])[0];
 
-    writable.on('finish', () => {
-      const buffer = Buffer.concat(chunks);
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'buildora_products', // Optional: Upload to a specific folder
-          resource_type: 'image',
-        },
-        (error, result) => {
-          if (error) {
-            console.error('Cloudinary Upload Error:', error);
-            return reject(new Error('Failed to upload image to Cloudinary.'));
-          }
-          if (!result) {
-            return reject(new Error('Cloudinary did not return a result.'));
-          }
-          resolve({
-            url: result.secure_url,
-            public_id: result.public_id,
-          });
+        if (!file) {
+             return reject(new Error('No file uploaded.'));
         }
-      );
-      uploadStream.end(buffer);
-    });
-
-    writable.on('error', (err) => {
-      console.error('Writable Stream Error:', err);
-      reject(err);
+        
+        cloudinary.uploader.upload(
+            file.filepath,
+            {
+                folder: 'buildora_products',
+                resource_type: 'image',
+            },
+            (error, result) => {
+                if (error) {
+                    console.error('Cloudinary Upload Error:', error);
+                    return reject(new Error('Failed to upload image to Cloudinary.'));
+                }
+                if (!result) {
+                    return reject(new Error('Cloudinary did not return a result.'));
+                }
+                resolve({
+                    url: result.secure_url,
+                    public_id: result.public_id,
+                });
+            }
+        );
     });
   });
 };
+
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -77,6 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const result = await uploadFromFile(req);
     return res.status(200).json({ url: result.url, public_id: result.public_id });
   } catch (error: any) {
+    console.error('Upload Handler Error:', error);
     return res.status(500).json({ message: error.message || 'Something went wrong' });
   }
 }
