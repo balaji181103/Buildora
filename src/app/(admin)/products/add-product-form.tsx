@@ -385,5 +385,3 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     </Form>
   );
 }
-
-    
