@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { useState, useTransition, useEffect } from 'react';
 import Image from 'next/image';
 import { updateDoc, doc, onSnapshot, collection, query, orderBy } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
 import { Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ProductFormSchema = z.object({
@@ -114,6 +113,33 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
     if (fileInput) fileInput.value = '';
   }
 
+  async function uploadImage(file: File): Promise<string | null> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Image upload failed');
+        }
+
+        const data = await response.json();
+        return data.url;
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Image Upload Error',
+            description: error.message,
+        });
+        return null;
+    }
+  }
+
   async function onSubmit(values: ProductFormValues) {
     startTransition(async () => {
         const docRef = doc(db, "products", product.id);
@@ -133,32 +159,33 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
                 },
             };
             
+            let finalImageUrl = product.imageUrl;
+            if (imageFile) {
+                const uploadedUrl = await uploadImage(imageFile);
+                if (!uploadedUrl) {
+                    return; // Stop if upload fails
+                }
+                finalImageUrl = uploadedUrl;
+            } else if (imagePreview === null) {
+                finalImageUrl = '';
+            }
+
+            (productData as any).imageUrl = finalImageUrl;
+
+            await updateDoc(docRef, productData);
+            
             const updatedProductForUI: Product = { 
                 ...product, 
                 ...productData,
+                imageUrl: finalImageUrl
             };
-            onProductUpdated(updatedProductForUI, imagePreview || undefined);
+            onProductUpdated(updatedProductForUI);
 
             toast({
                 title: "Product Updated",
                 description: `${values.name} has been successfully updated.`,
             });
             
-            if (imageFile) {
-                 toast({
-                    title: "Uploading Image",
-                    description: "The new image is being uploaded in the background.",
-                });
-                const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
-                await uploadBytes(imageRef, imageFile);
-                const finalImageUrl = await getDownloadURL(imageRef);
-                (productData as any).imageUrl = finalImageUrl;
-            } else if (imagePreview === null && product.imageUrl) {
-                (productData as any).imageUrl = '';
-            }
-
-            await updateDoc(docRef, productData);
-
         } catch (error) {
             console.error("Error updating product: ", error);
             toast({

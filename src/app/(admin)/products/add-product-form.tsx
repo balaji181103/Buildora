@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { useState, useTransition, useEffect } from 'react';
 import Image from 'next/image';
 import { collection, addDoc, serverTimestamp, updateDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { db, storage } from '@/lib/firebase';
+import { db } from '@/lib/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ProductFormSchema = z.object({
@@ -108,8 +107,45 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
     if (fileInput) fileInput.value = '';
   }
 
+  async function uploadImage(file: File): Promise<string | null> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Image upload failed');
+        }
+
+        const data = await response.json();
+        return data.url;
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'Image Upload Error',
+            description: error.message,
+        });
+        return null;
+    }
+  }
+
   async function onSubmit(values: ProductFormValues) {
     startTransition(async () => {
+        let finalImageUrl = '';
+        if (imageFile) {
+            const uploadedUrl = await uploadImage(imageFile);
+            if (!uploadedUrl) {
+                // Stop submission if upload fails
+                return;
+            }
+            finalImageUrl = uploadedUrl;
+        }
+
         try {
             const productData = {
                 name: values.name,
@@ -124,7 +160,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
                     width: values.width,
                     height: values.height,
                 },
-                imageUrl: '',
+                imageUrl: finalImageUrl,
                 createdAt: serverTimestamp(),
             };
 
@@ -133,25 +169,17 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
             const newProductForUI: Product = { 
                 id: docRef.id, 
                 ...productData, 
-                imageUrl: '', 
                 createdAt: new Date() 
             };
-            onProductAdded(newProductForUI, imagePreview || undefined);
+            onProductAdded(newProductForUI);
 
             toast({
                 title: "Product Added",
-                description: `${values.name} is now in your inventory. Image is uploading in the background.`,
+                description: `${values.name} is now in your inventory.`,
             });
             
             form.reset();
             removeImage();
-
-            if (imageFile) {
-                const imageRef = ref(storage, `product_images/${docRef.id}_${imageFile.name}`);
-                await uploadBytes(imageRef, imageFile);
-                const finalImageUrl = await getDownloadURL(imageRef);
-                await updateDoc(doc(db, "products", docRef.id), { imageUrl: finalImageUrl });
-            }
 
         } catch (error) {
            console.error("Error adding product: ", error);
