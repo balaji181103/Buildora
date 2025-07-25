@@ -44,7 +44,7 @@ import type { Product } from "@/lib/types";
 import { AddProductForm } from "./add-product-form";
 import { EditProductForm } from "./edit-product-form";
 import { Input } from "@/components/ui/input";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-client";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type ProductWithLocalImage = Product & { localImageUrl?: string };

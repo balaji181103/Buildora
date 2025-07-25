@@ -37,7 +37,7 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Building2, Loader2 } from "lucide-react"
 import type { Supplier } from "@/lib/types";
 import { AddSupplierForm } from "./add-supplier-form";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 export default function SuppliersPage() {

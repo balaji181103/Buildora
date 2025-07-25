@@ -37,7 +37,7 @@ import { Button } from "@/components/ui/button"
 import type { Order } from "@/lib/types";
 import { MoreHorizontal, PlusCircle, Rocket, Truck, FileText, Edit, Package, Waypoints, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";

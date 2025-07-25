@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Map, AlertTriangle, Rocket, Truck as TruckIcon, HelpCircle, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 import { doc, onSnapshot } from 'firebase/firestore';
 import type { Order, Drone, Truck } from '@/lib/types';
 

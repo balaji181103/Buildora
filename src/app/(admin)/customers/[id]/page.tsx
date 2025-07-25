@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Mail, Phone, Home, Star, Package, MapPin, ExternalLink, Loader2 } from 'lucide-react';
 import * as React from 'react';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Customer, Order } from '@/lib/types';
 import { format } from 'date-fns';

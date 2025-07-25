@@ -16,7 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { useToast } from '@/hooks/use-toast';
 import { Rocket, ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 import type { Customer } from '@/lib/types';
 
 

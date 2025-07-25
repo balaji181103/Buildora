@@ -29,7 +29,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Star, Package, Loader2 } from "lucide-react"
 import type { Customer } from "@/lib/types";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, doc, updateDoc, query, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 

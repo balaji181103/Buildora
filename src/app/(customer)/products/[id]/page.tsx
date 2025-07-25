@@ -58,7 +58,7 @@ import { notFound, useParams } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { useToast } from "@/hooks/use-toast"
 import { Product } from "@/lib/types"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-client"
 import { doc, getDoc, collection, getDocs, query, where, limit } from "firebase/firestore"
 import { Skeleton } from "@/components/ui/skeleton"
 

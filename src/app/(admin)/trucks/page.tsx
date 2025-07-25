@@ -27,7 +27,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-client"
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import type { Truck } from "@/lib/types";
 

@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import * as React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 import { doc, onSnapshot } from 'firebase/firestore';
 import type { Order, Customer, Drone, Truck } from '@/lib/types';
 

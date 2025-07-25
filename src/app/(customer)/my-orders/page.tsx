@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Package, Loader2 } from "lucide-react"
 import Link from "next/link";
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { Order } from '@/lib/types';
 import { format } from 'date-fns';

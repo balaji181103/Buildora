@@ -32,7 +32,7 @@ import {
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { OverviewChart } from "./overview-chart"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-client"
 import { collection, query, where, onSnapshot, orderBy, limit, Timestamp } from "firebase/firestore"
 import type { Order, Product } from "@/lib/types"
 import { ActionCard } from "@/components/ui/action-card"

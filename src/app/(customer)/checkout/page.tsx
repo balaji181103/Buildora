@@ -17,7 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CreditCard, Home, PlusCircle, Rocket, Truck, LocateFixed, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid'
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-client";
 import { collection, doc, getDoc, onSnapshot, runTransaction, serverTimestamp, writeBatch, limit, query as firestoreQuery, updateDoc, arrayUnion } from "firebase/firestore";
 import type { Customer, Address, Order } from "@/lib/types";
 

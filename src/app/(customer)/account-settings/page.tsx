@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch"
 import { Home, Loader2, Trash2 } from "lucide-react"
 import { useToast } from '@/hooks/use-toast';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 import { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 

@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCart } from "@/hooks/use-cart.tsx";
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 import { doc, getDoc } from 'firebase/firestore';
 import { Customer } from '@/lib/types';
 

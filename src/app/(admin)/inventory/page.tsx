@@ -30,7 +30,7 @@ import { Button } from "@/components/ui/button"
 import { ClipboardList, Search, AlertTriangle, History, Loader2 } from "lucide-react"
 import type { Product } from "@/lib/types";
 import { Input } from "@/components/ui/input";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { Skeleton } from "@/components/ui/skeleton";
 

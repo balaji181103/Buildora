@@ -52,7 +52,7 @@ import { HeroSection } from "./hero-section"
 import { useCart } from "@/hooks/use-cart";
 import { MaterialEstimator } from "./material-estimator"
 import { collection, getDocs, query, orderBy } from "firebase/firestore"
-import { db } from "@/lib/firebase"
+import { db } from "@/lib/firebase-client"
 import { Skeleton } from "@/components/ui/skeleton"
 
 

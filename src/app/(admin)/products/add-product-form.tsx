@@ -22,7 +22,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const ProductFormSchema = z.object({
