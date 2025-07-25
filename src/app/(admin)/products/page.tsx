@@ -75,17 +75,7 @@ export default function ProductsPage() {
           createdAt: data.createdAt?.toDate() || new Date()
         } as ProductWithLocalImage);
       });
-      setProducts(prevProducts => {
-        // This logic helps preserve local image previews while backend data updates
-        const updatedProducts = productsData.map(newProd => {
-            const existing = prevProducts.find(p => p.id === newProd.id);
-            if (existing && existing.localImageUrl && !newProd.imageUrl) {
-                return { ...newProd, localImageUrl: existing.localImageUrl };
-            }
-            return newProd;
-        });
-        return updatedProducts;
-      });
+      setProducts(productsData);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching products from Firestore:", error);
@@ -99,9 +89,9 @@ export default function ProductsPage() {
     setIsAddDialogOpen(isNewProductFlow);
   }, [isNewProductFlow]);
 
-  const handleProductAdded = (newProduct: Product, localImageUrl?: string) => {
-    const newProductWithLocalImage: ProductWithLocalImage = { ...newProduct, localImageUrl };
-    setProducts(prevProducts => [newProductWithLocalImage, ...prevProducts]);
+  const handleProductAdded = () => {
+    // The onSnapshot listener will automatically update the UI.
+    // We just need to close the dialog.
     setIsAddDialogOpen(false);
   };
   
@@ -309,3 +299,5 @@ export default function ProductsPage() {
     </>
   )
 }
+
+    

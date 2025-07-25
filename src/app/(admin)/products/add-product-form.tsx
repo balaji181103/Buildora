@@ -41,7 +41,7 @@ const ProductFormSchema = z.object({
 
 type ProductFormValues = z.infer<typeof ProductFormSchema>;
 
-export function AddProductForm({ onProductAdded }: { onProductAdded: (product: Product, localImageUrl?: string) => void }) {
+export function AddProductForm({ onProductAdded }: { onProductAdded: () => void }) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -164,14 +164,9 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
                 createdAt: serverTimestamp(),
             };
 
-            const docRef = await addDoc(collection(db, "products"), productData);
+            await addDoc(collection(db, "products"), productData);
             
-            const newProductForUI: Product = { 
-                id: docRef.id, 
-                ...productData, 
-                createdAt: new Date() 
-            };
-            onProductAdded(newProductForUI);
+            onProductAdded();
 
             toast({
                 title: "Product Added",
@@ -390,3 +385,5 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: (product: P
     </Form>
   );
 }
+
+    
