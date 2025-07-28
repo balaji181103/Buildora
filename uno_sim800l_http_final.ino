@@ -1,233 +1,203 @@
-
 #include <SoftwareSerial.h>
 #include <ArduinoJson.h>
 
 // --- Pin Definitions ---
-// Connect SIM800L TX to Arduino D10
-// Connect SIM800L RX to Arduino D11
-SoftwareSerial sim(10, 11);
+SoftwareSerial sim(10, 11); // SIM800L TX -> 10, RX <- 11
 
 // --- Configuration ---
-// IMPORTANT: Use ngrok or a similar service to get a PUBLIC URL for your local server.
-// A local IP like 192.168.x.x will NOT work.
-const char* SERVER_URL = "http://your-ngrok-url.ngrok-free.app/api/getMission?droneId=SB-001";
-const char* APN = "airtelgprs.com"; // APN for your SIM card provider (e.g., "airtelgprs.com")
-
+// Use the HTTPS URL provided by ngrok.
+const char* APN = "airtelgprs.com";
+const char* SERVER_URL = "https://<your-ngrok-url>.ngrok-free.app/api/getMission?droneId=SB-001"; // <-- IMPORTANT: Use https and update your URL
 
 // --- Helper Functions ---
-/**
- * @brief Sends an AT command and waits for a specific response.
- * @param command The AT command to send.
- * @param expected_response The response to wait for.
- * @param timeout The maximum time to wait in milliseconds.
- * @return True if the expected response was received, false otherwise.
- */
-bool sendATCommand(const char* command, const char* expected_response, unsigned long timeout) {
-  unsigned long startTime = millis();
-  sim.println(command);
-  Serial.print(F("Sent: "));
-  Serial.println(command);
+String sendATCommand(const char* command, unsigned long timeout) {
+    String response = "";
+    sim.println(command);
+    Serial.print("Sent: ");
+    Serial.println(command);
 
-  String response = "";
-  response.reserve(100); // Pre-allocate memory for the response string
-
-  while (millis() - startTime < timeout) {
-    if (sim.available()) {
-      char c = sim.read();
-      response += c;
-    }
-    if (response.indexOf(expected_response) != -1) {
-      Serial.print(F("Recv: "));
-      Serial.print(response);
-      return true;
-    }
-  }
-
-  Serial.println(F("[ERROR] Timeout or incorrect response. Full response received:"));
-  Serial.println(response);
-  return false;
-}
-
-/**
- * @brief Reads the body of an HTTP response after it has been received.
- *        It specifically looks for a JSON object.
- * @return A String containing the JSON object, or an empty string if not found.
- */
-String readHttpResponse() {
-  String response = "";
-  response.reserve(256); // Pre-allocate memory
-  unsigned long startTime = millis();
-  bool foundJson = false;
-  int braceCount = 0;
-
-  // Look for the start of the JSON body
-  while(millis() - startTime < 5000) {
-    if (sim.available()) {
-        char c = sim.read();
-        if (c == '{') {
-            foundJson = true;
-            braceCount++;
+    unsigned long startTime = millis();
+    while (millis() - startTime < timeout) {
+        if (sim.available()) {
+            char c = sim.read();
             response += c;
-            break; // Found the start, now read the rest
         }
     }
-  }
-
-  if (foundJson) {
-      startTime = millis(); // Reset timeout for reading the object
-      while (millis() - startTime < 5000) {
-          if (sim.available()) {
-              char c = sim.read();
-              response += c;
-              if (c == '{') braceCount++;
-              if (c == '}') braceCount--;
-              if (braceCount == 0) break; // End of JSON object
-          }
-      }
-  }
-
-  return response;
+    Serial.print("Recv: ");
+    Serial.println(response);
+    return response;
 }
 
-/**
- * @brief Initializes the SIM800L module and connects to GPRS.
- * @return True on success, false on failure.
- */
-bool initializeSIM() {
-  Serial.println(F("Initializing SIM800L..."));
-  sim.begin(9600);
-  delay(1000);
-
-  if (!sendATCommand("AT", "OK", 2000)) return false;
-  if (!sendATCommand("ATE0", "OK", 2000)) return false; // Echo off
-  if (!sendATCommand("AT+CPIN?", "READY", 5000)) return false;
-  if (!sendATCommand("AT+CSQ", "OK", 2000)) return false; // Check signal quality
-
-  Serial.println(F("Attaching to GPRS..."));
-  if (!sendATCommand("AT+CGATT=1", "OK", 10000)) return false;
-  delay(2000); // Give module time to attach
-
-  // --- New, more robust GPRS bearer setup ---
-  Serial.println(F("Configuring GPRS Bearer..."));
-  
-  // Step 1: Close any previous bearer contexts (robustness)
-  sendATCommand("AT+SAPBR=0,1", "OK", 5000); // We don't care if this fails, just a cleanup
-  delay(1000);
-
-  // Step 2: Set connection type to GPRS
-  if (!sendATCommand("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"", "OK", 5000)) return false;
-
-  // Step 3: Set the APN
-  String apn_cmd = "AT+SAPBR=3,1,\"APN\",\"";
-  apn_cmd += APN;
-  apn_cmd += "\"";
-  if (!sendATCommand(apn_cmd.c_str(), "OK", 5000)) return false;
-
-  // Step 4: Open the GPRS bearer. This can take a while.
-  Serial.println(F("Opening GPRS bearer..."));
-  if (!sendATCommand("AT+SAPBR=1,1", "OK", 20000)) { // Increased timeout
+bool expectResponse(const String& response, const char* expected) {
+    if (response.indexOf(expected) != -1) {
+        return true;
+    }
+    Serial.print("[ERROR] Expected '");
+    Serial.print(expected);
+    Serial.println("' but did not receive it.");
     return false;
-  }
-  delay(3000); // Wait after opening
-
-  // Step 5: Query the bearer to get the IP address
-  if (!sendATCommand("AT+SAPBR=2,1", "+SAPBR: 1,1", 10000)) return false;
-
-  Serial.println(F("\n[SUCCESS] SIM Initialized and GPRS Connected."));
-  return true;
 }
 
 
-/**
- * @brief Makes an HTTP GET request to the server and parses the response.
- */
-void getCustomerDetails() {
-  Serial.println(F("\nInitializing HTTP..."));
-  if (!sendATCommand("AT+HTTPINIT", "OK", 5000)) return;
+bool initializeSIM() {
+    Serial.println("Initializing SIM800L...");
+    sim.begin(9600);
+    delay(1000);
 
-  if (!sendATCommand("AT+HTTPPARA=\"CID\",1", "OK", 5000)) {
-    sendATCommand("AT+HTTPTERM", "OK", 2000);
-    return;
-  }
-  
-  String url_cmd = "AT+HTTPPARA=\"URL\",\"";
-  url_cmd += SERVER_URL;
-  url_cmd += "\"";
+    if (!expectResponse(sendATCommand("AT", 2000), "OK")) return false;
+    if (!expectResponse(sendATCommand("ATE0", 2000), "OK")) return false; // Disable command echo
 
-  Serial.println("Requesting: " + String(SERVER_URL));
-  if (!sendATCommand(url_cmd.c_str(), "OK", 5000)) {
-    sendATCommand("AT+HTTPTERM", "OK", 2000);
-    return;
-  }
+    Serial.println("Checking network...");
+    if (!expectResponse(sendATCommand("AT+CPIN?", 5000), "READY")) return false;
+    if (!expectResponse(sendATCommand("AT+CSQ", 5000), "OK")) return false;
+    if (!expectResponse(sendATCommand("AT+CGATT?", 5000), "+CGATT: 1")) return false;
+    
+    Serial.println("Setting up GPRS Bearer...");
+    // Close any existing bearer context (good practice)
+    sendATCommand("AT+SAPBR=0,1", 3000); 
+    delay(1000);
 
-  // Set to non-SSL mode explicitly
-  if (!sendATCommand("AT+HTTPSSL=0", "OK", 5000)) {
-    sendATCommand("AT+HTTPTERM", "OK", 2000);
-    return;
-  }
+    // Set connection type to GPRS
+    if (!expectResponse(sendATCommand("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"", 5000), "OK")) return false;
 
-  if (!sendATCommand("AT+HTTPACTION=0", "+HTTPACTION: 0,200", 20000)) {
-    Serial.println(F("[ERROR] HTTP GET failed. Check server URL and network."));
-    sendATCommand("AT+HTTPTERM", "OK", 2000);
-    return;
-  }
+    // Set the APN
+    String cmd = "AT+SAPBR=3,1,\"APN\",\"";
+    cmd += APN;
+    cmd += "\"";
+    if (!expectResponse(sendATCommand(cmd.c_str(), 5000), "OK")) return false;
 
-  Serial.println(F("Reading HTTP Response..."));
-  sendATCommand("AT+HTTPREAD", "+HTTPREAD", 10000); // Wait for the +HTTPREAD header
-  String jsonResponse = readHttpResponse();
-  Serial.println("Extracted JSON: " + jsonResponse);
-
-  sendATCommand("AT+HTTPTERM", "OK", 2000); // Terminate HTTP session
-
-  if (jsonResponse.length() > 0) {
-    DynamicJsonDocument doc(256);
-    DeserializationError error = deserializeJson(doc, jsonResponse);
-
-    if (error) {
-      Serial.print(F("[ERROR] JSON Parse Failed: "));
-      Serial.println(error.f_str());
-      return;
+    // Open the GPRS context (bearer)
+    if (!expectResponse(sendATCommand("AT+SAPBR=1,1", 20000), "OK")) { // Long timeout for network negotiation
+        Serial.println("[ERROR] Failed to open GPRS bearer.");
+        return false;
     }
 
-    if (doc.containsKey("latitude") && doc.containsKey("longitude")) {
-      float latitude = doc["latitude"];
-      float longitude = doc["longitude"];
-      const char* orderId = doc["orderId"];
+    // Query the bearer status to get an IP address
+    if (!expectResponse(sendATCommand("AT+SAPBR=2,1", 5000), "OK")) {
+        Serial.println("[ERROR] Failed to get an IP address.");
+        return false;
+    }
 
-      Serial.println(F("\n--- Mission Details ---"));
-      Serial.print(F("Order ID : "));
-      Serial.println(orderId);
-      Serial.print(F("Latitude : "));
-      Serial.println(latitude, 6);
-      Serial.print(F("Longitude: "));
-      Serial.println(longitude, 6);
-      Serial.println(F("------------------------"));
+    Serial.println("GPRS connection is ready.");
+    return true;
+}
+
+void getMissionDetails() {
+    Serial.println("\nRequesting new mission details...");
+    
+    // --- Initialize HTTP and SSL ---
+    if (!expectResponse(sendATCommand("AT+HTTPINIT", 5000), "OK")) return;
+    if (!expectResponse(sendATCommand("AT+HTTPPARA=\"CID\",1", 5000), "OK")) return;
+    
+    // Enable SSL for HTTPS
+    if (!expectResponse(sendATCommand("AT+HTTPSSL=1", 5000), "OK")) {
+        sendATCommand("AT+HTTPTERM", 3000);
+        return;
+    }
+    
+    // --- Set URL ---
+    String url_cmd = "AT+HTTPPARA=\"URL\",\"";
+    url_cmd += SERVER_URL;
+    url_cmd += "\"";
+    Serial.println("Requesting: " + String(SERVER_URL));
+    if (!expectResponse(sendATCommand(url_cmd.c_str(), 5000), "OK")) {
+        sendATCommand("AT+HTTPTERM", 3000);
+        return;
+    }
+
+    // --- Perform GET Action ---
+    sendATCommand("AT+HTTPACTION=0", 2000); // Send command but don't wait for final response here
+    
+    String actionResponse = "";
+    unsigned long actionStart = millis();
+    bool actionComplete = false;
+    while(millis() - actionStart < 20000) { // 20 second timeout for the action
+      if(sim.available()){
+        String line = sim.readStringUntil('\n');
+        Serial.println(line);
+        if(line.startsWith("+HTTPACTION:")){
+           actionResponse = line;
+           actionComplete = true;
+           break;
+        }
+      }
+    }
+
+    if (!actionComplete || actionResponse.indexOf("200") == -1) {
+        Serial.println("[ERROR] HTTP GET failed. Check server URL and network.");
+        sendATCommand("AT+HTTPTERM", 3000);
+        return;
+    }
+    
+    Serial.println("HTTP GET Success. Reading response...");
+
+    // --- Read Data ---
+    sendATCommand("AT+HTTPREAD", 10000); // This command returns the data
+    
+    String jsonResponse = "";
+    unsigned long readStart = millis();
+    bool jsonStarted = false;
+    while(millis() - readStart < 5000) {
+      if(sim.available()) {
+        char c = sim.read();
+        Serial.write(c);
+        if(c == '{') jsonStarted = true;
+        if(jsonStarted) jsonResponse += c;
+        if(c == '}' && jsonStarted) break;
+      }
+    }
+    
+    sendATCommand("AT+HTTPTERM", 3000); // Terminate HTTP session
+
+    Serial.println("\nExtracted JSON: " + jsonResponse);
+
+    if (jsonResponse.length() > 0) {
+        DynamicJsonDocument doc(256);
+        DeserializationError error = deserializeJson(doc, jsonResponse);
+
+        if (error) {
+            Serial.print("[ERROR] JSON Parse Failed: ");
+            Serial.println(error.c_str());
+            return;
+        }
+
+        if (doc.containsKey("latitude") && doc.containsKey("longitude")) {
+            float latitude = doc["latitude"];
+            float longitude = doc["longitude"];
+            const char* orderId = doc["orderId"];
+
+            Serial.println("\n--- Mission Details ---");
+            Serial.print("Order ID: ");
+            Serial.println(orderId);
+            Serial.print("Latitude: ");
+            Serial.println(latitude, 6);
+            Serial.print("Longitude: ");
+            Serial.println(longitude, 6);
+            Serial.println("------------------------");
+        } else {
+            Serial.println("[INFO] Server response did not contain mission details.");
+        }
     } else {
-      Serial.println(F("[INFO] No mission found or response missing location data."));
+        Serial.println("[ERROR] No JSON object found in HTTP response.");
     }
-  } else {
-    Serial.println(F("[ERROR] No JSON object found in response."));
-  }
 }
+
 
 // --- Arduino Standard Functions ---
 void setup() {
-  Serial.begin(9600);
-  while (!Serial); // Wait for serial monitor to open
+    Serial.begin(9600);
+    while (!Serial); // Wait for serial monitor to open
 
-  if (initializeSIM()) {
-    Serial.println(F("\nSystem Ready."));
-  } else {
-    Serial.println(F("\n[FATAL] Could not initialize SIM card. Check wiring, power, and signal."));
-    while (true); // Halt execution
-  }
+    if (initializeSIM()) {
+        Serial.println("\nSystem Ready.");
+    } else {
+        Serial.println("\n[FATAL] SIM Initialization failed. Halting.");
+        while (true); // Halt system
+    }
 }
 
 void loop() {
-  // Automatically get details every 30 seconds
-  Serial.println(F("\nRequesting new mission details..."));
-  getCustomerDetails();
-  
-  Serial.println(F("Waiting 30 seconds before next request..."));
-  delay(30000);
+    getMissionDetails();
+    Serial.println("\nWaiting 30 seconds before next request...");
+    delay(30000); 
 }
