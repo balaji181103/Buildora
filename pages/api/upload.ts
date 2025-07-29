@@ -1,7 +1,6 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { v2 as cloudinary } from 'cloudinary';
-import { Writable } from 'stream';
 
 // Explicitly configure Cloudinary. 
 // This is the most reliable way to ensure the SDK is authenticated.
@@ -31,14 +30,14 @@ const streamToBuffer = (req: NextApiRequest): Promise<Buffer> => {
 // Helper to upload the buffer to Cloudinary
 const uploadToCloudinary = (buffer: Buffer): Promise<{ secure_url: string; public_id: string }> => {
     return new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
+        cloudinary.uploader.upload_stream(
             {
                 folder: 'buildora_assets',
-                resource_type: 'image',
+                resource_type: 'auto',
             },
             (error, result) => {
                 if (error) {
-                    console.error('Cloudinary Upload Stream Error:', error);
+                    console.error('Cloudinary Upload Error:', error);
                     return reject(new Error('Failed to upload image to Cloudinary.'));
                 }
                 if (!result) {
@@ -49,19 +48,7 @@ const uploadToCloudinary = (buffer: Buffer): Promise<{ secure_url: string; publi
                     public_id: result.public_id,
                 });
             }
-        );
-
-        const writable = new Writable({
-            write(chunk, encoding, callback) {
-                uploadStream.write(chunk, encoding, callback);
-            },
-            final(callback) {
-                uploadStream.end(callback);
-            },
-        });
-        
-        writable.write(buffer);
-        writable.end();
+        ).end(buffer);
     });
 };
 
