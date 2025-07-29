@@ -13,6 +13,7 @@ import { doc, onSnapshot } from 'firebase/firestore';
 import type { Order, Customer } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { OrderStatusTracker } from '@/components/ui/order-status-tracker';
 
 
 export default function AdminOrderTrackingPage() {
@@ -32,16 +33,20 @@ export default function AdminOrderTrackingPage() {
         setOrder(orderData);
         
         // Fetch customer details
-        const unsubCustomer = onSnapshot(doc(db, "customers", orderData.customerId), (custSnap) => {
-             if (custSnap.exists()) {
-                 setCustomer({ id: custSnap.id, ...custSnap.data() } as Customer);
-             }
-             setLoading(false);
-        });
-        
-        return () => {
-            unsubCustomer();
-        };
+        if (orderData.customerId) {
+            const unsubCustomer = onSnapshot(doc(db, "customers", orderData.customerId), (custSnap) => {
+                 if (custSnap.exists()) {
+                     setCustomer({ id: custSnap.id, ...custSnap.data() } as Customer);
+                 }
+                 setLoading(false);
+            });
+            
+            return () => {
+                unsubCustomer();
+            };
+        } else {
+            setLoading(false);
+        }
 
       } else {
         notFound();
@@ -75,6 +80,8 @@ export default function AdminOrderTrackingPage() {
         </div>
         <Badge variant="secondary" className="text-base py-1 px-3">{order.status}</Badge>
       </div>
+      
+      <OrderStatusTracker currentStatus={order.status} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2">
@@ -102,7 +109,7 @@ export default function AdminOrderTrackingPage() {
                 <CardContent>
                     <p className="font-semibold">{customer?.name}</p>
                     <p className="text-sm text-muted-foreground">{customer?.email}</p>
-                    <Link href={`/customers/${customer?.id}`} className="text-sm text-primary hover:underline mt-2 inline-block">View Full Profile</Link>
+                    {customer && <Link href={`/customers/${customer?.id}`} className="text-sm text-primary hover:underline mt-2 inline-block">View Full Profile</Link>}
                 </CardContent>
             </Card>
              <Card>
