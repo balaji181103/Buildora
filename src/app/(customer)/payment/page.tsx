@@ -378,7 +378,7 @@ export default function PaymentPage() {
                             ? 'Placing Order...' 
                             : accordionValue === 'qr-code'
                             ? 'Confirm Payment After Scanning'
-                            : 'Pay with QR Code'
+                            : 'Pay Now'
                         }
                     </Button>
                 </div>
@@ -386,5 +386,3 @@ export default function PaymentPage() {
         </div>
     )
 }
-
-    
