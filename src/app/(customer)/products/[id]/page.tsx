@@ -122,73 +122,6 @@ function ProductCard({ product }: { product: Product }) {
     );
 }
 
-const reviews = [
-    {
-      id: 1,
-      name: 'Rahul Sharma',
-      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-      rating: 5,
-      date: '2 weeks ago',
-      text: 'This is a fantastic product. Very high quality and durable. It exceeded my expectations. Delivery was also very fast. Highly recommend!',
-    },
-    {
-      id: 2,
-      name: 'Priya Patel',
-      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704e',
-      rating: 4,
-      date: '1 month ago',
-      text: 'Good value for the price. It gets the job done. The material feels sturdy. I wish it came with more accessories, but overall, a solid purchase.',
-    },
-    {
-      id: 3,
-      name: 'Amit Singh',
-      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704f',
-      rating: 5,
-      date: '3 months ago',
-      text: 'Exactly what I needed for my project. The dimensions were accurate and the quality is top-notch. Will be buying again from Buildora for sure.',
-    }
-  ];
-
-function CustomerReviews() {
-    return (
-        <Card>
-            <CardHeader>
-                <div className="flex items-center justify-between">
-                    <div>
-                        <CardTitle>Customer Reviews</CardTitle>
-                        <CardDescription>See what others are saying about this product.</CardDescription>
-                    </div>
-                    <Button variant="outline">Write a Review</Button>
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                {reviews.map((review) => (
-                    <div key={review.id} className="flex gap-4">
-                        <Avatar>
-                            <AvatarImage src={`https://placehold.co/40x40.png`} data-ai-hint="profile picture"/>
-                            <AvatarFallback>{review.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-semibold">{review.name}</p>
-                                    <div className="flex items-center gap-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
-                                        ))}
-                                    </div>
-                                </div>
-                                <p className="text-sm text-muted-foreground">{review.date}</p>
-                            </div>
-                            <p className="mt-2 text-sm text-muted-foreground">{review.text}</p>
-                        </div>
-                    </div>
-                ))}
-            </CardContent>
-        </Card>
-    )
-}
-
 export default function ProductDetailsPage() {
     const { cart, addItem, updateQuantity } = useCart();
     const { toast } = useToast();
@@ -420,11 +353,6 @@ export default function ProductDetailsPage() {
                 </div>
             )}
             
-            <Separator className="my-4" />
-            
-            <CustomerReviews />
-
         </div>
     )
 }
-
