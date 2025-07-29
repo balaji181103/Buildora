@@ -60,7 +60,7 @@ function ProductCard({ product }: { product: Product }) {
             <Link href={`/products/${product.id}`}>
                 <Image
                     alt={product.name}
-                    className="aspect-square w-full rounded-t-lg object-cover"
+                    className="aspect-square w-full rounded-t-lg object-contain"
                     height="250"
                     src={product.imageUrl || `https://placehold.co/250x250.png`}
                     width="250"
@@ -78,7 +78,7 @@ function ProductCard({ product }: { product: Product }) {
             <CardDescription className="text-sm">{product.supplier}</CardDescription>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex flex-col items-stretch gap-4">
-            <div className="font-semibold text-lg self-start">₹{product.price.toFixed(2)}</div>
+             <div className="font-semibold text-lg self-start">₹{product.price.toFixed(2)}</div>
              {cartItem ? (
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}>
@@ -143,7 +143,7 @@ function ProductCatalog() {
                                 <Skeleton className="h-4 w-1/2" />
                             </CardContent>
                             <CardFooter className="p-4 pt-0 flex flex-col items-stretch gap-4">
-                                <Skeleton className="h-8 w-1/3" />
+                                <Skeleton className="h-8 w-1/3 self-start" />
                                 <Skeleton className="h-9 w-full" />
                             </CardFooter>
                         </Card>
