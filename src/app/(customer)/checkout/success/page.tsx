@@ -9,41 +9,38 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CheckCircle2, FileText, ShoppingBag, ArrowRight, Package, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase-client';
-import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import type { Order } from '@/lib/types';
 import { format } from 'date-fns';
 
 export default function OrderSuccessPage() {
     const searchParams = useSearchParams();
-    const orderIdParam = searchParams.get('orderId'); // This is a dummy param now
+    const orderId = searchParams.get('orderId');
     const { toast } = useToast();
     const [order, setOrder] = React.useState<Order | null>(null);
     const [loading, setLoading] = React.useState(true);
 
 
     React.useEffect(() => {
-        const fetchLatestOrder = async () => {
-            // Since we can't easily get the ID from the transaction,
-            // we'll fetch the most recent order for a mock user.
-            // In a real app with auth, you'd fetch for the current userId.
+        if (!orderId) {
+            setLoading(false);
+            return;
+        }
+        const fetchOrder = async () => {
             try {
-                 const q = query(
-                    collection(db, "orders"),
-                    orderBy("date", "desc"),
-                    limit(1)
-                );
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    const doc = querySnapshot.docs[0];
-                    const data = doc.data();
+                const docRef = doc(db, "orders", orderId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                     const data = docSnap.data();
                     setOrder({ 
-                        id: doc.id,
+                        id: docSnap.id,
                         ...data,
                         date: data.date.toDate() 
                     } as Order);
                 }
             } catch (error) {
-                console.error("Error fetching latest order:", error);
+                console.error("Error fetching order:", error);
                  toast({
                     variant: 'destructive',
                     title: "Could not fetch order details.",
@@ -52,8 +49,8 @@ export default function OrderSuccessPage() {
                 setLoading(false);
             }
         };
-        fetchLatestOrder();
-    }, [toast]);
+        fetchOrder();
+    }, [orderId, toast]);
 
 
     const handleDownloadInvoice = () => {
@@ -97,7 +94,7 @@ export default function OrderSuccessPage() {
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
                         <CardTitle>Order Summary</CardTitle>
-                        <CardDescription>Order ID: {order.id}</CardDescription>
+                        <CardDescription>Order ID: #{order.id}</CardDescription>
                     </div>
                     <Button variant="outline" onClick={handleDownloadInvoice}>
                         <FileText className="mr-2 h-4 w-4" />

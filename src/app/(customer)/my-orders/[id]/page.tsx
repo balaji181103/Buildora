@@ -54,7 +54,7 @@ export default function CustomerOrderTrackingPage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Track Order</h1>
-          <p className="text-muted-foreground">Order ID: {order.id}</p>
+          <p className="text-muted-foreground">Order ID: #{order.id}</p>
         </div>
       </div>
       

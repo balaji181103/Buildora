@@ -79,7 +79,7 @@ export default function OrdersPage() {
         await updateDoc(orderRef, { status });
         toast({
             title: "Status Updated",
-            description: `Order ${orderId} has been updated to ${status}.`
+            description: `Order #${orderId} has been updated to ${status}.`
         })
         if (selectedOrder?.id === orderId) {
             setSelectedOrder(prev => prev ? {...prev, status} : null);
@@ -143,7 +143,7 @@ export default function OrdersPage() {
                   </TableRow>
               ) : orders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
+                  <TableCell className="font-medium">#{order.id}</TableCell>
                   <TableCell>{order.customerName}</TableCell>
                   <TableCell>
                     <Badge 
@@ -207,7 +207,7 @@ export default function OrdersPage() {
             {selectedOrder && (
                 <>
                     <DialogHeader>
-                        <DialogTitle>Order Details: {selectedOrder.id}</DialogTitle>
+                        <DialogTitle>Order Details: #{selectedOrder.id}</DialogTitle>
                         <DialogDescription>
                             Full details for the order placed by {selectedOrder.customerName} on {format(selectedOrder.date, 'PPP')}.
                         </DialogDescription>

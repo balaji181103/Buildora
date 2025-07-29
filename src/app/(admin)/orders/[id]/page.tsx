@@ -75,7 +75,7 @@ export default function AdminOrderTrackingPage() {
             </Button>
             <div>
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2"><Waypoints className="h-6 w-6" /> Live Order Tracking</h1>
-            <p className="text-muted-foreground">Monitoring Order ID: {order.id}</p>
+            <p className="text-muted-foreground">Monitoring Order ID: #{order.id}</p>
             </div>
         </div>
         <Badge variant="secondary" className="text-base py-1 px-3">{order.status}</Badge>

@@ -18,7 +18,7 @@ import { CreditCard, Home, PlusCircle, LocateFixed, Loader2, Package } from "luc
 import { useToast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid'
 import { db } from "@/lib/firebase-client";
-import { collection, doc, getDoc, onSnapshot, runTransaction, serverTimestamp, writeBatch, limit, query as firestoreQuery, updateDoc, arrayUnion } from "firebase/firestore";
+import { collection, doc, getDoc, onSnapshot, runTransaction, serverTimestamp, updateDoc, arrayUnion } from "firebase/firestore";
 import type { Customer, Address, Order } from "@/lib/types";
 
 
@@ -160,10 +160,19 @@ export default function CheckoutPage() {
 
         setIsPlacingOrder(true);
         
+        let finalOrderId: string | null = null;
         try {
-            const tempOrderId = nanoid(10);
             
             await runTransaction(db, async (transaction) => {
+                const counterRef = doc(db, 'counters', 'orders');
+                const counterDoc = await transaction.get(counterRef);
+
+                let nextOrderId = 1;
+                if (counterDoc.exists()) {
+                    nextOrderId = counterDoc.data().current + 1;
+                }
+                finalOrderId = String(nextOrderId);
+
                 // READ operations first
                 const productRefs = cart.map(item => doc(db, "products", item.product.id));
                 const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
@@ -181,13 +190,16 @@ export default function CheckoutPage() {
                 }
 
                 // WRITE operations last
-                const newOrderRef = doc(collection(db, "orders"));
+                const newOrderRef = doc(db, "orders", finalOrderId);
                 const orderItems = cart.map(item => ({
                     productId: item.product.id,
                     name: item.product.name,
                     quantity: item.quantity,
                     price: item.product.price
                 }));
+                
+                // Construct the order object, which will be of a type that matches what the transaction expects,
+                // specifically excluding the `id` field since that's determined by the document reference itself.
                 const newOrder: Omit<Order, 'id' | 'date'> & { date: any } = {
                     customerName: customer.name,
                     customerId: customer.id,
@@ -198,6 +210,7 @@ export default function CheckoutPage() {
                     shippingAddress: shippingAddress,
                 };
                 transaction.set(newOrderRef, newOrder);
+                transaction.set(counterRef, { current: nextOrderId }, { merge: true });
 
                 for (let i = 0; i < productDocs.length; i++) {
                     const productDoc = productDocs[i];
@@ -212,10 +225,10 @@ export default function CheckoutPage() {
             
             toast({
                 title: "Order Placed!",
-                description: `Your order has been successfully placed.`,
+                description: `Your order #${finalOrderId} has been successfully placed.`,
             });
             clearCart();
-            router.push(`/checkout/success?orderId=${tempOrderId}`);
+            router.push(`/checkout/success?orderId=${finalOrderId}`);
 
         } catch (error: any) {
             console.error("Transaction failed: ", error);

@@ -196,7 +196,7 @@ export default function CustomerProfilePage() {
                             ) : (
                                 orders.map((order) => (
                                     <TableRow key={order.id}>
-                                        <TableCell className="font-medium">{order.id}</TableCell>
+                                        <TableCell className="font-medium">#{order.id}</TableCell>
                                         <TableCell>{format(order.date, 'PPP')}</TableCell>
                                         <TableCell>
                                             <Badge
