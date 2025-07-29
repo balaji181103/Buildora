@@ -131,6 +131,7 @@ export default function ProductDetailsPage() {
     const [product, setProduct] = React.useState<Product | null>(null);
     const [relatedProducts, setRelatedProducts] = React.useState<Product[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [reviews, setReviews] = React.useState<any[]>([]); // Placeholder for reviews
 
     const cartItem = cart.find(item => item.product.id === id);
     const [quantity, setQuantity] = React.useState(cartItem ? cartItem.quantity : 1);
@@ -352,7 +353,24 @@ export default function ProductDetailsPage() {
                     </div>
                 </div>
             )}
+
+            <Separator className="my-4" />
             
+            <div>
+                <h2 className="text-2xl font-bold mb-4">Customer Reviews</h2>
+                {reviews.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-6 text-center">
+                            <h3 className="text-lg font-semibold">No reviews yet</h3>
+                            <p className="text-muted-foreground mb-4">Be the first to share your thoughts on this product.</p>
+                            <Button>Write a Review</Button>
+                        </CardContent>
+                    </Card>
+                ) : (
+                   <div>{/* Future placeholder for list of reviews */}</div>
+                )}
+            </div>
+
         </div>
     )
 }
