@@ -3,10 +3,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { v2 as cloudinary } from 'cloudinary';
 import { Writable } from 'stream';
 
-// The Cloudinary SDK will automatically use the CLOUDINARY_URL environment variable.
-if (!process.env.CLOUDINARY_URL) {
-  console.warn('CLOUDINARY_URL is not set. Please check your environment variables.');
-}
+// Explicitly configure Cloudinary. The SDK will use the CLOUDINARY_URL environment variable.
+cloudinary.config();
 
 // Disable the default body parser to handle file streams
 export const config = {
