@@ -1,22 +1,9 @@
 
 
-import type { Drone, Order, Product, Truck, Customer, LoyaltyData, Address, Supplier } from '@/lib/types';
+import type { Order, Product, Customer, LoyaltyData, Address, Supplier } from '@/lib/types';
 
 // Mock data for components that are not yet connected to Firestore
 // This data will be replaced as the application is developed.
-
-export const drones: Drone[] = [
-  { id: 'SB-001', status: 'Idle', battery: 100, location: 'Warehouse A', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
-  { id: 'SB-002', status: 'Idle', battery: 100, location: 'Warehouse A', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
-  { id: 'SB-003', status: 'Idle', battery: 100, location: 'Warehouse A', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
-  { id: 'SB-004', status: 'Idle', battery: 100, location: 'Hangar 1', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
-  { id: 'SB-005', status: 'Idle', battery: 100, location: 'Warehouse B', flightHours: 0, lastMaintenance: new Date().toISOString().split('T')[0] },
-];
-
-export const trucks: Truck[] = [
-    { id: 'TR-01', status: 'Idle', location: 'Main Depot', mileage: 0, lastMaintenance: '2024-05-01' },
-    { id: 'TR-02', status: 'Idle', location: 'Main Depot', mileage: 0, lastMaintenance: '2024-06-15' },
-];
 
 export let products: Product[] = [];
 export let suppliers: Supplier[] = [];

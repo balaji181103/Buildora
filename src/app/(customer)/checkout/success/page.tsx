@@ -117,7 +117,7 @@ export default function OrderSuccessPage() {
                            </div>
                            <div>
                                 <p className="font-semibold">Delivery Method:</p>
-                                <p className="text-muted-foreground">{order.deliveryMethod}</p>
+                                <p className="text-muted-foreground">Standard Delivery</p>
                            </div>
                             <div>
                                 <p className="font-semibold">Status:</p>

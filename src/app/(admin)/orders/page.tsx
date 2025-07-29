@@ -35,7 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Order } from "@/lib/types";
-import { MoreHorizontal, PlusCircle, Rocket, Truck, FileText, Edit, Package, Waypoints, Loader2 } from "lucide-react"
+import { MoreHorizontal, PlusCircle, FileText, Edit, Package, Waypoints, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
@@ -109,7 +109,7 @@ export default function OrdersPage() {
             <div>
               <CardTitle>Orders</CardTitle>
               <CardDescription>
-                Manage and track all customer orders. Lightweight items are delivered by drone, heavy items by truck.
+                Manage and track all customer orders.
               </CardDescription>
             </div>
             <Button asChild size="sm" className="gap-1">
@@ -128,7 +128,6 @@ export default function OrdersPage() {
                 <TableHead>Customer</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Delivery Info</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -138,7 +137,7 @@ export default function OrdersPage() {
             <TableBody>
               {orders.length === 0 ? (
                   <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
+                      <TableCell colSpan={6} className="h-24 text-center">
                           No orders found.
                       </TableCell>
                   </TableRow>
@@ -163,12 +162,6 @@ export default function OrdersPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{format(order.date, 'PPP')}</TableCell>
-                  <TableCell>
-                      <div className="flex items-center gap-2">
-                          {order.deliveryMethod === 'Drone' ? <Rocket className="h-4 w-4 text-muted-foreground" /> : <Truck className="h-4 w-4 text-muted-foreground" />}
-                          {order.deliveryVehicleId}
-                      </div>
-                  </TableCell>
                   <TableCell className="text-right">₹{order.total.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -253,8 +246,6 @@ export default function OrdersPage() {
                         </div>
                          <div className="space-y-2">
                             <h4 className="font-semibold">Delivery Information</h4>
-                             <p className="text-sm text-muted-foreground">Method: {selectedOrder.deliveryMethod}</p>
-                             <p className="text-sm text-muted-foreground">Vehicle ID: {selectedOrder.deliveryVehicleId}</p>
                              <p className="text-sm font-medium mt-2">Shipping Address:</p>
                              <p className="text-sm text-muted-foreground">
                                 {selectedOrder.shippingAddress.line1}, {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.pincode}

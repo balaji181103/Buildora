@@ -3,29 +3,19 @@
 
 import * as React from 'react';
 import { cn } from "@/lib/utils";
-import { Check, Package, Rocket, Truck, ClipboardList, CheckCircle2, CircleDot } from "lucide-react";
+import { Check, Package, ClipboardList, PackageCheck } from "lucide-react";
 import type { OrderStatus } from "@/lib/types";
 
 const stepsData: { name: string; icon: React.ReactNode; status: OrderStatus }[] = [
     { name: "Order Placed", icon: <ClipboardList className="h-6 w-6" />, status: 'Pending' },
     { name: "Processing", icon: <Package className="h-6 w-6" />, status: 'Processing' },
-    { name: "Out for Delivery", icon: null, status: 'Out for Delivery' }, // Icon is dynamic
+    { name: "Out for Delivery", icon: <Package className="h-6 w-6" />, status: 'Out for Delivery' },
     { name: "Delivered", icon: <Check className="h-6 w-6" />, status: 'Delivered' }
 ];
 
-export function OrderStatusTracker({ currentStatus, deliveryMethod }: { currentStatus: OrderStatus, deliveryMethod: 'Drone' | 'Truck' }) {
-    const getDeliveryIcon = React.useCallback(() => {
-        if (deliveryMethod === 'Drone') {
-            return <Rocket className="h-6 w-6" />;
-        }
-        return <Truck className="h-6 w-6" />;
-    }, [deliveryMethod]);
+export function OrderStatusTracker({ currentStatus }: { currentStatus: OrderStatus }) {
 
-    const steps = React.useMemo(() => {
-        return stepsData.map(step => 
-            step.status === 'Out for Delivery' ? { ...step, icon: getDeliveryIcon() } : step
-        );
-    }, [getDeliveryIcon]);
+    const steps = stepsData;
 
     const activeStepIndex = Math.max(0, steps.findIndex(s => s.status === currentStatus));
 

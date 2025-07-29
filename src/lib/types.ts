@@ -1,22 +1,5 @@
 
 
-export type Drone = {
-  id: string;
-  status: 'Idle' | 'Delivering' | 'Returning' | 'Maintenance';
-  battery: number;
-  location: string;
-  flightHours: number;
-  lastMaintenance: string;
-};
-
-export type Truck = {
-  id: string;
-  status: 'Idle' | 'Delivering' | 'Returning' | 'Maintenance';
-  location: string;
-  mileage: number;
-  lastMaintenance: string;
-};
-
 export type OrderStatus = 'Pending' | 'Processing' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
 
 export type OrderItem = {
@@ -33,8 +16,6 @@ export type Order = {
   status: OrderStatus;
   date: any; // Using 'any' for Firestore ServerTimestamp
   total: number;
-  deliveryMethod: 'Drone' | 'Truck';
-  deliveryVehicleId: string;
   items: OrderItem[];
   shippingAddress: Address;
 };

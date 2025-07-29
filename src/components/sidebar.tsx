@@ -23,15 +23,12 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  Truck,
   Building2,
   ClipboardList,
 } from 'lucide-react';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/drones', icon: Rocket, label: 'Drones' },
-  { href: '/trucks', icon: Truck, label: 'Trucks' },
   { href: '/orders', icon: Package, label: 'Orders' },
   { href: '/products', icon: Boxes, label: 'Products' },
   { href: '/inventory', icon: ClipboardList, label: 'Inventory' },

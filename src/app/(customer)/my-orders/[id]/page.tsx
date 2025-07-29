@@ -8,11 +8,10 @@ import { notFound, useRouter, useParams } from 'next/navigation';
 import { OrderStatusTracker } from '@/components/ui/order-status-tracker';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Map, AlertTriangle, Rocket, Truck as TruckIcon, HelpCircle, Loader2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Map, AlertTriangle, Package, HelpCircle, Loader2 } from 'lucide-react';
 import { db } from '@/lib/firebase-client';
 import { doc, onSnapshot } from 'firebase/firestore';
-import type { Order, Drone, Truck } from '@/lib/types';
+import type { Order } from '@/lib/types';
 
 
 export default function CustomerOrderTrackingPage() {
@@ -21,7 +20,6 @@ export default function CustomerOrderTrackingPage() {
   const id = params.id as string;
   
   const [order, setOrder] = React.useState<Order | null>(null);
-  const [vehicle, setVehicle] = React.useState<Drone | Truck | null>(null);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -30,19 +28,7 @@ export default function CustomerOrderTrackingPage() {
       if (docSnap.exists()) {
         const orderData = { id: docSnap.id, ...docSnap.data() } as Order;
         setOrder(orderData);
-
-        if (orderData.deliveryVehicleId) {
-            const vehicleCollection = orderData.deliveryMethod === 'Drone' ? 'drones' : 'trucks';
-            const unsubVehicle = onSnapshot(doc(db, vehicleCollection, orderData.deliveryVehicleId), (vehicleSnap) => {
-                if (vehicleSnap.exists()) {
-                    setVehicle(vehicleSnap.data() as Drone | Truck);
-                }
-                setLoading(false);
-            });
-            return () => unsubVehicle();
-        } else {
-             setLoading(false);
-        }
+        setLoading(false);
       } else {
         notFound();
       }
@@ -59,65 +45,6 @@ export default function CustomerOrderTrackingPage() {
     )
   }
 
-  const renderVehicleDetails = () => {
-     if (!vehicle) return <p>Vehicle details not found.</p>;
-
-    if (order.deliveryMethod === 'Drone') {
-      const drone = vehicle as Drone;
-      return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2"><Rocket className="h-5 w-5" /> Drone Details</CardTitle>
-                <Badge variant="outline">{drone.id}</Badge>
-            </div>
-            <div className="text-sm space-y-2">
-                <p className="flex justify-between"><span>Status:</span> <span className="font-medium">{drone.status}</span></p>
-                <p className="flex justify-between"><span>Current Location:</span> <span className="font-medium">{drone.location}</span></p>
-            </div>
-        </div>
-      );
-    }
-    if (order.deliveryMethod === 'Truck') {
-        const truck = vehicle as Truck;
-        return (
-            <div className="space-y-4">
-                 <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2"><TruckIcon className="h-5 w-5" /> Truck Details</CardTitle>
-                    <Badge variant="outline">{truck.id}</Badge>
-                </div>
-                <div className="text-sm space-y-2">
-                    <p className="flex justify-between"><span>Status:</span> <span className="font-medium">{truck.status}</span></p>
-                     <p className="flex justify-between"><span>Current Location:</span> <span className="font-medium">{truck.location}</span></p>
-                </div>
-            </div>
-        );
-    }
-    return <p>Vehicle details not found.</p>;
-  }
-
-  const renderAlerts = () => {
-      if (order.deliveryMethod === 'Drone') {
-          return (
-             <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
-                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-1" />
-                <div>
-                    <p className="font-semibold text-yellow-700">Weather Advisory</p>
-                    <p className="text-sm text-yellow-600">High winds detected. Drone speed has been reduced for safety. Minor delay expected.</p>
-                </div>
-            </div>
-          )
-      }
-      return (
-         <div className="flex items-start gap-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-            <AlertTriangle className="h-5 w-5 text-red-600 mt-1" />
-            <div>
-                <p className="font-semibold text-red-700">Delivery Delay</p>
-                <p className="text-sm text-red-600">Truck TR-01 is experiencing traffic delays. Estimated arrival is now 3:45 PM.</p>
-            </div>
-        </div>
-      );
-  }
-
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-6">
       <div className="flex items-center gap-4">
@@ -131,7 +58,7 @@ export default function CustomerOrderTrackingPage() {
         </div>
       </div>
       
-      <OrderStatusTracker currentStatus={order.status} deliveryMethod={order.deliveryMethod} />
+      <OrderStatusTracker currentStatus={order.status} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2">
@@ -144,10 +71,7 @@ export default function CustomerOrderTrackingPage() {
                     <div className="aspect-video bg-muted rounded-lg relative overflow-hidden">
                          <Image src="https://placehold.co/800x450.png" alt="Map view of delivery route" layout="fill" objectFit="cover" data-ai-hint="map delivery" />
                          <div className="absolute top-1/4 left-1/4">
-                            {order.deliveryMethod === 'Drone' ? 
-                                <Rocket className="h-8 w-8 text-primary drop-shadow-lg animate-pulse" /> : 
-                                <TruckIcon className="h-8 w-8 text-primary drop-shadow-lg animate-pulse" />
-                            }
+                            <Package className="h-8 w-8 text-primary drop-shadow-lg animate-pulse" />
                          </div>
                     </div>
                 </CardContent>
@@ -155,17 +79,18 @@ export default function CustomerOrderTrackingPage() {
         </div>
 
         <div className="lg:col-span-1 flex flex-col gap-6">
-            <Card>
-                <CardHeader>
-                    {renderVehicleDetails()}
-                </CardHeader>
-            </Card>
              <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><AlertTriangle className="h-5 w-5" /> Alerts</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    {renderAlerts()}
+                     <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30">
+                        <AlertTriangle className="h-5 w-5 text-yellow-600 mt-1" />
+                        <div>
+                            <p className="font-semibold text-yellow-700">Potential Delay</p>
+                            <p className="text-sm text-yellow-600">High traffic reported in the delivery area. Arrival may be slightly delayed.</p>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
              <Card>

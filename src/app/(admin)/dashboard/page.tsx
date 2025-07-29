@@ -266,7 +266,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
-                    <CardTitle>Inventory & Maintenance Alerts</CardTitle>
+                    <CardTitle>Inventory Alerts</CardTitle>
                     <CardDescription>Critical alerts that require immediate attention.</CardDescription>
                 </div>
                 <Button asChild size="sm" className="ml-auto gap-1">
@@ -289,12 +289,6 @@ export default function DashboardPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                         <TableRow className="bg-amber-500/10">
-                            <TableCell><div className="font-medium flex items-center gap-2"><Wrench className="h-4 w-4"/> Drone SB-004</div></TableCell>
-                            <TableCell><Badge variant="outline" className="text-amber-600 border-amber-500/50">Maintenance Due</Badge></TableCell>
-                            <TableCell>Flight hours limit reached (350h)</TableCell>
-                             <TableCell className="text-right"><Button variant="outline" size="sm">Log Maintenance</Button></TableCell>
-                        </TableRow>
                         {lowStockProducts.map(product => (
                         <TableRow key={product.id} className="bg-red-500/10">
                             <TableCell><div className="font-medium flex items-center gap-2"><AlertTriangle className="h-4 w-4"/> {product.name}</div></TableCell>

@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CreditCard, Home, PlusCircle, Rocket, Truck, LocateFixed, Loader2 } from "lucide-react"
+import { CreditCard, Home, PlusCircle, LocateFixed, Loader2, Package } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid'
 import { db } from "@/lib/firebase-client";
@@ -23,8 +23,7 @@ import type { Customer, Address, Order } from "@/lib/types";
 
 
 const deliveryOptions = {
-    standard: { name: 'Standard', cost: 500, description: '2-3 Business Days (For heavy items)', icon: Truck },
-    express: { name: 'Express Drone', cost: 1200, description: 'Within 24 Hours (For light items)', icon: Rocket },
+    standard: { name: 'Standard Delivery', cost: 150, description: '3-5 Business Days', icon: Package },
 };
 
 export default function CheckoutPage() {
@@ -48,6 +47,7 @@ export default function CheckoutPage() {
     const [customer, setCustomer] = React.useState<Customer | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [isSavingAddress, setIsSavingAddress] = React.useState(false);
+    const [selectedDeliveryMethod, setSelectedDeliveryMethod] = React.useState('standard');
 
     React.useEffect(() => {
         const customerId = localStorage.getItem('loggedInCustomerId');
@@ -77,15 +77,6 @@ export default function CheckoutPage() {
         return () => unsubscribe();
     }, [selectedAddressId]);
 
-
-    const totalWeight = React.useMemo(() => {
-        return cart.reduce((acc, item) => acc + (item.product.weight * item.quantity), 0);
-    }, [cart]);
-
-    const isDroneDeliveryAvailable = totalWeight <= 5;
-    const [selectedDeliveryMethod, setSelectedDeliveryMethod] = React.useState(
-        isDroneDeliveryAvailable ? 'express' : 'standard'
-    );
      
     const handleGetLocation = React.useCallback(() => {
         if (!navigator.geolocation) {
@@ -113,13 +104,6 @@ export default function CheckoutPage() {
         setShowNewAddressForm(true);
         handleGetLocation();
     }, [handleGetLocation]);
-
-
-    React.useEffect(() => {
-        if (!isDroneDeliveryAvailable) {
-            setSelectedDeliveryMethod('standard');
-        }
-    }, [isDroneDeliveryAvailable]);
 
 
     const subtotal = React.useMemo(() => {
@@ -210,8 +194,6 @@ export default function CheckoutPage() {
                     status: 'Processing',
                     date: serverTimestamp(),
                     total,
-                    deliveryMethod: selectedDeliveryMethod === 'express' ? 'Drone' : 'Truck',
-                    deliveryVehicleId: selectedDeliveryMethod === 'express' ? 'SB-005' : 'TR-02',
                     items: orderItems,
                     shippingAddress: shippingAddress,
                 };
@@ -388,31 +370,19 @@ export default function CheckoutPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Delivery Method</CardTitle>
-                            <CardDescription>Total cart weight: {totalWeight.toFixed(2)}kg. {isDroneDeliveryAvailable ? "Drone delivery is available." : "Drone delivery unavailable for orders over 5kg."}</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <RadioGroup value={selectedDeliveryMethod} onValueChange={setSelectedDeliveryMethod} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <Label htmlFor="standard" className="flex flex-col gap-2 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:border-primary">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2 font-semibold">
-                                            <Truck className="h-5 w-5" />
+                                            <Package className="h-5 w-5" />
                                             {deliveryOptions.standard.name}
                                         </div>
                                          <RadioGroupItem value="standard" id="standard" />
                                     </div>
                                     <p className="text-sm text-muted-foreground">{deliveryOptions.standard.description}</p>
                                     <p className="font-bold">₹{deliveryOptions.standard.cost.toFixed(2)}</p>
-                                </Label>
-                                 <Label htmlFor="express" className={`flex flex-col gap-2 rounded-lg border p-4 ${isDroneDeliveryAvailable ? 'cursor-pointer hover:bg-accent has-[input:checked]:border-primary' : 'cursor-not-allowed bg-muted/50 opacity-50'}`}>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2 font-semibold">
-                                            <Rocket className="h-5 w-5" />
-                                            {deliveryOptions.express.name}
-                                        </div>
-                                         <RadioGroupItem value="express" id="express" disabled={!isDroneDeliveryAvailable} />
-                                    </div>
-                                    <p className="text-sm text-muted-foreground">{deliveryOptions.express.description}</p>
-                                    <p className="font-bold">₹{deliveryOptions.express.cost.toFixed(2)}</p>
                                 </Label>
                              </RadioGroup>
                         </CardContent>
