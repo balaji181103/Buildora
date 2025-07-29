@@ -136,7 +136,7 @@ export default function CustomerLayout({
                 className="overflow-hidden rounded-full"
               >
                 <Avatar>
-                  <AvatarImage src={`https://placehold.co/100x100.png`} alt={customer?.name} data-ai-hint="profile picture" />
+                  <AvatarImage src={customer?.email ? `https://api.dicebear.com/7.x/pixel-art/svg?seed=${customer.email}` : `https://placehold.co/100x100.png`} alt={customer?.name} />
                   <AvatarFallback>{customer ? getInitials(customer.name) : '...'}</AvatarFallback>
                 </Avatar>
               </Button>
