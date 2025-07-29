@@ -14,7 +14,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCart } from "@/hooks/use-cart.tsx";
 import { db } from '@/lib/firebase-client';
-import { collection, doc, getDocs, limit, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, doc, getDocs, limit, onSnapshot, query, where, orderBy, startAt, endAt } from 'firebase/firestore';
 import { Customer, Product } from '@/lib/types';
 
 export default function CustomerLayout({
@@ -53,14 +53,20 @@ export default function CustomerLayout({
     }
 
     const fetchSuggestions = async () => {
+      const lowerCaseQuery = searchQuery.toLowerCase();
       const q = query(
         collection(db, 'products'),
-        where('name', '>=', searchQuery),
-        where('name', '<=', searchQuery + '\uf8ff'),
+        orderBy('name'),
+        startAt(lowerCaseQuery),
+        endAt(lowerCaseQuery + '\uf8ff'),
         limit(5)
       );
+      
       const querySnapshot = await getDocs(q);
-      const productSuggestions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      const productSuggestions = querySnapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as Product))
+        .filter(product => product.name.toLowerCase().includes(lowerCaseQuery));
+
       setSuggestions(productSuggestions);
       setIsSuggestionsOpen(productSuggestions.length > 0);
     };
