@@ -3,8 +3,13 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { v2 as cloudinary } from 'cloudinary';
 import { Writable } from 'stream';
 
-// Explicitly configure Cloudinary. The SDK will use the CLOUDINARY_URL environment variable.
-cloudinary.config();
+// Explicitly configure Cloudinary. 
+// This is the most reliable way to ensure the SDK is authenticated.
+cloudinary.config({
+  cloud_name: 'drzf6hssv',
+  api_key: '556997438736985',
+  api_secret: 'CoK_XBTrwAXARbs6aOp3mMsHYMQ',
+});
 
 // Disable the default body parser to handle file streams
 export const config = {
