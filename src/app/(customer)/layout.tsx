@@ -13,7 +13,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCart } from "@/hooks/use-cart.tsx";
 import { db } from '@/lib/firebase-client';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { Customer } from '@/lib/types';
 
 export default function CustomerLayout({
@@ -30,14 +30,13 @@ export default function CustomerLayout({
   React.useEffect(() => {
     const customerId = localStorage.getItem('loggedInCustomerId');
     if (customerId) {
-        const fetchCustomer = async () => {
-            const docRef = doc(db, 'customers', customerId);
-            const docSnap = await getDoc(docRef);
+        const docRef = doc(db, 'customers', customerId);
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
                 setCustomer({ id: docSnap.id, ...docSnap.data() } as Customer);
             }
-        };
-        fetchCustomer();
+        });
+        return () => unsubscribe();
     }
   }, []);
 
@@ -136,7 +135,7 @@ export default function CustomerLayout({
                 className="overflow-hidden rounded-full"
               >
                 <Avatar>
-                  <AvatarImage src={customer?.email ? `https://api.dicebear.com/7.x/pixel-art/svg?seed=${customer.email}` : `https://placehold.co/100x100.png`} alt={customer?.name} />
+                  <AvatarImage src={customer?.profilePictureUrl} alt={customer?.name} />
                   <AvatarFallback>{customer ? getInitials(customer.name) : '...'}</AvatarFallback>
                 </Avatar>
               </Button>

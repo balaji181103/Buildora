@@ -72,6 +72,7 @@ export type Customer = {
   loyaltyPoints: number;
   orderCount: number;
   addresses: Address[];
+  profilePictureUrl?: string;
   createdAt?: any;
 };
 
