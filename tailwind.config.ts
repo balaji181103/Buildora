@@ -128,11 +128,11 @@ export default {
         },
         'rotate-in': {
           '0%': {
-            transform: 'rotate(0deg) scale(0.8)',
+            transform: 'rotate(-15deg) scale(0.9)',
             opacity: '0.5'
           },
           '100%': {
-            transform: 'rotate(360deg) scale(1)',
+            transform: 'rotate(0deg) scale(1)',
             opacity: '1'
           }
         }
