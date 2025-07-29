@@ -366,10 +366,17 @@ export default function PaymentPage() {
                     </Card>
                     <Button size="lg" className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder}>
                         {isPlacingOrder ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        {isPlacingOrder ? 'Placing Order...' : `Pay Now (₹${total.toFixed(2)})`}
+                        {isPlacingOrder 
+                            ? 'Placing Order...' 
+                            : accordionValue === 'qr-code'
+                            ? 'Confirm Payment After Scanning'
+                            : `Pay Now (₹${total.toFixed(2)})`
+                        }
                     </Button>
                 </div>
             </div>
         </div>
     )
 }
+
+    
