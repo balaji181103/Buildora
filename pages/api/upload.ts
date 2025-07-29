@@ -3,13 +3,16 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { v2 as cloudinary } from 'cloudinary';
 import { IncomingForm, type File } from 'formidable';
 
-// Configure Cloudinary with your credentials from environment variables
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-  secure: true,
-});
+// Configure Cloudinary using the CLOUDINARY_URL environment variable
+// This will automatically use the credentials from the provided URL.
+if (process.env.CLOUDINARY_URL) {
+  cloudinary.config({
+    secure: true,
+  });
+} else {
+  console.warn('CLOUDINARY_URL is not set. Please check your environment variables.');
+}
+
 
 // Disable the default body parser to handle file streams
 export const config = {
