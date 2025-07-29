@@ -24,6 +24,8 @@ const uploadFromFile = async (req: NextApiRequest): Promise<{ url: string; publi
   
   const [fields, files] = await form.parse(req);
 
+  // formidable can place the file in an array or as a single object.
+  // This robustly gets the file regardless of the structure.
   const file = (Array.isArray(files.file) ? files.file[0] : files.file) as File | undefined;
   
   if (!file?.filepath) {
@@ -43,6 +45,7 @@ const uploadFromFile = async (req: NextApiRequest): Promise<{ url: string; publi
     };
   } catch (error) {
       console.error('Cloudinary Upload Error:', error);
+      // Re-throw a more specific error to be caught by the handler
       throw new Error('Failed to upload image to Cloudinary. Check server logs and credentials.');
   }
 };
@@ -59,6 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ url: result.url, public_id: result.public_id });
   } catch (error: any) {
     console.error('Upload Handler Error:', error);
+    // Send the specific error message from the try/catch block
     return res.status(500).json({ message: error.message || 'Something went wrong' });
   }
 }
