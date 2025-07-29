@@ -4,6 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { jsPDF } from 'jspdf';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, FileText, ShoppingBag, ArrowRight, Package, Loader2, Home, CreditCard } from 'lucide-react';
@@ -55,10 +56,78 @@ export default function OrderConfirmedPage() {
 
 
     const handleDownloadInvoice = () => {
-        toast({
-            title: "Coming Soon!",
-            description: "PDF invoice generation is not yet implemented.",
+        if (!order) return;
+        
+        const doc = new jsPDF();
+
+        // Add Header
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Buildora", 20, 20);
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Invoice #${order.id}`, 20, 30);
+        doc.text(`Date: ${format(order.date, 'PPP p')}`, 20, 35);
+        
+        doc.line(20, 40, 190, 40); // separator
+
+        // Shipping Address
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Shipping Address", 20, 50);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        const address = order.shippingAddress;
+        const addressLines = [
+            order.customerName,
+            address.line1,
+            address.line2,
+            `${address.city}, ${address.state} - ${address.pincode}`
+        ].filter(Boolean); // filter out empty lines e.g. line2
+        doc.text(addressLines, 20, 58);
+        
+        doc.line(20, 80, 190, 80); // separator
+
+        // Order Items Table
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Order Details", 20, 90);
+        
+        const tableColumn = ["Product Name", "Quantity", "Price", "Total"];
+        const tableRows: (string|number)[][] = [];
+
+        order.items.forEach(item => {
+            const row = [
+                item.name,
+                item.quantity,
+                `₹${item.price.toFixed(2)}`,
+                `₹${(item.price * item.quantity).toFixed(2)}`
+            ];
+            tableRows.push(row);
         });
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 95,
+            theme: 'striped',
+            headStyles: { fillColor: [24, 158, 109] }, // Primary color
+        });
+
+        // Total
+        let finalY = (doc as any).lastAutoTable.finalY || 140;
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Total Paid:", 140, finalY + 15);
+        doc.text(`₹${order.total.toLocaleString('en-IN')}`, 170, finalY + 15);
+
+        // Footer
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text("Thank you for your business!", 105, 280, { align: 'center' });
+        
+        doc.save(`Buildora-Invoice-${order.id}.pdf`);
     }
     
     if (loading) {
@@ -153,4 +222,10 @@ export default function OrderConfirmedPage() {
             </div>
         </div>
     )
+}
+
+declare module 'jspdf' {
+    interface jsPDF {
+      autoTable: (options: any) => jsPDF;
+    }
 }
