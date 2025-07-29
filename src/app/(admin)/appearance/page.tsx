@@ -44,7 +44,7 @@ export default function AppearancePage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof AppearanceContent) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      if (!['image/png', 'image/jpeg', 'image/webp', 'image/jpg'].includes(file.type)) {
         toast({
             variant: 'destructive',
             title: 'Invalid File Type',

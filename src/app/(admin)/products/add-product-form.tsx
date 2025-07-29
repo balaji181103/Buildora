@@ -81,7 +81,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      if (!['image/png', 'image/jpeg', 'image/webp', 'image/jpg'].includes(file.type)) {
         toast({
             variant: 'destructive',
             title: 'Invalid File Type',
@@ -322,7 +322,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                         <Input 
                             id="image-upload"
                             type="file" 
-                            accept="image/png, image/jpeg, image/webp"
+                            accept="image/png, image/jpeg, image/webp, image/jpg"
                             onChange={handleImageChange}
                             className="max-w-xs"
                         />
