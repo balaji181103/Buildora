@@ -9,12 +9,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSubContent } from "@/components/ui/dropdown-menu";
 import { Calculator, Home, LogOut, Menu, Moon, Package, Rocket, Search, Settings, ShoppingCart, Sun, Award, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCart } from "@/hooks/use-cart.tsx";
 import { db } from '@/lib/firebase-client';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { Customer } from '@/lib/types';
+import { collection, doc, getDocs, limit, onSnapshot, query, where } from 'firebase/firestore';
+import { Customer, Product } from '@/lib/types';
 
 export default function CustomerLayout({
   children,
@@ -26,6 +27,10 @@ export default function CustomerLayout({
   const { setTheme } = useTheme();
   const { cart } = useCart();
   const [customer, setCustomer] = React.useState<Customer | null>(null);
+
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [suggestions, setSuggestions] = React.useState<Product[]>([]);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = React.useState(false);
 
   React.useEffect(() => {
     const customerId = localStorage.getItem('loggedInCustomerId');
@@ -39,6 +44,33 @@ export default function CustomerLayout({
         return () => unsubscribe();
     }
   }, []);
+
+  React.useEffect(() => {
+    if (searchQuery.length < 2) {
+      setSuggestions([]);
+      setIsSuggestionsOpen(false);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      const q = query(
+        collection(db, 'products'),
+        where('name', '>=', searchQuery),
+        where('name', '<=', searchQuery + '\uf8ff'),
+        limit(5)
+      );
+      const querySnapshot = await getDocs(q);
+      const productSuggestions = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      setSuggestions(productSuggestions);
+      setIsSuggestionsOpen(productSuggestions.length > 0);
+    };
+
+    const debounceTimer = setTimeout(() => {
+      fetchSuggestions();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   const handleLogout = () => {
     localStorage.removeItem('loggedInCustomerId');
@@ -114,7 +146,41 @@ export default function CustomerLayout({
               type="search"
               placeholder="Search products..."
               className="w-full rounded-lg bg-background pl-8 md:w-[200px] lg:w-[320px]"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => { if (suggestions.length > 0) setIsSuggestionsOpen(true); }}
+              onBlur={() => setTimeout(() => setIsSuggestionsOpen(false), 150)}
             />
+            {isSuggestionsOpen && (
+              <div className="absolute z-50 mt-1 w-full rounded-lg border bg-background shadow-lg">
+                <ul className="py-1">
+                  {suggestions.map((product) => (
+                    <li key={product.id}>
+                      <Link 
+                        href={`/products/${product.id}`} 
+                        className="flex items-center gap-4 px-4 py-2 hover:bg-accent"
+                        onClick={() => {
+                          setSearchQuery('');
+                          setIsSuggestionsOpen(false);
+                        }}
+                      >
+                         <Image 
+                           src={product.imageUrl || 'https://placehold.co/40x40.png'}
+                           alt={product.name}
+                           width={40}
+                           height={40}
+                           className="rounded-md object-cover"
+                         />
+                         <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-sm text-muted-foreground">{product.category}</p>
+                         </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
           
           <Button variant="ghost" size="icon" className="relative" asChild>
