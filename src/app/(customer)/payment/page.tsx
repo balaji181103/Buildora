@@ -119,10 +119,9 @@ export default function PaymentPage() {
                 const customerRef = doc(db, "customers", customerId);
                 const productRefs = cart.map(item => doc(db, "products", item.product.id));
 
-                const productDocsSnap = await Promise.all(productRefs.map(ref => transaction.get(ref)));
                 const counterDoc = await transaction.get(counterRef);
                 const customerDoc = await transaction.get(customerRef);
-
+                const productDocsSnap = await Promise.all(productRefs.map(ref => transaction.get(ref)));
                 
                 // --- 2. Perform validations and calculations in memory ---
                 if (!customerDoc.exists()) {
@@ -186,7 +185,7 @@ export default function PaymentPage() {
             });
             clearCart();
             localStorage.removeItem('checkoutOrderDetails');
-            router.push(`/checkout/success?orderId=${finalOrderId}`);
+            router.push(`/order-confirmed?orderId=${finalOrderId}`);
 
         } catch (error: any) {
             console.error("Transaction failed: ", error);
