@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CreditCard, Loader2 } from "lucide-react"
+import { CreditCard, Loader2, QrCode } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase-client";
 import { collection, doc, runTransaction, serverTimestamp } from "firebase/firestore";
@@ -241,6 +241,18 @@ export default function PaymentPage() {
                                         <Label htmlFor="upi-id">Your UPI ID</Label>
                                         <Input id="upi-id" placeholder="yourname@bank" />
                                         <Button>Verify &amp; Pay</Button>
+                                    </AccordionContent>
+                                </AccordionItem>
+                                 <AccordionItem value="qr-code">
+                                    <AccordionTrigger className="font-semibold">
+                                        <div className="flex items-center gap-2">
+                                            <QrCode className="h-5 w-5" />
+                                            Scan QR Code
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pt-4 flex flex-col items-center gap-4">
+                                        <p className="text-sm text-muted-foreground">Scan the QR code with your preferred UPI app.</p>
+                                        <Image src="https://placehold.co/200x200.png" width={200} height={200} alt="QR Code for payment" data-ai-hint="qr code" />
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
