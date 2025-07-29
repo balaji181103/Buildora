@@ -25,6 +25,7 @@ import {
   LogOut,
   Building2,
   ClipboardList,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 const navItems = [
@@ -35,6 +36,7 @@ const navItems = [
   { href: '/customers', icon: Users, label: 'Customers' },
   { href: '/suppliers', icon: Building2, label: 'Suppliers' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
+  { href: '/appearance', icon: ImageIcon, label: 'Appearance' },
 ];
 
 export function AppSidebar() {

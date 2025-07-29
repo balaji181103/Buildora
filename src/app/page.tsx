@@ -12,11 +12,27 @@ import { useRouter } from 'next/navigation';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useInView } from 'react-intersection-observer';
 import { cn } from '@/lib/utils';
+import { db } from '@/lib/firebase-client';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 
 export default function LandingPage() {
     const { setTheme } = useTheme();
     const router = useRouter();
+    const [heroImageUrl, setHeroImageUrl] = React.useState('https://placehold.co/1200x800.png');
+
+    React.useEffect(() => {
+        const docRef = doc(db, 'siteContent', 'appearance');
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.mainLandingHero?.url) {
+                    setHeroImageUrl(data.mainLandingHero.url);
+                }
+            }
+        });
+        return () => unsubscribe();
+    }, []);
 
     const { ref: featuresRef, inView: featuresInView } = useInView({
         triggerOnce: true,
@@ -99,7 +115,7 @@ export default function LandingPage() {
                 </div>
                  <div className="relative h-80 w-full lg:h-[400px] animate-in fade-in slide-in-from-right duration-500">
                     <Image
-                        src="https://placehold.co/1200x800.png"
+                        src={heroImageUrl}
                         alt="An arrangement of various construction tools, including a hard hat, saw, and paint roller, against a concrete wall."
                         fill
                         className="rounded-xl object-cover transition-transform duration-300 hover:scale-105"

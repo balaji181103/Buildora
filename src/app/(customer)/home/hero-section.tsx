@@ -1,12 +1,30 @@
 
 'use client';
 
+import * as React from 'react';
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calculator } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { db } from '@/lib/firebase-client';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 export function HeroSection() {
+    const [heroImageUrl, setHeroImageUrl] = React.useState('https://placehold.co/600x600.png');
+
+    React.useEffect(() => {
+        const docRef = doc(db, 'siteContent', 'appearance');
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.customerLandingHero?.url) {
+                    setHeroImageUrl(data.customerLandingHero.url);
+                }
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
     return (
         <div className="w-full bg-muted rounded-lg overflow-hidden">
             <div className="container mx-auto grid grid-cols-1 md:grid-cols-2 items-center gap-8 px-4 py-12 md:px-6 md:py-16">
@@ -34,7 +52,7 @@ export function HeroSection() {
                 </div>
                 <div className="relative h-64 w-full md:h-auto md:aspect-square animate-in fade-in slide-in-from-right duration-500">
                      <Image
-                        src="https://placehold.co/600x600.png"
+                        src={heroImageUrl}
                         alt="A drone carrying a package over a stylized blueprint background"
                         fill
                         className="rounded-lg object-cover"
