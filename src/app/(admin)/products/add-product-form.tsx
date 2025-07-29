@@ -140,12 +140,17 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     startTransition(async () => {
         let finalImageUrl = '';
         if (imageFile) {
-            const uploadedUrl = await uploadImage(imageFile);
-            if (!uploadedUrl) {
+            const uploadedImage = await uploadImage(imageFile);
+            if (!uploadedImage || !uploadedImage.url) {
                 // Stop submission if upload fails
+                toast({
+                    variant: 'destructive',
+                    title: 'Upload Failed',
+                    description: 'Could not get the image URL after upload.'
+                });
                 return;
             }
-            finalImageUrl = uploadedUrl.url;
+            finalImageUrl = uploadedImage.url;
         }
 
         try {
