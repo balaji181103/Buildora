@@ -159,7 +159,7 @@ export default function CartPage() {
                                     <TableCell className="hidden sm:table-cell">
                                     <Image
                                         alt={product.name}
-                                        className="aspect-square rounded-md object-cover"
+                                        className="aspect-square rounded-md object-contain"
                                         height="64"
                                         src={product.imageUrl || 'https://placehold.co/64x64.png'}
                                         width="64"
