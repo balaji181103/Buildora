@@ -4,12 +4,8 @@ import { v2 as cloudinary } from 'cloudinary';
 import { IncomingForm, type File } from 'formidable';
 
 // Configure Cloudinary using the CLOUDINARY_URL environment variable
-// This will automatically use the credentials from the provided URL.
-if (process.env.CLOUDINARY_URL) {
-  cloudinary.config({
-    secure: true,
-  });
-} else {
+// The SDK will automatically use the URL if it's set.
+if (!process.env.CLOUDINARY_URL) {
   console.warn('CLOUDINARY_URL is not set. Please check your environment variables.');
 }
 
