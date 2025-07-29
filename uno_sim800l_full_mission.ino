@@ -1,40 +1,20 @@
-
 #include <SoftwareSerial.h>
 #include <ArduinoJson.h>
 
 // --- Pin Definitions ---
-// Connect SIM800L TX to Arduino D10, RX to D11
-SoftwareSerial sim(10, 11);
+SoftwareSerial sim(10, 11); // SIM800L TX -> 10, RX <- 11
 
 // --- Configuration ---
-const char* APN = "airtelgprs.com"; // Change to your network's APN if needed
-const char* DRONE_ID = "SB-001";     // The ID of this specific drone
+const char* APN = "airtelgprs.com"; 
+// IMPORTANT: Use the HTTP URL from your ngrok terminal.
+const char* SERVER_URL_BASE = "http://7f8e8b835319.ngrok-free.app"; // Using your server's public HTTP address
+const char* DRONE_ID = "SB-001";
 
-// IMPORTANT: This URL MUST be updated if you restart ngrok.
-const char* SERVER_URL = "https://7f8e8b835319.ngrok-free.app";
-
-// --- Global Variables for Drone State ---
-float currentLatitude = 19.0760;  // Example starting location (Mumbai)
-float currentLongitude = 72.8777;
-int batteryLevel = 98;
-String droneStatus = "Idle";
-String currentOrderId = "";
-
-
-// =================================================================
-// ============== AT COMMAND & HELPER FUNCTIONS ====================
-// =================================================================
-
-/**
- * @brief Sends an AT command to the SIM800L and waits for a response.
- * @param command The AT command to send.
- * @param timeout The time to wait for a response in milliseconds.
- * @return The response string from the module.
- */
+// --- Helper Functions ---
 String sendATCommand(const char* command, unsigned long timeout) {
     String response = "";
     sim.println(command);
-    Serial.print("Sent --> ");
+    Serial.print("Sent: ");
     Serial.println(command);
 
     unsigned long startTime = millis();
@@ -44,262 +24,273 @@ String sendATCommand(const char* command, unsigned long timeout) {
             response += c;
         }
     }
-    // Clean up response by removing the original command echo and extra whitespace
-    response.replace(String(command) + "\r\n", "");
-    response.trim();
-
-    Serial.print("Recv <-- ");
+    Serial.print("Recv: ");
     Serial.println(response);
     return response;
 }
 
-/**
- * @brief Checks if a response string contains an expected substring.
- * @param response The response from the module.
- * @param expected The substring to look for (e.g., "OK", "ERROR").
- * @return True if the expected substring is found, false otherwise.
- */
 bool expectResponse(const String& response, const char* expected) {
     if (response.indexOf(expected) != -1) {
         return true;
     }
-    Serial.print("[FAIL] Expected '");
+    Serial.print("[ERROR] Expected '");
     Serial.print(expected);
-    Serial.println("', but did not receive it.");
+    Serial.println("' but did not receive it.");
     return false;
 }
 
-/**
- * @brief Performs a clean termination of the HTTP session.
- */
-void terminateHttp() {
-    sendATCommand("AT+HTTPTERM", 3000);
-}
-
-
-// =================================================================
-// ==================== INITIALIZATION =============================
-// =================================================================
-
-/**
- * @brief Checks if GPRS is still connected by querying for an IP address.
- * @return True if connected, false otherwise.
- */
 bool isGprsConnected() {
-    String response = sendATCommand("AT+SAPBR=2,1", 5000);
-    // A valid response will contain an IP address in quotes, like "100.107.115.163"
-    // An invalid or disconnected state will not.
-    if (response.indexOf("+SAPBR: 1,1") != -1) {
-        return true;
-    }
-    return false;
+    String response = sendATCommand("AT+SAPBR=2,1", 3000);
+    // A valid response will contain the bearer status and an IP address like:
+    // +SAPBR: 1,1,"100.118.123.123"
+    // We check for the second comma to confirm an IP was assigned.
+    int firstComma = response.indexOf(',');
+    int secondComma = response.indexOf(',', firstComma + 1);
+    return (secondComma != -1);
 }
 
-/**
- * @brief Initializes the SIM800L module, connects to GPRS, and gets an IP.
- * @return True on success, false on failure.
- */
 bool initializeSIM() {
-    Serial.println("--- Initializing SIM800L ---");
+    Serial.println("Initializing SIM800L...");
     sim.begin(9600);
     delay(1000);
 
     if (!expectResponse(sendATCommand("AT", 2000), "OK")) return false;
     if (!expectResponse(sendATCommand("ATE0", 2000), "OK")) return false; // Disable command echo
 
-    Serial.println("Checking network status...");
+    Serial.println("Checking network...");
     if (!expectResponse(sendATCommand("AT+CPIN?", 5000), "READY")) return false;
     if (!expectResponse(sendATCommand("AT+CSQ", 5000), "OK")) return false;
     if (!expectResponse(sendATCommand("AT+CGATT?", 5000), "+CGATT: 1")) return false;
-
-    Serial.println("Setting up GPRS Bearer Profile...");
-    // Close any existing bearer context first for a clean start
-    sendATCommand("AT+SAPBR=0,1", 3000);
+    
+    Serial.println("Setting up GPRS Bearer...");
+    // Close any existing bearer context (good practice)
+    sendATCommand("AT+SAPBR=0,1", 3000); 
     delay(1000);
 
+    // Set connection type to GPRS
     if (!expectResponse(sendATCommand("AT+SAPBR=3,1,\"CONTYPE\",\"GPRS\"", 5000), "OK")) return false;
 
+    // Set the APN
     String cmd = "AT+SAPBR=3,1,\"APN\",\"";
     cmd += APN;
     cmd += "\"";
     if (!expectResponse(sendATCommand(cmd.c_str(), 5000), "OK")) return false;
 
-    Serial.println("Opening GPRS context...");
-    if (!expectResponse(sendATCommand("AT+SAPBR=1,1", 20000), "OK")) {
-        Serial.println("[FAIL] Failed to open GPRS bearer.");
+    // Open the GPRS context (bearer)
+    if (!expectResponse(sendATCommand("AT+SAPBR=1,1", 20000), "OK")) { // Long timeout for network negotiation
+        Serial.println("[ERROR] Failed to open GPRS bearer.");
         return false;
     }
 
+    // Query the bearer status to get an IP address
     if (!isGprsConnected()) {
-        Serial.println("[FAIL] Could not verify GPRS connection.");
+        Serial.println("[ERROR] Failed to get an IP address.");
         return false;
     }
 
-    Serial.println("--- SIM Initialized Successfully ---");
+    Serial.println("GPRS connection is ready.");
     return true;
 }
 
-
-// =================================================================
-// =================== CORE LOGIC FUNCTIONS ========================
-// =================================================================
-
-/**
- * @brief Makes a GET request to the server to fetch new mission details.
- */
 void getMissionDetails() {
-    Serial.println("\n>>> Requesting new mission...");
-
+    Serial.println("\nRequesting new mission details...");
+    
+    // --- Initialize HTTP ---
     if (!expectResponse(sendATCommand("AT+HTTPINIT", 5000), "OK")) return;
-    if (!expectResponse(sendATCommand("AT+HTTPPARA=\"CID\",1", 5000), "OK")) { terminateHttp(); return; }
-
-    // Enable SSL for HTTPS
-    if (!expectResponse(sendATCommand("AT+HTTPSSL=1", 5000), "OK")) { terminateHttp(); return; }
-
-    // Construct the full URL for the GET request
-    String get_url = String(SERVER_URL) + "/api/getMission?droneId=" + String(DRONE_ID);
+    if (!expectResponse(sendATCommand("AT+HTTPPARA=\"CID\",1", 5000), "OK")) return;
+    
+    // --- Set URL ---
+    String get_url = String(SERVER_URL_BASE) + "/api/getMission?droneId=" + String(DRONE_ID);
     String url_cmd = "AT+HTTPPARA=\"URL\",\"" + get_url + "\"";
-    Serial.println("Requesting URL: " + get_url);
-    if (!expectResponse(sendATCommand(url_cmd.c_str(), 5000), "OK")) { terminateHttp(); return; }
-
-    // Perform GET Action
-    String actionResponse = sendATCommand("AT+HTTPACTION=0", 20000);
-    if (actionResponse.indexOf("200") == -1) { // Check for HTTP 200 OK
-        Serial.println("[FAIL] HTTP GET failed. Server may be down or URL is wrong.");
-        terminateHttp();
+    
+    Serial.println("Requesting: " + get_url);
+    if (!expectResponse(sendATCommand(url_cmd.c_str(), 5000), "OK")) {
+        sendATCommand("AT+HTTPTERM", 3000);
         return;
     }
 
-    Serial.println("GET Success. Reading response...");
-    String jsonResponse = sendATCommand("AT+HTTPREAD", 10000);
-    terminateHttp(); // Terminate session after reading
+    // --- Perform GET Action ---
+    // This command is sent, and we will wait for the async "+HTTPACTION" response
+    sendATCommand("AT+HTTPACTION=0", 1000); 
+    
+    String actionResponse = "";
+    unsigned long actionStart = millis();
+    bool actionComplete = false;
+    while(millis() - actionStart < 20000) { // 20 second timeout for the action
+      if(sim.available()){
+        String line = sim.readStringUntil('\n');
+        line.trim(); // Remove any leading/trailing whitespace
+        if(line.startsWith("+HTTPACTION:")){
+           Serial.println("Action response received: " + line);
+           actionResponse = line;
+           actionComplete = true;
+           break;
+        }
+      }
+    }
 
-    if (jsonResponse.length() > 2) { // Check if response is more than just "{}"
+    if (!actionComplete || actionResponse.indexOf("200") == -1) {
+        Serial.println("[ERROR] HTTP GET failed. Check server URL and network.");
+        sendATCommand("AT+HTTPTERM", 3000);
+        return;
+    }
+    
+    Serial.println("HTTP GET Success. Reading response...");
+
+    // --- Read Data ---
+    // The data is now available to be read from the module's buffer
+    sendATCommand("AT+HTTPREAD", 10000); // This command returns the data
+    
+    String jsonResponse = "";
+    unsigned long readStart = millis();
+    bool jsonStarted = false;
+    while(millis() - readStart < 5000) {
+      if(sim.available()) {
+        char c = sim.read();
+        Serial.write(c);
+        if(c == '{') jsonStarted = true;
+        if(jsonStarted) jsonResponse += c;
+        if(c == '}' && jsonStarted) break; // Basic check for end of JSON
+      }
+    }
+    
+    sendATCommand("AT+HTTPTERM", 3000); // Terminate HTTP session
+
+    Serial.println("\nExtracted JSON: " + jsonResponse);
+
+    if (jsonResponse.length() > 0 && jsonResponse.indexOf('{') != -1) {
         DynamicJsonDocument doc(256);
         DeserializationError error = deserializeJson(doc, jsonResponse);
 
         if (error) {
-            Serial.print("[FAIL] JSON Parse Failed: ");
+            Serial.print("[ERROR] JSON Parse Failed: ");
             Serial.println(error.c_str());
             return;
         }
 
         if (doc.containsKey("latitude") && doc.containsKey("longitude")) {
-            // Update drone's target and status
-            currentLatitude = doc["latitude"];
-            currentLongitude = doc["longitude"];
-            currentOrderId = String(doc["orderId"]);
-            droneStatus = "Delivering";
+            float latitude = doc["latitude"];
+            float longitude = doc["longitude"];
+            const char* orderId = doc["orderId"];
 
-            Serial.println("\n--- NEW MISSION ACQUIRED ---");
-            Serial.print("  Order ID: "); Serial.println(currentOrderId);
-            Serial.print("  Go to Lat: "); Serial.println(currentLatitude, 6);
-            Serial.print("  Go to Lon: "); Serial.println(currentLongitude, 6);
-            Serial.println("----------------------------");
+            Serial.println("\n--- Mission Details ---");
+            Serial.print("Order ID: ");
+            Serial.println(orderId);
+            Serial.print("Latitude: ");
+            Serial.println(latitude, 6);
+            Serial.print("Longitude: ");
+            Serial.println(longitude, 6);
+            Serial.println("------------------------");
+            
+            // Now that we have a mission, let's post a status update
+            updateDroneStatus(latitude, longitude, 95, "Delivering");
         } else {
-            Serial.println("[INFO] No mission currently available for this drone.");
-            droneStatus = "Idle";
+            Serial.println("[INFO] Server response did not contain mission details. Waiting.");
         }
     } else {
-        Serial.println("[INFO] No mission currently available for this drone.");
-        droneStatus = "Idle";
+        Serial.println("[ERROR] No JSON object found in HTTP response.");
     }
 }
 
-/**
- * @brief Makes a POST request to the server to update the drone's status.
- */
-void updateDroneStatus() {
-    Serial.println("\n>>> Sending status update...");
-
-    if (!expectResponse(sendATCommand("AT+HTTPINIT", 5000), "OK")) return;
-    if (!expectResponse(sendATCommand("AT+HTTPPARA=\"CID\",1", 5000), "OK")) { terminateHttp(); return; }
-    if (!expectResponse(sendATCommand("AT+HTTPSSL=1", 5000), "OK")) { terminateHttp(); return; }
-
-    String post_url = String(SERVER_URL) + "/api/updateDroneStatus";
-    String url_cmd = "AT+HTTPPARA=\"URL\",\"" + post_url + "\"";
-    if (!expectResponse(sendATCommand(url_cmd.c_str(), 5000), "OK")) { terminateHttp(); return; }
-
-    // Set content type to JSON
-    if (!expectResponse(sendATCommand("AT+HTTPPARA=\"CONTENT\",\"application/json\"", 5000), "OK")) { terminateHttp(); return; }
-
-    // Create JSON payload
-    String jsonPayload;
+void updateDroneStatus(float lat, float lon, int battery, const char* status) {
+    Serial.println("\nSending drone status update...");
+    
+    // --- Create JSON Payload ---
     DynamicJsonDocument doc(256);
     doc["droneId"] = DRONE_ID;
-    doc["latitude"] = currentLatitude;
-    doc["longitude"] = currentLongitude;
-    doc["battery"] = batteryLevel;
-    doc["status"] = droneStatus;
-    serializeJson(doc, jsonPayload);
+    doc["latitude"] = lat;
+    doc["longitude"] = lon;
+    doc["battery"] = battery;
+    doc["status"] = status;
 
-    // Prepare to send data
-    String data_cmd = "AT+HTTPDATA=" + String(jsonPayload.length()) + ",10000";
-    if (!expectResponse(sendATCommand(data_cmd.c_str(), 5000), "DOWNLOAD")) {
-        Serial.println("[FAIL] Failed to prepare for data send.");
-        terminateHttp();
+    String payload;
+    serializeJson(doc, payload);
+    int payloadLength = payload.length();
+
+    // --- Initialize HTTP for POST ---
+    if (!expectResponse(sendATCommand("AT+HTTPINIT", 5000), "OK")) return;
+    if (!expectResponse(sendATCommand("AT+HTTPPARA=\"CID\",1", 5000), "OK")) return;
+
+    // --- Set URL for POST ---
+    String post_url = String(SERVER_URL_BASE) + "/api/updateDroneStatus";
+    String url_cmd = "AT+HTTPPARA=\"URL\",\"" + post_url + "\"";
+    if (!expectResponse(sendATCommand(url_cmd.c_str(), 5000), "OK")) {
+        sendATCommand("AT+HTTPTERM", 3000);
+        return;
+    }
+    
+    // Set content type for JSON
+    if (!expectResponse(sendATCommand("AT+HTTPPARA=\"CONTENT\",\"application/json\"", 5000), "OK")) {
+        sendATCommand("AT+HTTPTERM", 3000);
         return;
     }
 
-    // Send the JSON payload
-    // We don't use expectResponse here as the final "OK" comes after the action
-    sendATCommand(jsonPayload.c_str(), 10000);
-    Serial.println("Payload sent.");
-
-    // Perform POST Action
-    String actionResponse = sendATCommand("AT+HTTPACTION=1", 20000);
-    if (actionResponse.indexOf("200") == -1) {
-        Serial.println("[FAIL] HTTP POST failed. Server error or bad data.");
-    } else {
-        Serial.println("POST Success. Status updated on server.");
+    // --- Prepare to send data ---
+    String data_cmd = "AT+HTTPDATA=" + String(payloadLength) + ",10000"; // 10 second timeout to provide data
+    if (!expectResponse(sendATCommand(data_cmd.c_str(), 5000), "DOWNLOAD")) {
+        Serial.println("[ERROR] Failed to prepare for data upload.");
+        sendATCommand("AT+HTTPTERM", 3000);
+        return;
     }
     
-    terminateHttp();
+    // Send the actual JSON payload
+    sendATCommand(payload.c_str(), 10000);
+    
+    // --- Perform POST Action ---
+    sendATCommand("AT+HTTPACTION=1", 1000); // POST action
+    
+    String actionResponse = "";
+    unsigned long actionStart = millis();
+    bool actionComplete = false;
+    while(millis() - actionStart < 20000) { // 20 second timeout for the action
+      if(sim.available()){
+        String line = sim.readStringUntil('\n');
+        line.trim();
+        if(line.startsWith("+HTTPACTION:")){
+           Serial.println("Action response received: " + line);
+           actionResponse = line;
+           actionComplete = true;
+           break;
+        }
+      }
+    }
+    
+    if (actionComplete && actionResponse.indexOf("200") != -1) {
+        Serial.println("Status update sent successfully.");
+    } else {
+        Serial.println("[ERROR] Status update failed.");
+    }
+
+    // Read response from server (optional, but good practice)
+    sendATCommand("AT+HTTPREAD", 5000);
+    
+    sendATCommand("AT+HTTPTERM", 3000);
 }
 
 
-// =================================================================
-// ============== ARDUINO STANDARD FUNCTIONS =======================
-// =================================================================
-
+// --- Arduino Standard Functions ---
 void setup() {
     Serial.begin(9600);
     while (!Serial); // Wait for serial monitor to open
 
     if (!initializeSIM()) {
-        Serial.println("\n[FATAL] Could not initialize SIM module. Halting.");
-        while (true); // Halt system
+        Serial.println("\n[FATAL] SIM Initialization failed. Retrying in 30s...");
+        delay(30000);
+        // In a real scenario, you might want to try to re-initialize or enter a safe mode.
+        // For this example, we'll let the loop handle retries.
+    } else {
+       Serial.println("\nSystem Ready.");
     }
 }
 
 void loop() {
-    // Before doing anything, check if we are still connected to the internet.
     if (!isGprsConnected()) {
-        Serial.println("[WARN] GPRS disconnected. Attempting to reconnect...");
-        if (!initializeSIM()) {
-            Serial.println("[FATAL] Reconnection failed. Waiting before retry...");
-            delay(30000);
-            return; // Skip this loop iteration
-        }
-    }
-
-    // If the drone is idle, it should ask for a new mission.
-    if (droneStatus == "Idle") {
+        Serial.println("[WARNING] GPRS Disconnected. Re-initializing...");
+        initializeSIM();
+    } else {
         getMissionDetails();
-    } 
-    // If it's on a mission, it should just send status updates.
-    else if (droneStatus == "Delivering") {
-        // In a real drone, you would update the lat/lon as it moves.
-        // For this simulation, we'll just send the same status.
-        updateDroneStatus();
-        
-        // Here you would add logic to check if the drone has reached its destination.
-        // For now, we'll just pretend it completes after one update.
-        Serial.println("[SIM] Drone has 'reached' destination.");
-        droneStatus = "Idle";
-        batteryLevel -= 5; // Simulate battery drain
     }
-
-    Serial.println("\n--- Loop Complete. Waiting 30 seconds. ---");
-    delay(30000);
+    
+    Serial.println("\nWaiting 30 seconds before next request...");
+    delay(30000); 
 }
