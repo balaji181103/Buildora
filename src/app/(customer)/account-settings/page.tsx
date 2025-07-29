@@ -15,6 +15,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
 import { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 function ProfileSkeleton() {
   return (
@@ -182,6 +183,8 @@ export default function CustomerSettingsPage() {
       setIsSaving(false);
     }
   };
+  
+  const currentImageUrl = imagePreview || customer?.profilePictureUrl;
 
   return (
     <div className="mx-auto grid w-full max-w-4xl gap-6">
@@ -202,10 +205,18 @@ export default function CustomerSettingsPage() {
             </CardHeader>
             <CardContent className="grid gap-6">
               <div className="flex items-center gap-4">
-                <Avatar className="h-20 w-20">
-                    <AvatarImage src={imagePreview || customer.profilePictureUrl} alt={customer.name} />
-                    <AvatarFallback>{getInitials(customer.name)}</AvatarFallback>
-                </Avatar>
+                 <Dialog>
+                    <DialogTrigger asChild disabled={!currentImageUrl}>
+                        <Avatar className="h-20 w-20 cursor-pointer">
+                            <AvatarImage src={currentImageUrl} alt={customer.name} />
+                            <AvatarFallback>{getInitials(customer.name)}</AvatarFallback>
+                        </Avatar>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                        <Image src={currentImageUrl!} alt={customer.name} width={500} height={500} className="rounded-md object-contain" />
+                    </DialogContent>
+                 </Dialog>
+
                 <Input id="picture" type="file" className="max-w-xs" onChange={handleImageChange} accept="image/*" />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -302,3 +313,5 @@ export default function CustomerSettingsPage() {
     </div>
   )
 }
+
+    
