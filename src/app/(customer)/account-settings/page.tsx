@@ -9,13 +9,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Home, Loader2, Trash2 } from "lucide-react"
+import { Home, Loader2, Trash2, PlusCircle } from "lucide-react"
 import { useToast } from '@/hooks/use-toast';
-import { doc, getDoc, updateDoc, arrayRemove } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayRemove, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
-import { Customer } from '@/lib/types';
+import { Customer, Address } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { nanoid } from 'nanoid';
 
 function ProfileSkeleton() {
   return (
@@ -59,13 +60,23 @@ export default function CustomerSettingsPage() {
   const [customer, setCustomer] = React.useState<Customer | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [isSavingAddress, setIsSavingAddress] = React.useState(false);
 
-  // States for the form fields
+  // States for the profile form fields
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [phone, setPhone] = React.useState('');
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
   const [imageFile, setImageFile] = React.useState<File | null>(null);
+
+  // States for new address form
+  const [showNewAddressForm, setShowNewAddressForm] = React.useState(false);
+  const [newAddressLabel, setNewAddressLabel] = React.useState('');
+  const [newAddressLine1, setNewAddressLine1] = React.useState('');
+  const [newAddressCity, setNewAddressCity] = React.useState('');
+  const [newAddressState, setNewAddressState] = React.useState('');
+  const [newAddressPincode, setNewAddressPincode] = React.useState('');
+
 
   React.useEffect(() => {
     const customerId = localStorage.getItem('loggedInCustomerId');
@@ -172,7 +183,7 @@ export default function CustomerSettingsPage() {
         phone: phone,
         profilePictureUrl: profilePictureUrl,
       });
-      setCustomer(prev => prev ? {...prev, profilePictureUrl} : null); // Update local state
+      setCustomer(prev => prev ? {...prev, profilePictureUrl, name, email, phone} : null); // Update local state
       setImageFile(null);
       setImagePreview(null);
       toast({ title: 'Success', description: 'Profile updated successfully.' });
@@ -184,6 +195,39 @@ export default function CustomerSettingsPage() {
     }
   };
   
+  const handleSaveNewAddress = async () => {
+    if (!customer) return;
+    setIsSavingAddress(true);
+    const newAddress: Address = {
+        id: nanoid(),
+        label: newAddressLabel,
+        line1: newAddressLine1,
+        city: newAddressCity,
+        state: newAddressState,
+        pincode: newAddressPincode,
+    };
+
+    const customerRef = doc(db, 'customers', customer.id);
+    try {
+        await updateDoc(customerRef, {
+            addresses: arrayUnion(newAddress)
+        });
+        
+        setCustomer(prev => prev ? {...prev, addresses: [...prev.addresses, newAddress]} : null);
+
+        toast({ title: 'Address saved successfully!' });
+        setShowNewAddressForm(false);
+        // Reset form
+        setNewAddressLabel(''); setNewAddressLine1(''); setNewAddressCity(''); setNewAddressState(''); setNewAddressPincode('');
+    } catch (error) {
+        console.error("Error saving address: ", error);
+        toast({ variant: 'destructive', title: 'Could not save address.' });
+    } finally {
+        setIsSavingAddress(false);
+    }
+  };
+
+
   const handleDeleteAddress = async (addressId: string) => {
     if (!customer) return;
 
@@ -246,12 +290,14 @@ export default function CustomerSettingsPage() {
                             <AvatarFallback>{getInitials(customer.name)}</AvatarFallback>
                         </Avatar>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>{name}'s Profile Picture</DialogTitle>
-                        </DialogHeader>
-                        <Image src={currentImageUrl!} alt={customer.name} width={500} height={500} className="rounded-md object-contain" />
-                    </DialogContent>
+                    {currentImageUrl && (
+                        <DialogContent className="max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>{name}'s Profile Picture</DialogTitle>
+                            </DialogHeader>
+                            <Image src={currentImageUrl} alt={customer.name} width={500} height={500} className="rounded-md object-contain" />
+                        </DialogContent>
+                    )}
                  </Dialog>
 
                 <Input id="picture" type="file" className="max-w-xs" onChange={handleImageChange} accept="image/*" />
@@ -287,7 +333,10 @@ export default function CustomerSettingsPage() {
                 <CardTitle>Manage Addresses</CardTitle>
                 <CardDescription>Add or remove delivery addresses.</CardDescription>
             </div>
-            <Button>Add New Address</Button>
+            <Button variant="outline" onClick={() => setShowNewAddressForm(true)} disabled={showNewAddressForm}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Address
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             {loading ? <Skeleton className="h-20 w-full" /> : 
@@ -307,7 +356,41 @@ export default function CustomerSettingsPage() {
                     </div>
                 ))
             ) : (
-                 <p className="text-sm text-muted-foreground">You have no saved addresses.</p>
+                 !showNewAddressForm && <p className="text-sm text-muted-foreground text-center py-4">You have no saved addresses.</p>
+            )}
+             {showNewAddressForm && (
+                <div className="p-4 border-t mt-4 space-y-4">
+                     <h3 className="font-semibold">Add a New Address</h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="label">Address Label</Label>
+                            <Input id="label" placeholder="e.g., Home, Work Site" value={newAddressLabel} onChange={e => setNewAddressLabel(e.target.value)} />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                            <Label htmlFor="address">Address Line 1</Label>
+                            <Input id="address" placeholder="123, Blossom Heights, Hiranandani Gardens" value={newAddressLine1} onChange={e => setNewAddressLine1(e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="city">City</Label>
+                            <Input id="city" placeholder="Mumbai" value={newAddressCity} onChange={e => setNewAddressCity(e.target.value)} />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="state">State</Label>
+                            <Input id="state" placeholder="Maharashtra" value={newAddressState} onChange={e => setNewAddressState(e.target.value)} />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="pincode">PIN Code</Label>
+                            <Input id="pincode" placeholder="400076" value={newAddressPincode} onChange={e => setNewAddressPincode(e.target.value)} />
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        <Button onClick={handleSaveNewAddress} disabled={isSavingAddress}>
+                            {isSavingAddress ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Save Address
+                        </Button>
+                        <Button variant="ghost" onClick={() => setShowNewAddressForm(false)}>Cancel</Button>
+                    </div>
+                </div>
             )}
           </CardContent>
         </Card>
