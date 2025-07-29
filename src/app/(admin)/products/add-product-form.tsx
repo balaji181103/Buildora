@@ -108,7 +108,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     if (fileInput) fileInput.value = '';
   }
 
-  async function uploadImage(file: File): Promise<string | null> {
+  async function uploadImage(file: File): Promise<{ url: string } | null> {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -124,7 +124,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
         }
 
         const data = await response.json();
-        return data.url;
+        return { url: data.url };
     } catch (error: any) {
         console.error('Upload Image Error:', error);
         toast({
@@ -145,7 +145,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 // Stop submission if upload fails
                 return;
             }
-            finalImageUrl = uploadedUrl;
+            finalImageUrl = uploadedUrl.url;
         }
 
         try {
