@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from "react"
@@ -33,7 +32,7 @@ interface CheckoutOrderDetails {
     deliveryMethod: string;
 }
 
-const TIMER_DURATION = 40; // 40 seconds
+const TIMER_DURATION = 60; // 60 seconds
 
 export default function PaymentPage() {
     const { clearCart } = useCart();
