@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase-client";
 import { collection, doc, runTransaction, serverTimestamp, onSnapshot } from "firebase/firestore";
 import type { Order, CartItem, Address } from "@/lib/types";
+import { Progress } from "@/components/ui/progress"
 
 interface CheckoutOrderDetails {
     cart: CartItem[];
@@ -31,6 +32,8 @@ interface CheckoutOrderDetails {
     deliveryMethod: string;
 }
 
+const TIMER_DURATION = 60; // 60 seconds
+
 export default function PaymentPage() {
     const { clearCart } = useCart();
     const router = useRouter();
@@ -40,6 +43,29 @@ export default function PaymentPage() {
     const [orderDetails, setOrderDetails] = React.useState<CheckoutOrderDetails | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [paymentQrUrl, setPaymentQrUrl] = React.useState<string | null>(null);
+
+    const [accordionValue, setAccordionValue] = React.useState('card');
+    const [timer, setTimer] = React.useState(TIMER_DURATION);
+    
+    React.useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (accordionValue === 'qr-code' && timer > 0) {
+            interval = setInterval(() => {
+                setTimer((prevTimer) => prevTimer - 1);
+            }, 1000);
+        } else if (timer === 0) {
+            setAccordionValue(''); // Close accordion
+        }
+
+        return () => clearInterval(interval);
+    }, [accordionValue, timer]);
+
+    const handleAccordionChange = (value: string) => {
+        setAccordionValue(value);
+        if (value === 'qr-code') {
+            setTimer(TIMER_DURATION); // Reset timer when QR code is opened
+        }
+    }
 
 
     React.useEffect(() => {
@@ -203,7 +229,7 @@ export default function PaymentPage() {
                             <CardDescription>Choose your preferred payment method.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <Accordion type="single" collapsible defaultValue="card">
+                             <Accordion type="single" collapsible value={accordionValue} onValueChange={handleAccordionChange}>
                                 <AccordionItem value="card">
                                     <AccordionTrigger className="font-semibold">
                                         <div className="flex items-center gap-2">
@@ -274,6 +300,12 @@ export default function PaymentPage() {
                                                 <Loader2 className="h-8 w-8 text-muted-foreground" />
                                             </div>
                                         )}
+                                        <div className="w-full max-w-xs space-y-2">
+                                            <Progress value={(timer / TIMER_DURATION) * 100} />
+                                            <p className="text-xs text-muted-foreground text-center">
+                                                QR code expires in {timer} seconds
+                                            </p>
+                                        </div>
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
