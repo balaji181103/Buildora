@@ -5,7 +5,6 @@ import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import {
-  ListFilter,
   ShoppingCart,
   Trash2,
   Plus,
@@ -30,21 +29,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Product } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast";
@@ -57,7 +41,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 
 function ProductCard({ product }: { product: Product }) {
-    const { cart, addItem, updateQuantity, removeItem } = useCart();
+    const { cart, addItem, updateQuantity } = useCart();
     const { toast } = useToast();
 
     const cartItem = cart.find(item => item.product.id === product.id);
@@ -93,20 +77,20 @@ function ProductCard({ product }: { product: Product }) {
             </CardTitle>
             <CardDescription className="text-sm">{product.supplier}</CardDescription>
         </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between items-center">
-            <div className="font-semibold text-lg">₹{product.price.toFixed(2)}</div>
+        <CardFooter className="p-4 pt-0 flex flex-col items-stretch gap-4">
+            <div className="font-semibold text-lg self-start">₹{product.price.toFixed(2)}</div>
              {cartItem ? (
                 <div className="flex items-center gap-2">
                     <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, cartItem.quantity - 1)}>
                         {cartItem.quantity === 1 ? <Trash2 className="h-4 w-4 text-destructive" /> : <Minus className="h-4 w-4" />}
                     </Button>
-                    <span className="font-bold text-center w-8">{cartItem.quantity}</span>
+                    <span className="font-bold text-center flex-1">{cartItem.quantity}</span>
                     <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, cartItem.quantity + 1)}>
                         <Plus className="h-4 w-4" />
                     </Button>
                 </div>
             ) : (
-                <Button size="sm" onClick={handleAddToCart}>
+                <Button size="sm" onClick={handleAddToCart} className="w-full">
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     Add to Cart
                 </Button>
@@ -158,9 +142,9 @@ function ProductCatalog() {
                                 <Skeleton className="h-5 w-4/5" />
                                 <Skeleton className="h-4 w-1/2" />
                             </CardContent>
-                            <CardFooter className="p-4 pt-0 flex justify-between items-center">
+                            <CardFooter className="p-4 pt-0 flex flex-col items-stretch gap-4">
                                 <Skeleton className="h-8 w-1/3" />
-                                <Skeleton className="h-9 w-1/2" />
+                                <Skeleton className="h-9 w-full" />
                             </CardFooter>
                         </Card>
                     ))
