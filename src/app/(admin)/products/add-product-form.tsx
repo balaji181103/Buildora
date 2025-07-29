@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useState, useTransition, useEffect } from 'react';
 import Image from 'next/image';
-import { collection, addDoc, serverTimestamp, updateDoc, doc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -20,10 +20,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
-import { ImagePlus, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/lib/firebase-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { collection as firestoreCollection, onSnapshot, query, orderBy } from 'firebase/firestore';
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
@@ -49,7 +50,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, "suppliers"), orderBy("name"));
+    const q = query(firestoreCollection(db, "suppliers"), orderBy("name"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const suppliersData: Supplier[] = [];
         snapshot.forEach(doc => {
@@ -118,13 +119,14 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Image upload failed');
+            const errorData = await response.json().catch(() => ({ message: 'Image upload failed. The server returned an invalid response.' }));
+            throw new Error(errorData.message || 'Image upload failed');
         }
 
         const data = await response.json();
         return data.url;
     } catch (error: any) {
+        console.error('Upload Image Error:', error);
         toast({
             variant: 'destructive',
             title: 'Image Upload Error',
@@ -164,10 +166,8 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 createdAt: serverTimestamp(),
             };
 
-            await addDoc(collection(db, "products"), productData);
+            await addDoc(firestoreCollection(db, "products"), productData);
             
-            onProductAdded();
-
             toast({
                 title: "Product Added",
                 description: `${values.name} is now in your inventory.`,
@@ -175,6 +175,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
             
             form.reset();
             removeImage();
+            onProductAdded();
 
         } catch (error) {
            console.error("Error adding product: ", error);
