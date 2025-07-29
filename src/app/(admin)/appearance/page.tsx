@@ -44,6 +44,15 @@ export default function AppearancePage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof AppearanceContent) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+        toast({
+            variant: 'destructive',
+            title: 'Invalid File Type',
+            description: 'Please upload a PNG, JPG, or WEBP image.',
+        });
+        e.target.value = ''; // Clear the input
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewStates(prev => ({ ...prev, [key]: reader.result as string }));
@@ -97,12 +106,12 @@ export default function AppearancePage() {
       try {
         const docRef = doc(db, 'siteContent', 'appearance');
         await setDoc(docRef, { 
-          ...content, 
           [key]: { id: key, url: imageUrl } 
         }, { merge: true });
         
         toast({ title: 'Success', description: 'Image updated successfully.' });
         setPreviewStates(prev => ({...prev, [key]: null})); // Clear preview
+        fileInput.value = ''; // Reset file input
       } catch (error) {
         console.error("Error updating image:", error);
         toast({ variant: 'destructive', title: 'Error', description: 'Could not update image.' });
@@ -140,7 +149,7 @@ export default function AppearancePage() {
               />
               <div className="space-y-2">
                 <Input id="main-hero-image-upload" type="file" onChange={(e) => handleFileChange(e, 'mainLandingHero')} accept="image/*" />
-                <Button onClick={() => handleSave('mainLandingHero', 'main-hero-image-upload')} disabled={savingStates.mainLandingHero}>
+                <Button onClick={() => handleSave('mainLandingHero', 'main-hero-image-upload')} disabled={savingStates.mainLandingHero || !previewStates.mainLandingHero}>
                   {savingStates.mainLandingHero ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                   Save Hero
                 </Button>
@@ -159,7 +168,7 @@ export default function AppearancePage() {
               />
               <div className="space-y-2">
                 <Input id="main-about-image-upload" type="file" onChange={(e) => handleFileChange(e, 'mainLandingAbout')} accept="image/*" />
-                <Button onClick={() => handleSave('mainLandingAbout', 'main-about-image-upload')} disabled={savingStates.mainLandingAbout}>
+                <Button onClick={() => handleSave('mainLandingAbout', 'main-about-image-upload')} disabled={savingStates.mainLandingAbout || !previewStates.mainLandingAbout}>
                   {savingStates.mainLandingAbout ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                   Save Image
                 </Button>
@@ -187,7 +196,7 @@ export default function AppearancePage() {
               />
                <div className="space-y-2">
                 <Input id="customer-hero-image-upload" type="file" onChange={(e) => handleFileChange(e, 'customerLandingHero')} accept="image/*" />
-                <Button onClick={() => handleSave('customerLandingHero', 'customer-hero-image-upload')} disabled={savingStates.customerLandingHero}>
+                <Button onClick={() => handleSave('customerLandingHero', 'customer-hero-image-upload')} disabled={savingStates.customerLandingHero || !previewStates.customerLandingHero}>
                   {savingStates.customerLandingHero ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                   Save Hero
                 </Button>
