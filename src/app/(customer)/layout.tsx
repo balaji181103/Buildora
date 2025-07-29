@@ -285,7 +285,7 @@ export default function CustomerLayout({
 
       {/* Floating Cart Button */}
       {showFloatingCart && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-[101]">
           <Button asChild size="icon" className="relative h-14 w-14 rounded-full shadow-lg">
             <Link href="/cart">
                 <ShoppingCart className="h-6 w-6"/>
