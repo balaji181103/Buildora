@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Home, Loader2, Trash2 } from "lucide-react"
 import { useToast } from '@/hooks/use-toast';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayRemove } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
 import { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -184,6 +184,40 @@ export default function CustomerSettingsPage() {
     }
   };
   
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!customer) return;
+
+    const addressToRemove = customer.addresses.find(addr => addr.id === addressId);
+    if (!addressToRemove) return;
+
+    const customerRef = doc(db, 'customers', customer.id);
+    try {
+      await updateDoc(customerRef, {
+        addresses: arrayRemove(addressToRemove)
+      });
+
+      setCustomer(prevCustomer => {
+        if (!prevCustomer) return null;
+        return {
+          ...prevCustomer,
+          addresses: prevCustomer.addresses.filter(addr => addr.id !== addressId)
+        };
+      });
+
+      toast({
+        title: 'Address Removed',
+        description: 'The selected address has been deleted.',
+      });
+    } catch (error) {
+      console.error("Error removing address:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not remove the address. Please try again.',
+      });
+    }
+  };
+  
   const currentImageUrl = imagePreview || customer?.profilePictureUrl;
 
   return (
@@ -267,7 +301,7 @@ export default function CustomerSettingsPage() {
                                 <p className="text-sm text-muted-foreground">{address.line1}, {address.city} - {address.pincode}</p>
                             </div>
                         </div>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" onClick={() => handleDeleteAddress(address.id)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
