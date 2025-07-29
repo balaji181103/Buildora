@@ -37,6 +37,7 @@ const ProductFormSchema = z.object({
   length: z.coerce.number().min(0, 'Length must be a positive number.'),
   width: z.coerce.number().min(0, 'Width must be a positive number.'),
   height: z.coerce.number().min(0, 'Height must be a positive number.'),
+  dimensionUnit: z.enum(['cm', 'inch', 'ft', 'mm']),
   image: z.any().optional(),
 });
 
@@ -75,6 +76,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
       length: 0,
       width: 0,
       height: 0,
+      dimensionUnit: 'cm',
     },
   });
 
@@ -167,6 +169,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                     width: values.width,
                     height: values.height,
                 },
+                dimensionUnit: values.dimensionUnit,
                 imageUrl: finalImageUrl,
                 createdAt: serverTimestamp(),
             };
@@ -343,8 +346,8 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
         </div>
        
         <div>
-            <FormLabel>Dimensions (cm)</FormLabel>
-            <div className="grid grid-cols-3 gap-4 mt-2">
+            <FormLabel>Dimensions</FormLabel>
+            <div className="grid grid-cols-4 gap-4 mt-2">
                 <FormField
                     control={form.control}
                     name="length"
@@ -377,6 +380,28 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                         <FormControl>
                             <Input type="number" placeholder="Height" {...field} />
                         </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="dimensionUnit"
+                    render={({ field }) => (
+                        <FormItem>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Unit" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="cm">cm</SelectItem>
+                                <SelectItem value="inch">inch</SelectItem>
+                                <SelectItem value="ft">ft</SelectItem>
+                                <SelectItem value="mm">mm</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <FormMessage />
                         </FormItem>
                     )}

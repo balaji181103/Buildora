@@ -21,18 +21,19 @@ export type Order = {
 };
 
 export type Product = {
-  id: string;
+  id:string;
   name: string;
   category: string;
   stock: number;
   price: number;
   supplier: string;
   weight: number; // in kg
-  dimensions: { // in cm
+  dimensions: {
     length: number;
     width: number;
     height: number;
   };
+  dimensionUnit: 'cm' | 'inch' | 'ft' | 'mm';
   imageUrl?: string;
   description?: string;
   createdAt?: any;

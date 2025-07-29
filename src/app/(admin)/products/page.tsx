@@ -72,6 +72,7 @@ export default function ProductsPage() {
           id: doc.id, 
           ...data,
           dimensions: data.dimensions || { length: 0, width: 0, height: 0 },
+          dimensionUnit: data.dimensionUnit || 'cm',
           createdAt: data.createdAt?.toDate() || new Date()
         } as ProductWithLocalImage);
       });
@@ -199,7 +200,7 @@ export default function ProductsPage() {
               <TableHead>Category</TableHead>
               <TableHead>Stock</TableHead>
               <TableHead>Weight (kg)</TableHead>
-              <TableHead>Dimensions (cm)</TableHead>
+              <TableHead>Dimensions</TableHead>
               <TableHead>Supplier</TableHead>
               <TableHead className="text-right">Price</TableHead>
               <TableHead>
@@ -253,7 +254,7 @@ export default function ProductsPage() {
                   )}
                 </TableCell>
                 <TableCell>{product.weight.toFixed(1)}</TableCell>
-                <TableCell>{`${product.dimensions.length}x${product.dimensions.width}x${product.dimensions.height}`}</TableCell>
+                <TableCell>{`${product.dimensions.length}x${product.dimensions.width}x${product.dimensions.height} ${product.dimensionUnit}`}</TableCell>
                 <TableCell>{product.supplier}</TableCell>
                 <TableCell className="text-right">₹{product.price.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</TableCell>
                 <TableCell>
