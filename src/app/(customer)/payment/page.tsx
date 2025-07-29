@@ -99,7 +99,7 @@ export default function PaymentPage() {
             return;
         }
 
-        if (accordionValue === 'qr-code' && timer > (TIMER_DURATION - 15)) {
+        if (accordionValue === 'qr-code' && timer >= 15) {
              toast({
                 variant: 'destructive',
                 title: "Payment Not Confirmed",
@@ -119,19 +119,18 @@ export default function PaymentPage() {
                 const customerRef = doc(db, "customers", customerId);
                 const productRefs = cart.map(item => doc(db, "products", item.product.id));
 
-                const [counterDoc, customerDoc, ...productDocs] = await Promise.all([
-                    transaction.get(counterRef),
-                    transaction.get(customerRef),
-                    ...productRefs.map(ref => transaction.get(ref))
-                ]);
+                const productDocsSnap = await Promise.all(productRefs.map(ref => transaction.get(ref)));
+                const counterDoc = await transaction.get(counterRef);
+                const customerDoc = await transaction.get(customerRef);
+
                 
                 // --- 2. Perform validations and calculations in memory ---
                 if (!customerDoc.exists()) {
                     throw new Error("Customer not found.");
                 }
 
-                for (let i = 0; i < productDocs.length; i++) {
-                    const productDoc = productDocs[i];
+                for (let i = 0; i < productDocsSnap.length; i++) {
+                    const productDoc = productDocsSnap[i];
                     const cartItem = cart[i];
                     if (!productDoc.exists()) {
                         throw new Error(`Product '${cartItem.product.name}' not found!`);
@@ -173,8 +172,8 @@ export default function PaymentPage() {
                 transaction.set(counterRef, { current: nextOrderId }, { merge: true });
                 transaction.update(customerRef, { orderCount: currentOrderCount + 1 });
 
-                for (let i = 0; i < productDocs.length; i++) {
-                    const productDoc = productDocs[i];
+                for (let i = 0; i < productDocsSnap.length; i++) {
+                    const productDoc = productDocsSnap[i];
                     const cartItem = cart[i];
                     const newStock = productDoc.data().stock - cartItem.quantity;
                     transaction.update(productDoc.ref, { stock: newStock });
