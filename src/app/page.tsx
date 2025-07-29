@@ -20,6 +20,7 @@ export default function LandingPage() {
     const { setTheme } = useTheme();
     const router = useRouter();
     const [heroImageUrl, setHeroImageUrl] = React.useState('https://placehold.co/1200x800.png');
+    const [aboutImageUrl, setAboutImageUrl] = React.useState('https://placehold.co/600x400.png');
 
     React.useEffect(() => {
         const docRef = doc(db, 'siteContent', 'appearance');
@@ -28,6 +29,9 @@ export default function LandingPage() {
                 const data = docSnap.data();
                 if (data.mainLandingHero?.url) {
                     setHeroImageUrl(data.mainLandingHero.url);
+                }
+                if (data.mainLandingAbout?.url) {
+                    setAboutImageUrl(data.mainLandingAbout.url);
                 }
             }
         });
@@ -198,7 +202,7 @@ export default function LandingPage() {
                     </div>
                     <div className={cn("relative h-80 w-full", aboutInView ? "animate-in fade-in-0 slide-in-from-right-12 duration-1000" : "opacity-0")}>
                         <Image
-                            src="https://placehold.co/600x400.png"
+                            src={aboutImageUrl}
                             alt="A team of construction workers and engineers collaborating"
                             fill
                             className="object-cover rounded-lg transition-transform duration-300 hover:scale-105"

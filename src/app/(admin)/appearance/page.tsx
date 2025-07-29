@@ -19,6 +19,7 @@ interface ImageSetting {
 
 interface AppearanceContent {
   mainLandingHero?: ImageSetting;
+  mainLandingAbout?: ImageSetting;
   customerLandingHero?: ImageSetting;
 }
 
@@ -126,8 +127,8 @@ export default function AppearancePage() {
           <CardTitle>Main Landing Page</CardTitle>
           <CardDescription>Customize the main public-facing landing page.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
+        <CardContent className="space-y-8 divide-y">
+          <div className="space-y-2 pt-6 first:pt-0">
             <Label>Hero Image</Label>
             <div className="flex items-center gap-4">
               <Image
@@ -142,6 +143,25 @@ export default function AppearancePage() {
                 <Button onClick={() => handleSave('mainLandingHero', 'main-hero-image-upload')} disabled={savingStates.mainLandingHero}>
                   {savingStates.mainLandingHero ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
                   Save Hero
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2 pt-6 first:pt-0">
+            <Label>About Us Image</Label>
+            <div className="flex items-center gap-4">
+              <Image
+                src={previewStates.mainLandingAbout || content.mainLandingAbout?.url || 'https://placehold.co/600x400.png'}
+                alt="Main landing page about section"
+                width={200}
+                height={150}
+                className="rounded-md object-cover border"
+              />
+              <div className="space-y-2">
+                <Input id="main-about-image-upload" type="file" onChange={(e) => handleFileChange(e, 'mainLandingAbout')} accept="image/*" />
+                <Button onClick={() => handleSave('mainLandingAbout', 'main-about-image-upload')} disabled={savingStates.mainLandingAbout}>
+                  {savingStates.mainLandingAbout ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                  Save Image
                 </Button>
               </div>
             </div>
