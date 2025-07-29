@@ -34,6 +34,7 @@ const ProductFormSchema = z.object({
   price: z.coerce.number().min(0, 'Price must be a positive number.'),
   supplier: z.string().min(1, 'Supplier is required.'),
   weight: z.coerce.number().min(0, 'Weight must be a positive number.'),
+  weightUnit: z.enum(['kg', 'g']),
   length: z.coerce.number().min(0, 'Length must be a positive number.'),
   width: z.coerce.number().min(0, 'Width must be a positive number.'),
   height: z.coerce.number().min(0, 'Height must be a positive number.'),
@@ -73,6 +74,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
       price: 0,
       supplier: '',
       weight: 0,
+      weightUnit: 'kg',
       length: 0,
       width: 0,
       height: 0,
@@ -164,6 +166,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 price: values.price,
                 supplier: values.supplier,
                 weight: values.weight,
+                weightUnit: values.weightUnit,
                 dimensions: {
                     length: values.length,
                     width: values.width,
@@ -247,7 +250,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
           )}
         />
        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
             control={form.control}
             name="stock"
@@ -274,19 +277,46 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 </FormItem>
             )}
             />
-            <FormField
-            control={form.control}
-            name="weight"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Weight (kg)</FormLabel>
-                <FormControl>
-                    <Input type="number" step="0.1" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
+        </div>
+        
+        <div>
+            <FormLabel>Weight</FormLabel>
+            <div className="grid grid-cols-4 gap-4 mt-2">
+                 <div className="col-span-3">
+                    <FormField
+                        control={form.control}
+                        name="weight"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormControl>
+                                <Input type="number" step="0.1" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                 </div>
+                 <FormField
+                    control={form.control}
+                    name="weightUnit"
+                    render={({ field }) => (
+                        <FormItem>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Unit" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="kg">kg</SelectItem>
+                                <SelectItem value="g">g</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

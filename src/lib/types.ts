@@ -27,7 +27,8 @@ export type Product = {
   stock: number;
   price: number;
   supplier: string;
-  weight: number; // in kg
+  weight: number;
+  weightUnit: 'kg' | 'g';
   dimensions: {
     length: number;
     width: number;
