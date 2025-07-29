@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -343,6 +342,32 @@ export default function ProductDetailsPage() {
 
             <Separator className="my-4" />
 
+             <div>
+                <h2 className="text-2xl font-bold mb-4">Product Specifications</h2>
+                <Card>
+                    <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                            <p className="text-sm font-medium text-muted-foreground">Weight</p>
+                            <p className="font-semibold">{product.weight} {product.weightUnit}</p>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-sm font-medium text-muted-foreground">Dimensions (L x W x H)</p>
+                            <p className="font-semibold">{`${product.dimensions.length} x ${product.dimensions.width} x ${product.dimensions.height} ${product.dimensionUnit}`}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="text-sm font-medium text-muted-foreground">Category</p>
+                            <p className="font-semibold">{product.category}</p>
+                        </div>
+                         <div className="space-y-1">
+                            <p className="text-sm font-medium text-muted-foreground">Supplier</p>
+                            <p className="font-semibold">{product.supplier}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Separator className="my-4" />
+
             {relatedProducts.length > 0 && (
                 <div>
                     <h2 className="text-2xl font-bold mb-4">Related Products</h2>
@@ -374,3 +399,5 @@ export default function ProductDetailsPage() {
         </div>
     )
 }
+
+    
