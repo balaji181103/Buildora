@@ -16,11 +16,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CreditCard, Loader2, QrCode } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase-client";
-import { collection, doc, runTransaction, serverTimestamp, onSnapshot, addDoc } from "firebase/firestore";
-import type { Order, CartItem, Address, Customer } from "@/lib/types";
+import { collection, doc, runTransaction, serverTimestamp, onSnapshot } from "firebase/firestore";
+import type { Order, CartItem, Address } from "@/lib/types";
 import { Progress } from "@/components/ui/progress"
-import { cn } from "@/lib/utils"
-import { format } from "date-fns"
 
 interface CheckoutOrderDetails {
     cart: CartItem[];
@@ -94,56 +92,6 @@ export default function PaymentPage() {
         return () => unsubscribe();
     }, []);
 
-    const generateInvoiceHtml = (order: CheckoutOrderDetails, orderId: string): string => {
-        const itemsHtml = order.cart.map(item => `
-            <tr>
-                <td>${item.product.name}</td>
-                <td style="text-align: center;">${item.quantity}</td>
-                <td style="text-align: right;">₹${item.product.price.toFixed(2)}</td>
-                <td style="text-align: right;">₹${(item.product.price * item.quantity).toFixed(2)}</td>
-            </tr>
-        `).join('');
-
-        return `
-            <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px;">
-                <h1 style="font-size: 24px; color: #333;">Buildora Invoice</h1>
-                <p>Order ID: <strong>#${orderId}</strong></p>
-                <p>Date: ${format(new Date(), 'PPP')}</p>
-                <hr style="border: none; border-top: 1px solid #eee;">
-                <h2 style="font-size: 18px;">Shipping to:</h2>
-                <p>
-                    ${order.customerName}<br>
-                    ${order.shippingAddress.line1}<br>
-                    ${order.shippingAddress.city}, ${order.shippingAddress.state} - ${order.shippingAddress.pincode}
-                </p>
-                <hr style="border: none; border-top: 1px solid #eee;">
-                <h2 style="font-size: 18px;">Order Summary</h2>
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ddd;">Product</th>
-                            <th style="text-align: center; padding: 8px; border-bottom: 1px solid #ddd;">Quantity</th>
-                            <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Price</th>
-                            <th style="text-align: right; padding: 8px; border-bottom: 1px solid #ddd;">Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>${itemsHtml}</tbody>
-                </table>
-                <hr style="border: none; border-top: 1px solid #eee; margin-top: 20px;">
-                <table style="width: 100%; margin-top: 20px;">
-                    <tbody>
-                        <tr><td>Subtotal:</td><td style="text-align: right;">₹${order.subtotal.toFixed(2)}</td></tr>
-                        <tr><td>Shipping:</td><td style="text-align: right;">₹${order.shippingCost.toFixed(2)}</td></tr>
-                        <tr><td>Taxes (18%):</td><td style="text-align: right;">₹${order.taxes.toFixed(2)}</td></tr>
-                        <tr><td style="font-weight: bold;">Total:</td><td style="text-align: right; font-weight: bold;">₹${order.total.toFixed(2)}</td></tr>
-                    </tbody>
-                </table>
-                <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #888;">Thank you for your business!</p>
-            </div>
-        `;
-    };
-
-
     const handlePlaceOrder = async () => {
         if (!orderDetails) {
             toast({ variant: 'destructive', title: 'Order details are missing.' });
@@ -152,7 +100,7 @@ export default function PaymentPage() {
 
         if (accordionValue === 'qr-code' && timer >= 15) {
              toast({
-                variant: 'destructive',
+                variant: "destructive",
                 title: "Payment Not Confirmed",
                 description: "Please complete the payment before confirming.",
             });
@@ -160,7 +108,7 @@ export default function PaymentPage() {
         }
 
         setIsPlacingOrder(true);
-        const { cart, customerId, customerName, shippingAddress, total, customerEmail } = orderDetails;
+        const { cart, customerId, customerName, shippingAddress, total } = orderDetails;
         
         let finalOrderId: string | null = null;
         try {
@@ -169,10 +117,12 @@ export default function PaymentPage() {
                 const customerRef = doc(db, "customers", customerId);
                 const productRefs = cart.map(item => doc(db, "products", item.product.id));
 
+                // 1. All reads
                 const counterDoc = await transaction.get(counterRef);
                 const customerDoc = await transaction.get(customerRef);
                 const productDocsSnap = await Promise.all(productRefs.map(ref => transaction.get(ref)));
-                
+
+                // 2. All validations
                 if (!customerDoc.exists()) {
                     throw new Error("Customer not found.");
                 }
@@ -189,6 +139,7 @@ export default function PaymentPage() {
                     }
                 }
                 
+                // 3. All writes
                 let nextOrderId = 1;
                 if (counterDoc.exists()) {
                     nextOrderId = counterDoc.data().current + 1;
@@ -225,17 +176,6 @@ export default function PaymentPage() {
                     transaction.update(productDoc.ref, { stock: newStock });
                 }
             });
-
-            if(finalOrderId){
-                // Trigger email after successful transaction
-                await addDoc(collection(db, "mail"), {
-                    to: customerEmail,
-                    message: {
-                        subject: `Your Buildora Order Confirmation #${finalOrderId}`,
-                        html: generateInvoiceHtml(orderDetails, finalOrderId),
-                    },
-                });
-            }
             
             toast({
                 title: "Order Placed!",

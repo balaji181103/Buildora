@@ -96,13 +96,3 @@ export type CartItem = {
   product: Product;
   quantity: number;
 };
-
-// Type for the document to be created in the 'mail' collection
-export type Mail = {
-    to: string;
-    message: {
-      subject: string;
-      text?: string;
-      html: string;
-    };
-  };
