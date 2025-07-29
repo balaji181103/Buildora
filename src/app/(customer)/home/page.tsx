@@ -147,42 +147,6 @@ function ProductCatalog() {
                     <h2 className="text-2xl font-bold tracking-tight">Product Catalog</h2>
                     <p className="text-muted-foreground">Browse our available products.</p>
                 </div>
-                <div className="flex items-center justify-end gap-2">
-                    <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7 gap-1">
-                        <ListFilter className="h-3.5 w-3.5" />
-                        <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                            Filter
-                        </span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuCheckboxItem checked>
-                        In Stock
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem>
-                        By Drone
-                        </DropdownMenuCheckboxItem>
-                        <DropdownMenuCheckboxItem>
-                        By Truck
-                        </DropdownMenuCheckboxItem>
-                    </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Select defaultValue="price_asc">
-                        <SelectTrigger className="h-7 text-sm w-[140px]">
-                            <SelectValue placeholder="Sort by" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                            <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                            <SelectItem value="newest">Newest</SelectItem>
-                            <SelectItem value="popularity">Popularity</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
             </div>
             <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {loading ? (
