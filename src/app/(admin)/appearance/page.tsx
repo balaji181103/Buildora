@@ -72,13 +72,14 @@ export default function AppearancePage() {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Image upload failed');
+            const errorData = await response.json().catch(() => ({ message: 'Image upload failed with no error body.' }));
+            throw new Error(errorData.message || 'Image upload failed');
         }
 
         const data = await response.json();
         return data.url;
     } catch (error: any) {
+        console.error('Upload Image Error:', error);
         toast({
             variant: 'destructive',
             title: 'Image Upload Error',
@@ -113,8 +114,8 @@ export default function AppearancePage() {
         setPreviewStates(prev => ({...prev, [key]: null})); // Clear preview
         fileInput.value = ''; // Reset file input
       } catch (error) {
-        console.error("Error updating image:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not update image.' });
+        console.error("Error updating image URL in Firestore:", error);
+        toast({ variant: 'destructive', title: 'Firestore Error', description: 'Could not save image URL.' });
       }
     }
     
