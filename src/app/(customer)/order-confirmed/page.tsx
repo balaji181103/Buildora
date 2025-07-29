@@ -5,6 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, FileText, ShoppingBag, ArrowRight, Package, Loader2, Home, CreditCard } from 'lucide-react';
