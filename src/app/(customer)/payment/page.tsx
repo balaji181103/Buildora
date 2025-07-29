@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react"
@@ -44,7 +45,7 @@ export default function PaymentPage() {
     const [loading, setLoading] = React.useState(true);
     const [paymentQrUrl, setPaymentQrUrl] = React.useState<string | null>(null);
 
-    const [accordionValue, setAccordionValue] = React.useState('card');
+    const [accordionValue, setAccordionValue] = React.useState('');
     const [timer, setTimer] = React.useState(TIMER_DURATION);
     
     React.useEffect(() => {
@@ -95,6 +96,16 @@ export default function PaymentPage() {
     const handlePlaceOrder = async () => {
         if (!orderDetails) {
             toast({ variant: 'destructive', title: 'Order details are missing.' });
+            return;
+        }
+
+        // Check if QR code is the selected method and if enough time has passed
+        if (accordionValue === 'qr-code' && timer > (TIMER_DURATION - 15)) {
+             toast({
+                variant: 'destructive',
+                title: "Payment Processing",
+                description: "Please complete the payment before confirming.",
+            });
             return;
         }
 
