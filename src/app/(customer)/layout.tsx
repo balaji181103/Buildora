@@ -46,7 +46,7 @@ export default function CustomerLayout({
   }, []);
 
   React.useEffect(() => {
-    if (searchQuery.length < 2) {
+    if (searchQuery.length < 1) {
       setSuggestions([]);
       setIsSuggestionsOpen(false);
       return;
@@ -54,17 +54,43 @@ export default function CustomerLayout({
 
     const fetchSuggestions = async () => {
       const lowerCaseQuery = searchQuery.toLowerCase();
-      const q = query(
+      
+      // Firestore queries are case-sensitive. To simulate a case-insensitive search,
+      // we can perform two separate queries, one for lowercase and one for uppercase.
+      const firstChar = searchQuery.charAt(0);
+      const searchEnd = searchQuery + '\uf8ff';
+
+      const q1 = query(
         collection(db, 'products'),
         orderBy('name'),
-        startAt(lowerCaseQuery),
-        endAt(lowerCaseQuery + '\uf8ff'),
+        startAt(searchQuery),
+        endAt(searchEnd),
+        limit(5)
+      );
+
+      const q2 = query(
+        collection(db, 'products'),
+        orderBy('name'),
+        startAt(firstChar.toUpperCase() + searchQuery.slice(1)),
+        endAt(firstChar.toUpperCase() + searchQuery.slice(1) + '\uf8ff'),
         limit(5)
       );
       
-      const querySnapshot = await getDocs(q);
-      const productSuggestions = querySnapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() } as Product))
+      const [querySnapshot1, querySnapshot2] = await Promise.all([
+          getDocs(q1),
+          getDocs(q2)
+      ]);
+      
+      const combinedResults: Record<string, Product> = {};
+
+      querySnapshot1.forEach(doc => {
+          combinedResults[doc.id] = { id: doc.id, ...doc.data() } as Product
+      });
+      querySnapshot2.forEach(doc => {
+          combinedResults[doc.id] = { id: doc.id, ...doc.data() } as Product
+      });
+
+      const productSuggestions = Object.values(combinedResults)
         .filter(product => product.name.toLowerCase().includes(lowerCaseQuery));
 
       setSuggestions(productSuggestions);
@@ -207,7 +233,7 @@ export default function CustomerLayout({
                 className="overflow-hidden rounded-full"
               >
                 <Avatar>
-                  <AvatarImage src={customer?.profilePictureUrl} alt={customer?.name} />
+                  <AvatarImage src={customer?.profilePictureUrl || `https://api.dicebear.com/8.x/initials/svg?seed=${customer?.email}`} alt={customer?.name} />
                   <AvatarFallback>{customer ? getInitials(customer.name) : '...'}</AvatarFallback>
                 </Avatar>
               </Button>
