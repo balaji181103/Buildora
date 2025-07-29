@@ -55,8 +55,6 @@ export default function CustomerLayout({
     const fetchSuggestions = async () => {
       const lowerCaseQuery = searchQuery.toLowerCase();
       
-      // Firestore queries are case-sensitive. To simulate a case-insensitive search,
-      // we can perform two separate queries, one for lowercase and one for uppercase.
       const firstChar = searchQuery.charAt(0);
       const searchEnd = searchQuery + '\uf8ff';
 
