@@ -24,37 +24,39 @@ const uploadFromFile = async (req: NextApiRequest): Promise<{ url: string; publi
     const form = new IncomingForm();
 
     form.parse(req, (err, fields, files) => {
-        if (err) {
-            console.error('Formidable Parse Error:', err);
-            return reject(new Error('Failed to parse form data.'));
-        }
+      if (err) {
+        console.error('Formidable Parse Error:', err);
+        return reject(new Error('Failed to parse form data.'));
+      }
 
-        const file = Array.isArray(files.file) ? files.file[0] : files.file;
+      // Robustly find the file from the files object
+      const file = (Array.isArray(files.file) ? files.file[0] : files.file) as File | undefined;
 
-        if (!file || !file.filepath) {
-             return reject(new Error('No file uploaded or file path is missing.'));
-        }
-        
-        cloudinary.uploader.upload(
-            file.filepath,
-            {
-                folder: 'buildora_assets',
-                resource_type: 'image',
-            },
-            (error, result) => {
-                if (error) {
-                    console.error('Cloudinary Upload Error:', error);
-                    return reject(new Error('Failed to upload image to Cloudinary. Check server logs and credentials.'));
-                }
-                if (!result) {
-                    return reject(new Error('Cloudinary did not return a result.'));
-                }
-                resolve({
-                    url: result.secure_url,
-                    public_id: result.public_id,
-                });
-            }
-        );
+      if (!file?.filepath) {
+        console.error('No file found in `files.file`. All files:', JSON.stringify(files, null, 2));
+        return reject(new Error('No file uploaded or file path is missing.'));
+      }
+      
+      cloudinary.uploader.upload(
+          file.filepath,
+          {
+              folder: 'buildora_assets',
+              resource_type: 'image',
+          },
+          (error, result) => {
+              if (error) {
+                  console.error('Cloudinary Upload Error:', error);
+                  return reject(new Error('Failed to upload image to Cloudinary. Check server logs and credentials.'));
+              }
+              if (!result) {
+                  return reject(new Error('Cloudinary did not return a result.'));
+              }
+              resolve({
+                  url: result.secure_url,
+                  public_id: result.public_id,
+              });
+          }
+      );
     });
   });
 };
