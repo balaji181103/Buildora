@@ -3,7 +3,6 @@
 
 import * as React from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { Button } from "@/components/ui/button"
@@ -13,14 +12,13 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CreditCard, Home, PlusCircle, Loader2, Package, Truck } from "lucide-react"
+import { PlusCircle, Loader2, Package, Truck } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid'
 import { db } from "@/lib/firebase-client";
-import { collection, doc, getDoc, onSnapshot, runTransaction, serverTimestamp, updateDoc, arrayUnion } from "firebase/firestore";
-import type { Customer, Address, Order } from "@/lib/types";
-
+import { doc, onSnapshot, updateDoc, arrayUnion } from "firebase/firestore";
+import type { Customer, Address } from "@/lib/types";
+import Image from "next/image"
 
 const deliveryOptions = {
     standard: { name: 'Standard Delivery', cost: 0, description: '3-5 Business Days', icon: Package },
@@ -28,7 +26,7 @@ const deliveryOptions = {
 };
 
 export default function CheckoutPage() {
-    const { cart, clearCart } = useCart();
+    const { cart } = useCart();
     const router = useRouter();
     const { toast } = useToast();
     const [selectedAddressId, setSelectedAddressId] = React.useState<string | undefined>(undefined);
@@ -41,7 +39,7 @@ export default function CheckoutPage() {
     const [newAddressState, setNewAddressState] = React.useState('');
     const [newAddressPincode, setNewAddressPincode] = React.useState('');
 
-    const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
+    const [isProcessing, setIsProcessing] = React.useState(false);
     const [customer, setCustomer] = React.useState<Customer | null>(null);
     const [loading, setLoading] = React.useState(true);
     const [isSavingAddress, setIsSavingAddress] = React.useState(false);
@@ -114,7 +112,7 @@ export default function CheckoutPage() {
         }
     };
 
-    const handlePlaceOrder = async () => {
+    const handleProceedToPayment = () => {
         if (!customer || !selectedAddressId) {
             toast({ variant: 'destructive', title: 'Please select a shipping address.'});
             return;
@@ -126,88 +124,23 @@ export default function CheckoutPage() {
             return;
         }
 
-        setIsPlacingOrder(true);
+        setIsProcessing(true);
+
+        // Store order details in localStorage to pass to the payment page
+        const orderDetails = {
+            cart,
+            customerId: customer.id,
+            customerName: customer.name,
+            shippingAddress,
+            subtotal,
+            shippingCost,
+            taxes,
+            total,
+            deliveryMethod: selectedDeliveryMethod,
+        };
+        localStorage.setItem('checkoutOrderDetails', JSON.stringify(orderDetails));
         
-        let finalOrderId: string | null = null;
-        try {
-            
-            await runTransaction(db, async (transaction) => {
-                const counterRef = doc(db, 'counters', 'orders');
-                const counterDoc = await transaction.get(counterRef);
-
-                let nextOrderId = 1;
-                if (counterDoc.exists()) {
-                    nextOrderId = counterDoc.data().current + 1;
-                }
-                finalOrderId = String(nextOrderId);
-
-                // READ operations first
-                const productRefs = cart.map(item => doc(db, "products", item.product.id));
-                const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
-
-                for (let i = 0; i < productDocs.length; i++) {
-                    const productDoc = productDocs[i];
-                    const cartItem = cart[i];
-                    if (!productDoc.exists()) {
-                        throw new Error(`Product ${'\'\''}${cartItem.product.name}${'\'\''} not found!`);
-                    }
-                    const currentStock = productDoc.data().stock;
-                    if (currentStock < cartItem.quantity) {
-                         throw new Error(`Not enough stock for ${cartItem.product.name}. Only ${currentStock} available.`);
-                    }
-                }
-
-                // WRITE operations last
-                const newOrderRef = doc(db, "orders", finalOrderId);
-                const orderItems = cart.map(item => ({
-                    productId: item.product.id,
-                    name: item.product.name,
-                    quantity: item.quantity,
-                    price: item.product.price
-                }));
-                
-                // Construct the order object, which will be of a type that matches what the transaction expects,
-                // specifically excluding the `id` field since that's determined by the document reference itself.
-                const newOrder: Omit<Order, 'id' | 'date'> & { date: any } = {
-                    customerName: customer.name,
-                    customerId: customer.id,
-                    status: 'Processing',
-                    date: serverTimestamp(),
-                    total,
-                    items: orderItems,
-                    shippingAddress: shippingAddress,
-                };
-                transaction.set(newOrderRef, newOrder);
-                transaction.set(counterRef, { current: nextOrderId }, { merge: true });
-
-                for (let i = 0; i < productDocs.length; i++) {
-                    const productDoc = productDocs[i];
-                    const cartItem = cart[i];
-                    const newStock = productDoc.data().stock - cartItem.quantity;
-                    transaction.update(productDoc.ref, { stock: newStock });
-                }
-
-                const customerRef = doc(db, "customers", customer.id);
-                transaction.update(customerRef, { orderCount: (customer.orderCount || 0) + 1 });
-            });
-            
-            toast({
-                title: "Order Placed!",
-                description: `Your order #${finalOrderId} has been successfully placed.`,
-            });
-            clearCart();
-            router.push(`/checkout/success?orderId=${finalOrderId}`);
-
-        } catch (error: any) {
-            console.error("Transaction failed: ", error);
-            toast({
-                variant: 'destructive',
-                title: "Order Failed",
-                description: error.message || "There was an issue placing your order. Please try again.",
-            });
-        } finally {
-            setIsPlacingOrder(false);
-        }
+        router.push('/payment');
     }
 
     if (loading) {
@@ -218,7 +151,7 @@ export default function CheckoutPage() {
         )
     }
 
-    if (cart.length === 0 && !isPlacingOrder) {
+    if (cart.length === 0 && !isProcessing) {
         return (
             <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
                  <h1 className="text-2xl font-bold">Your Cart is Empty</h1>
@@ -357,71 +290,6 @@ export default function CheckoutPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Payment Information */}
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>Payment Information</CardTitle>
-                            <CardDescription>Choose your preferred payment method.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                             <Accordion type="single" collapsible defaultValue="card">
-                                <AccordionItem value="card">
-                                    <AccordionTrigger className="font-semibold">
-                                        <div className="flex items-center gap-2">
-                                            <CreditCard className="h-5 w-5" />
-                                            Credit/Debit Card
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pt-4 space-y-4">
-                                         <div className="space-y-2">
-                                            <Label htmlFor="card-number">Card Number</Label>
-                                            <Input id="card-number" placeholder="1234 5678 9012 3456" />
-                                        </div>
-                                         <div className="grid grid-cols-3 gap-4">
-                                            <div className="space-y-2 col-span-2">
-                                                <Label htmlFor="expiry">Expiration Date</Label>
-                                                <Input id="expiry" placeholder="MM / YY" />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="cvc">CVC</Label>
-                                                <Input id="cvc" placeholder="123" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="card-name">Name on Card</Label>
-                                            <Input id="card-name" placeholder="Priya Sharma" />
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                                <AccordionItem value="upi-apps">
-                                    <AccordionTrigger className="font-semibold">
-                                        <div className="flex items-center gap-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20.533c-5.43.54-9.43-3.46-9.973-8.893A9.453 9.453 0 0 1 11.56 1.57a9.453 9.453 0 0 1 10.873 10.873 9.453 9.453 0 0 1-10.433 8.09zM8 8l8 8"/><path d="m8 16 8-8"/></svg>
-                                            UPI Apps
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pt-4 grid grid-cols-3 gap-4">
-                                        <Button variant="outline">GPay</Button>
-                                        <Button variant="outline">PhonePe</Button>
-                                        <Button variant="outline">Paytm</Button>
-                                    </AccordionContent>
-                                </AccordionItem>
-                                <AccordionItem value="upi-id">
-                                    <AccordionTrigger className="font-semibold">
-                                        <div className="flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="m22 12-4-4 4-4"/><path d="M2 12h16"/></svg>
-                                            Enter UPI ID
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pt-4 space-y-2">
-                                        <Label htmlFor="upi-id">Your UPI ID</Label>
-                                        <Input id="upi-id" placeholder="yourname@bank" />
-                                        <Button>Verify &amp; Pay</Button>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-                        </CardContent>
-                    </Card>
                 </div>
                 <div className="lg:col-span-1 space-y-6">
                     <Card>
@@ -465,12 +333,14 @@ export default function CheckoutPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <Button size="lg" className="w-full" onClick={handlePlaceOrder} disabled={!selectedAddressId || isPlacingOrder}>
-                        {isPlacingOrder ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        {isPlacingOrder ? 'Placing Order...' : 'Place Order'}
+                    <Button size="lg" className="w-full" onClick={handleProceedToPayment} disabled={!selectedAddressId || isProcessing}>
+                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        {isProcessing ? 'Processing...' : 'Proceed to Payment'}
                     </Button>
                 </div>
             </div>
         </div>
     )
 }
+
+    
