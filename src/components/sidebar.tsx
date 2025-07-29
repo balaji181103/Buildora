@@ -27,6 +27,7 @@ import {
   ClipboardList,
   Image as ImageIcon,
   Truck,
+  QrCode,
 } from 'lucide-react';
 
 const navItems = [
@@ -38,6 +39,7 @@ const navItems = [
   { href: '/suppliers', icon: Building2, label: 'Suppliers' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/delivery', icon: Truck, label: 'Delivery' },
+  { href: '/qr', icon: QrCode, label: 'QR' },
   { href: '/appearance', icon: ImageIcon, label: 'Appearance' },
 ];
 
