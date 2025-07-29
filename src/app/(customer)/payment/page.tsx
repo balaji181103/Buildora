@@ -16,7 +16,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { CreditCard, Loader2, QrCode } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase-client";
-import { collection, doc, runTransaction, serverTimestamp } from "firebase/firestore";
+import { collection, doc, runTransaction, serverTimestamp, onSnapshot } from "firebase/firestore";
 import type { Order, CartItem, Address } from "@/lib/types";
 
 interface CheckoutOrderDetails {
@@ -39,6 +39,8 @@ export default function PaymentPage() {
     const [isPlacingOrder, setIsPlacingOrder] = React.useState(false);
     const [orderDetails, setOrderDetails] = React.useState<CheckoutOrderDetails | null>(null);
     const [loading, setLoading] = React.useState(true);
+    const [paymentQrUrl, setPaymentQrUrl] = React.useState<string | null>(null);
+
 
     React.useEffect(() => {
         const storedDetails = localStorage.getItem('checkoutOrderDetails');
@@ -50,6 +52,19 @@ export default function PaymentPage() {
         }
         setLoading(false);
     }, [router]);
+
+    React.useEffect(() => {
+        const docRef = doc(db, 'siteContent', 'paymentQr');
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+          if (docSnap.exists() && docSnap.data().paymentQrUrl) {
+            setPaymentQrUrl(docSnap.data().paymentQrUrl);
+          } else {
+            setPaymentQrUrl('https://placehold.co/200x200.png');
+          }
+        });
+        return () => unsubscribe();
+    }, []);
+
 
     const handlePlaceOrder = async () => {
         if (!orderDetails) {
@@ -252,7 +267,13 @@ export default function PaymentPage() {
                                     </AccordionTrigger>
                                     <AccordionContent className="pt-4 flex flex-col items-center gap-4">
                                         <p className="text-sm text-muted-foreground">Scan the QR code with your preferred UPI app.</p>
-                                        <Image src="https://placehold.co/200x200.png" width={200} height={200} alt="QR Code for payment" data-ai-hint="qr code" />
+                                        {paymentQrUrl ? (
+                                            <Image src={paymentQrUrl} width={200} height={200} alt="QR Code for payment" data-ai-hint="qr code" />
+                                        ) : (
+                                            <div className="h-[200px] w-[200px] bg-muted animate-pulse rounded-md flex items-center justify-center">
+                                                <Loader2 className="h-8 w-8 text-muted-foreground" />
+                                            </div>
+                                        )}
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
@@ -310,5 +331,3 @@ export default function PaymentPage() {
         </div>
     )
 }
-
-    
