@@ -99,11 +99,10 @@ export default function PaymentPage() {
             return;
         }
 
-        // Check if QR code is the selected method and if enough time has passed
         if (accordionValue === 'qr-code' && timer > (TIMER_DURATION - 15)) {
              toast({
                 variant: 'destructive',
-                title: "Payment Processing",
+                title: "Payment Not Confirmed",
                 description: "Please complete the payment before confirming.",
             });
             return;
@@ -115,18 +114,21 @@ export default function PaymentPage() {
         let finalOrderId: string | null = null;
         try {
             await runTransaction(db, async (transaction) => {
+                // --- 1. All READ operations must come first ---
                 const counterRef = doc(db, 'counters', 'orders');
-                const counterDoc = await transaction.get(counterRef);
-
-                let nextOrderId = 1;
-                if (counterDoc.exists()) {
-                    nextOrderId = counterDoc.data().current + 1;
-                }
-                finalOrderId = String(nextOrderId);
-
-                // READ operations first
+                const customerRef = doc(db, "customers", customerId);
                 const productRefs = cart.map(item => doc(db, "products", item.product.id));
-                const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
+
+                const [counterDoc, customerDoc, ...productDocs] = await Promise.all([
+                    transaction.get(counterRef),
+                    transaction.get(customerRef),
+                    ...productRefs.map(ref => transaction.get(ref))
+                ]);
+                
+                // --- 2. Perform validations and calculations in memory ---
+                if (!customerDoc.exists()) {
+                    throw new Error("Customer not found.");
+                }
 
                 for (let i = 0; i < productDocs.length; i++) {
                     const productDoc = productDocs[i];
@@ -139,8 +141,15 @@ export default function PaymentPage() {
                          throw new Error(`Not enough stock for ${cartItem.product.name}. Only ${currentStock} available.`);
                     }
                 }
+                
+                let nextOrderId = 1;
+                if (counterDoc.exists()) {
+                    nextOrderId = counterDoc.data().current + 1;
+                }
+                finalOrderId = String(nextOrderId);
+                const currentOrderCount = customerDoc.data()?.orderCount || 0;
 
-                // WRITE operations last
+                // --- 3. All WRITE operations must come last ---
                 const newOrderRef = doc(db, "orders", finalOrderId);
                 const orderItems = cart.map(item => ({
                     productId: item.product.id,
@@ -158,8 +167,11 @@ export default function PaymentPage() {
                     items: orderItems,
                     shippingAddress: shippingAddress,
                 };
+
+                // Perform writes
                 transaction.set(newOrderRef, newOrder);
                 transaction.set(counterRef, { current: nextOrderId }, { merge: true });
+                transaction.update(customerRef, { orderCount: currentOrderCount + 1 });
 
                 for (let i = 0; i < productDocs.length; i++) {
                     const productDoc = productDocs[i];
@@ -167,11 +179,6 @@ export default function PaymentPage() {
                     const newStock = productDoc.data().stock - cartItem.quantity;
                     transaction.update(productDoc.ref, { stock: newStock });
                 }
-
-                const customerRef = doc(db, "customers", customerId);
-                const customerDoc = await transaction.get(customerRef);
-                const currentOrderCount = customerDoc.data()?.orderCount || 0;
-                transaction.update(customerRef, { orderCount: currentOrderCount + 1 });
             });
             
             toast({
