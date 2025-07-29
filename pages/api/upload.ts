@@ -3,8 +3,9 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { v2 as cloudinary } from 'cloudinary';
 import { IncomingForm, type File } from 'formidable';
 
-// Configure Cloudinary using the CLOUDINARY_URL environment variable
-// The SDK will automatically use the URL if it's set.
+// The Cloudinary SDK will automatically use the CLOUDINARY_URL environment variable.
+// No explicit config is needed if the URL is set.
+// We add a warning here to help with debugging if the variable is not set.
 if (!process.env.CLOUDINARY_URL) {
   console.warn('CLOUDINARY_URL is not set. Please check your environment variables.');
 }
