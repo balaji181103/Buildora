@@ -29,22 +29,22 @@ const uploadFromFile = async (req: NextApiRequest): Promise<{ url: string; publi
             return reject(new Error('Failed to parse form data.'));
         }
 
-        const file = (files.file as File[])[0];
+        const file = Array.isArray(files.file) ? files.file[0] : files.file;
 
-        if (!file) {
-             return reject(new Error('No file uploaded.'));
+        if (!file || !file.filepath) {
+             return reject(new Error('No file uploaded or file path is missing.'));
         }
         
         cloudinary.uploader.upload(
             file.filepath,
             {
-                folder: 'buildora_products',
+                folder: 'buildora_assets',
                 resource_type: 'image',
             },
             (error, result) => {
                 if (error) {
                     console.error('Cloudinary Upload Error:', error);
-                    return reject(new Error('Failed to upload image to Cloudinary.'));
+                    return reject(new Error('Failed to upload image to Cloudinary. Check server logs and credentials.'));
                 }
                 if (!result) {
                     return reject(new Error('Cloudinary did not return a result.'));
