@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CreditCard, Home, PlusCircle, Loader2, Package } from "lucide-react"
+import { CreditCard, Home, PlusCircle, Loader2, Package, Truck } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid'
 import { db } from "@/lib/firebase-client";
@@ -23,7 +23,8 @@ import type { Customer, Address, Order } from "@/lib/types";
 
 
 const deliveryOptions = {
-    standard: { name: 'Standard Delivery', cost: 150, description: '3-5 Business Days', icon: Package },
+    standard: { name: 'Standard Delivery', cost: 0, description: '3-5 Business Days', icon: Package },
+    faster: { name: 'Faster Delivery', cost: 100, description: '1-2 Business Days', icon: Truck },
 };
 
 export default function CheckoutPage() {
@@ -339,7 +340,18 @@ export default function CheckoutPage() {
                                          <RadioGroupItem value="standard" id="standard" />
                                     </div>
                                     <p className="text-sm text-muted-foreground">{deliveryOptions.standard.description}</p>
-                                    <p className="font-bold">₹{deliveryOptions.standard.cost.toFixed(2)}</p>
+                                    <p className="font-bold text-green-600">FREE</p>
+                                </Label>
+                                <Label htmlFor="faster" className="flex flex-col gap-2 rounded-lg border p-4 cursor-pointer hover:bg-accent has-[input:checked]:border-primary">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 font-semibold">
+                                            <Truck className="h-5 w-5" />
+                                            {deliveryOptions.faster.name}
+                                        </div>
+                                         <RadioGroupItem value="faster" id="faster" />
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">{deliveryOptions.faster.description}</p>
+                                    <p className="font-bold">₹{deliveryOptions.faster.cost.toFixed(2)}</p>
                                 </Label>
                              </RadioGroup>
                         </CardContent>
@@ -439,7 +451,7 @@ export default function CheckoutPage() {
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Shipping</span>
-                                    <span>₹{shippingCost.toFixed(2)}</span>
+                                    <span>{shippingCost === 0 ? 'FREE' : `₹${shippingCost.toFixed(2)}`}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-muted-foreground">Taxes (18%)</span>
