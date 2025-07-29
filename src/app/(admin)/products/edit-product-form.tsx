@@ -36,7 +36,7 @@ const ProductFormSchema = z.object({
   length: z.coerce.number().min(0, 'Length must be a positive number.'),
   width: z.coerce.number().min(0, 'Width must be a positive number.'),
   height: z.coerce.number().min(0, 'Height must be a positive number.'),
-  image: z.any().optional(),
+  imageUrl: z.any().optional(),
 });
 
 type ProductFormValues = z.infer<typeof ProductFormSchema>;
@@ -79,7 +79,7 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
       length: product.dimensions.length,
       width: product.dimensions.width,
       height: product.dimensions.height,
-      image: product.imageUrl,
+      imageUrl: product.imageUrl,
     },
   });
 
@@ -99,7 +99,7 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
       reader.onloadend = () => {
         const result = reader.result as string;
         setImagePreview(result);
-        form.setValue('image', file);
+        form.setValue('imageUrl', file);
       };
       reader.readAsDataURL(file);
     }
@@ -108,7 +108,7 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
   const removeImage = () => {
     setImagePreview(null);
     setImageFile(null);
-    form.setValue('image', null);
+    form.setValue('imageUrl', null);
     const fileInput = document.getElementById('image-upload-edit') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
@@ -170,9 +170,9 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
                 finalImageUrl = '';
             }
 
-            (productData as any).imageUrl = finalImageUrl;
+            productData.imageUrl = finalImageUrl;
 
-            await updateDoc(docRef, productData);
+            await updateDoc(docRef, productData as any);
             
             const updatedProductForUI: Product = { 
                 ...product, 
@@ -317,7 +317,7 @@ export function EditProductForm({ product, onProductUpdated }: EditProductFormPr
             />
              <FormField
                 control={form.control}
-                name="image"
+                name="imageUrl"
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Product Image</FormLabel>
