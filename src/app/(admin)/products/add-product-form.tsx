@@ -119,7 +119,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: 'Image upload failed with no error body.' }));
+            const errorData = await response.json().catch(() => ({ message: 'Image upload failed. The server returned an invalid response.' }));
             throw new Error(errorData.message || 'Image upload failed');
         }
 
