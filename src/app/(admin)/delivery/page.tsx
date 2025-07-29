@@ -39,8 +39,7 @@ export default function DeliveryPage() {
   React.useEffect(() => {
     const q = query(
       collection(db, 'orders'),
-      where('status', '==', 'Out for Delivery'),
-      orderBy('date', 'desc')
+      where('status', '==', 'Out for Delivery')
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const ordersData: Order[] = [];
@@ -52,6 +51,8 @@ export default function DeliveryPage() {
           date: data.date.toDate(),
         } as Order);
       });
+      // Sort by date on the client-side
+      ordersData.sort((a, b) => b.date.getTime() - a.date.getTime());
       setDeliveringOrders(ordersData);
       setLoading(false);
     });
