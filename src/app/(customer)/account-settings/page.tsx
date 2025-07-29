@@ -15,7 +15,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase-client';
 import { Customer } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 function ProfileSkeleton() {
   return (
@@ -213,6 +213,9 @@ export default function CustomerSettingsPage() {
                         </Avatar>
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>{name}'s Profile Picture</DialogTitle>
+                        </DialogHeader>
                         <Image src={currentImageUrl!} alt={customer.name} width={500} height={500} className="rounded-md object-contain" />
                     </DialogContent>
                  </Dialog>
@@ -313,5 +316,3 @@ export default function CustomerSettingsPage() {
     </div>
   )
 }
-
-    
