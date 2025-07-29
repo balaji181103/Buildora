@@ -19,6 +19,7 @@ import { db } from "@/lib/firebase-client";
 import { collection, doc, runTransaction, serverTimestamp, onSnapshot } from "firebase/firestore";
 import type { Order, CartItem, Address } from "@/lib/types";
 import { Progress } from "@/components/ui/progress"
+import { cn } from "@/lib/utils"
 
 interface CheckoutOrderDetails {
     cart: CartItem[];
@@ -46,6 +47,7 @@ export default function PaymentPage() {
 
     const [accordionValue, setAccordionValue] = React.useState('card');
     const [timer, setTimer] = React.useState(TIMER_DURATION);
+    const [animateQr, setAnimateQr] = React.useState(false);
     
     React.useEffect(() => {
         let interval: NodeJS.Timeout;
@@ -55,6 +57,7 @@ export default function PaymentPage() {
             }, 1000);
         } else if (timer === 0) {
             setAccordionValue(''); // Close accordion
+            setAnimateQr(true); // Set animation flag when timer expires
         }
 
         return () => clearInterval(interval);
@@ -64,6 +67,8 @@ export default function PaymentPage() {
         setAccordionValue(value);
         if (value === 'qr-code') {
             setTimer(TIMER_DURATION); // Reset timer when QR code is opened
+        } else {
+            setAnimateQr(false); // Reset animation if another accordion is opened
         }
     }
 
@@ -294,7 +299,15 @@ export default function PaymentPage() {
                                     <AccordionContent className="pt-4 flex flex-col items-center gap-4">
                                         <p className="text-sm text-muted-foreground">Scan the QR code with your preferred UPI app.</p>
                                         {paymentQrUrl ? (
-                                            <Image src={paymentQrUrl} width={200} height={200} alt="QR Code for payment" data-ai-hint="qr code" />
+                                            <Image 
+                                                src={paymentQrUrl} 
+                                                width={200} 
+                                                height={200} 
+                                                alt="QR Code for payment" 
+                                                data-ai-hint="qr code"
+                                                className={cn(animateQr && 'animate-rotate-in')}
+                                                onAnimationEnd={() => setAnimateQr(false)}
+                                            />
                                         ) : (
                                             <div className="h-[200px] w-[200px] bg-muted animate-pulse rounded-md flex items-center justify-center">
                                                 <Loader2 className="h-8 w-8 text-muted-foreground" />

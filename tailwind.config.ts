@@ -126,6 +126,16 @@ export default {
             opacity: '1',
           },
         },
+        'rotate-in': {
+          '0%': {
+            transform: 'rotate(0deg) scale(0.8)',
+            opacity: '0.5'
+          },
+          '100%': {
+            transform: 'rotate(360deg) scale(1)',
+            opacity: '1'
+          }
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -134,6 +144,7 @@ export default {
         'slide-in-from-left': 'slide-in-from-left 0.5s ease-out',
         'slide-in-from-right': 'slide-in-from-right 0.5s ease-out',
         'slide-in-from-bottom': 'slide-in-from-bottom 0.5s ease-out',
+        'rotate-in': 'rotate-in 0.6s ease-in-out',
       },
     },
   },
