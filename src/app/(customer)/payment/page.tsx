@@ -184,6 +184,14 @@ export default function PaymentPage() {
         }
     }
 
+    const handlePaymentAction = () => {
+        if (accordionValue === 'qr-code') {
+            handlePlaceOrder();
+        } else {
+            handleAccordionChange('qr-code');
+        }
+    };
+
     if (loading || !orderDetails) {
         return (
              <div className="flex h-96 items-center justify-center">
@@ -364,13 +372,13 @@ export default function PaymentPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <Button size="lg" className="w-full" onClick={handlePlaceOrder} disabled={isPlacingOrder}>
+                    <Button size="lg" className="w-full" onClick={handlePaymentAction} disabled={isPlacingOrder}>
                         {isPlacingOrder ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                         {isPlacingOrder 
                             ? 'Placing Order...' 
                             : accordionValue === 'qr-code'
                             ? 'Confirm Payment After Scanning'
-                            : `Pay Now (₹${total.toFixed(2)})`
+                            : 'Pay with QR Code'
                         }
                     </Button>
                 </div>
