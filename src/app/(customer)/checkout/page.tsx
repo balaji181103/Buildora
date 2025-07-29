@@ -131,6 +131,7 @@ export default function CheckoutPage() {
             cart,
             customerId: customer.id,
             customerName: customer.name,
+            customerEmail: customer.email,
             shippingAddress,
             subtotal,
             shippingCost,
