@@ -54,7 +54,7 @@ export default function PaymentPage() {
             interval = setInterval(() => {
                 setTimer((prevTimer) => prevTimer - 1);
             }, 1000);
-        } else if (timer === 0) {
+        } else if (timer === 0 && accordionValue === 'qr-code') {
             setAccordionValue(''); // Close accordion
         }
 
@@ -282,7 +282,7 @@ export default function PaymentPage() {
                                     <AccordionContent className="pt-4 space-y-2">
                                         <Label htmlFor="upi-id">Your UPI ID</Label>
                                         <Input id="upi-id" placeholder="yourname@bank" />
-                                        <Button>Verify &amp; Pay</Button>
+                                        <Button>Verify & Pay</Button>
                                     </AccordionContent>
                                 </AccordionItem>
                                  <AccordionItem value="qr-code">
@@ -311,6 +311,9 @@ export default function PaymentPage() {
                                             <Progress value={(timer / TIMER_DURATION) * 100} />
                                             <p className="text-xs text-muted-foreground text-center">
                                                 QR code expires in {timer} seconds
+                                            </p>
+                                            <p className="font-semibold text-center pt-2">
+                                                Pay: ₹{total.toFixed(2)}
                                             </p>
                                         </div>
                                     </AccordionContent>
