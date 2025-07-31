@@ -68,6 +68,8 @@ export default function SuppliersPage() {
       return [];
   }
 
+  const validSuppliers = suppliers.filter(s => s && s.name);
+
   return (
     <Card>
       <CardHeader>
@@ -119,10 +121,10 @@ export default function SuppliersPage() {
                         <Loader2 className="h-6 w-6 animate-spin" />
                     </TableCell>
                 </TableRow>
-            ) : suppliers.map((supplier) => (
+            ) : validSuppliers.map((supplier) => (
               <TableRow key={supplier.id}>
                 <TableCell className="font-medium">
-                  {supplier?.name}
+                  {supplier.name}
                 </TableCell>
                 <TableCell>
                     <div>{supplier.contactPerson}</div>
