@@ -108,7 +108,7 @@ export default function PaymentPage() {
         }
 
         setIsPlacingOrder(true);
-        const { cart, customerId, customerName, shippingAddress, total } = orderDetails;
+        const { cart, customerId, customerName, shippingAddress, total, subtotal } = orderDetails;
         
         let finalOrderId: string | null = null;
         try {
@@ -145,8 +145,14 @@ export default function PaymentPage() {
                     nextOrderId = counterDoc.data().current + 1;
                 }
                 finalOrderId = String(nextOrderId);
-                const currentOrderCount = customerDoc.data()?.orderCount || 0;
                 
+                // Loyalty Points Calculation
+                const customerData = customerDoc.data();
+                const currentOrderCount = customerData?.orderCount || 0;
+                const currentLoyaltyPoints = customerData?.loyaltyPoints || 0;
+                const pointsFromThisOrder = Math.floor(subtotal * 0.02);
+                const newLoyaltyPoints = currentLoyaltyPoints + pointsFromThisOrder;
+
                 const newOrderRef = doc(db, "orders", finalOrderId);
                 const orderItems = cart.map(item => ({
                     productId: item.product.id,
@@ -167,7 +173,10 @@ export default function PaymentPage() {
 
                 transaction.set(newOrderRef, newOrder);
                 transaction.set(counterRef, { current: nextOrderId }, { merge: true });
-                transaction.update(customerRef, { orderCount: currentOrderCount + 1 });
+                transaction.update(customerRef, { 
+                    orderCount: currentOrderCount + 1,
+                    loyaltyPoints: newLoyaltyPoints
+                });
 
                 for (let i = 0; i < productDocsSnap.length; i++) {
                     const productDoc = productDocsSnap[i];
