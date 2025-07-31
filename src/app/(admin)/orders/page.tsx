@@ -35,7 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Order } from "@/lib/types";
-import { MoreHorizontal, PlusCircle, FileText, Edit, Package, Waypoints, Loader2, Clock, CheckCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, FileText, Edit, Package, Waypoints, Loader2, Clock, CheckCircle, Truck } from "lucide-react"
 import Link from "next/link"
 import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, where, limit } from "firebase/firestore";
@@ -48,6 +48,7 @@ export default function OrdersPage() {
   const [allOrders, setAllOrders] = React.useState<Order[]>([]);
   const [recentOrders, setRecentOrders] = React.useState<Order[]>([]);
   const [pendingOrders, setPendingOrders] = React.useState<Order[]>([]);
+  const [outForDeliveryOrders, setOutForDeliveryOrders] = React.useState<Order[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
 
@@ -92,11 +93,24 @@ export default function OrdersPage() {
         setPendingOrders(ordersData);
     });
 
+    // Listener for out for delivery orders
+    const outForDeliveryQuery = query(collection(db, "orders"), where("status", "==", "Out for Delivery"));
+    const unsubOutForDelivery = onSnapshot(outForDeliveryQuery, (snapshot) => {
+        const ordersData: Order[] = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            ordersData.push({ id: doc.id, ...data, date: data.date.toDate() } as Order);
+        });
+        ordersData.sort((a, b) => b.date.getTime() - a.date.getTime());
+        setOutForDeliveryOrders(ordersData);
+    });
+
 
     return () => {
         unsubAll();
         unsubRecent();
         unsubPending();
+        unsubOutForDelivery();
     };
   }, []);
 
@@ -165,15 +179,42 @@ export default function OrdersPage() {
   return (
     <>
     <div className="space-y-6">
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5"/> Pending Orders</CardTitle>
+                <CardDescription>These orders are still in processing and need attention.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {pendingOrders.length === 0 ? (
+                            <TableRow><TableCell colSpan={5} className="h-24 text-center">No pending orders.</TableCell></TableRow>
+                        ) : (
+                            pendingOrders.map(renderOrderRow)
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+        
         <div className="grid gap-6 md:grid-cols-2">
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5"/> Pending Orders</CardTitle>
-                    <CardDescription>These orders are still in processing and need attention.</CardDescription>
+                    <CardTitle className="flex items-center gap-2"><Truck className="h-5 w-5"/> Out for Delivery</CardTitle>
+                    <CardDescription>Orders currently on their way to the customer.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
-                        <TableHeader>
+                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 <TableHead>Customer</TableHead>
@@ -183,16 +224,16 @@ export default function OrdersPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {pendingOrders.length === 0 ? (
-                                <TableRow><TableCell colSpan={5} className="h-24 text-center">No pending orders.</TableCell></TableRow>
+                            {outForDeliveryOrders.length === 0 ? (
+                                <TableRow><TableCell colSpan={5} className="h-24 text-center">No orders are out for delivery.</TableCell></TableRow>
                             ) : (
-                                pendingOrders.map(renderOrderRow)
+                                outForDeliveryOrders.map(renderOrderRow)
                             )}
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
-             <Card>
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5"/> Recent Orders</CardTitle>
                     <CardDescription>The last 5 orders that have been placed.</CardDescription>
