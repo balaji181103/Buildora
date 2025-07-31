@@ -80,13 +80,15 @@ export default function OrdersPage() {
     });
 
     // Listener for pending orders
-    const pendingOrdersQuery = query(collection(db, "orders"), where("status", "==", "Processing"), orderBy("date", "desc"));
+    const pendingOrdersQuery = query(collection(db, "orders"), where("status", "==", "Processing"));
     const unsubPending = onSnapshot(pendingOrdersQuery, (snapshot) => {
         const ordersData: Order[] = [];
         snapshot.forEach(doc => {
             const data = doc.data();
             ordersData.push({ id: doc.id, ...data, date: data.date.toDate() } as Order);
         });
+        // Sort client-side to avoid composite index
+        ordersData.sort((a, b) => b.date.getTime() - a.date.getTime());
         setPendingOrders(ordersData);
     });
 
