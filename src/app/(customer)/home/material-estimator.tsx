@@ -83,10 +83,19 @@ export function MaterialEstimator() {
 
   const cementForm = useForm<CementFormValues>({
     resolver: zodResolver(cementSchema),
+    defaultValues: {
+      length: 0,
+      width: 0,
+      thickness: 0,
+    }
   });
 
   const brickForm = useForm<BrickFormValues>({
     resolver: zodResolver(brickSchema),
+     defaultValues: {
+      length: 0,
+      height: 0,
+    }
   });
 
   const onCementSubmit = (data: CementFormValues) => {
