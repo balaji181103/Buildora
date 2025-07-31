@@ -37,11 +37,10 @@ export function OrderStatusTracker({ currentStatus }: { currentStatus: OrderStat
                         <div className="flex flex-col items-center gap-2 text-center w-full">
                             <div className={cn(
                                 "flex h-12 w-12 items-center justify-center rounded-full transition-colors duration-300",
-                                index < activeStepIndex ? "bg-primary text-primary-foreground" :
-                                index === activeStepIndex ? "bg-orange-500 text-white" :
+                                index <= activeStepIndex ? "bg-primary text-primary-foreground" :
                                 "bg-muted text-muted-foreground"
                             )}>
-                                {step.icon}
+                                {index < activeStepIndex ? <Check className="h-6 w-6" /> : step.icon}
                             </div>
                             <p className={cn(
                                 "text-sm font-medium transition-colors duration-300",
