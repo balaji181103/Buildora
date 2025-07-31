@@ -29,6 +29,7 @@ import {
   Truck,
   QrCode,
   Database,
+  Trash2,
 } from 'lucide-react';
 
 const navItems = [
@@ -43,6 +44,10 @@ const navItems = [
   { href: '/qr', icon: QrCode, label: 'QR' },
   { href: '/appearance', icon: ImageIcon, label: 'Appearance' },
 ];
+
+const utilityItems = [
+    { href: '/seeder', icon: Trash2, label: 'Data Manager' },
+]
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -74,6 +79,20 @@ export function AppSidebar() {
         <SidebarMenu>
           {navItems.map((item) => (
             <SidebarMenuItem key={item.href}>
+              <Link href={item.href}>
+                <SidebarMenuButton
+                  isActive={isActive(item.href)}
+                  tooltip={{ children: item.label, side: 'right', align: 'center' }}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
+          <Separator className="my-2" />
+          {utilityItems.map((item) => (
+             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
                   isActive={isActive(item.href)}
