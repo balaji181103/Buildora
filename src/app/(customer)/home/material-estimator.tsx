@@ -5,6 +5,7 @@ import * as React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Select,
   SelectContent,
@@ -33,6 +35,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Calculator, AlertTriangle } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 // --- Cement Estimation ---
 const cementSchema = z.object({
@@ -46,7 +50,9 @@ type CementFormValues = z.infer<typeof cementSchema>;
 const brickSchema = z.object({
   length: z.coerce.number().positive('Length must be positive'),
   height: z.coerce.number().positive('Height must be positive'),
-  brickType: z.enum(['red_brick', 'alo_block']),
+  brickType: z.enum(['red_brick', 'alo_block'], {
+    required_error: "You need to select a brick type."
+  }),
 });
 type BrickFormValues = z.infer<typeof brickSchema>;
 
@@ -181,7 +187,7 @@ export function MaterialEstimator() {
                 onSubmit={brickForm.handleSubmit(onBrickSubmit)}
                 className="space-y-6"
               >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={brickForm.control}
                     name="length"
@@ -208,28 +214,51 @@ export function MaterialEstimator() {
                       </FormItem>
                     )}
                   />
-                   <FormField
-                      control={brickForm.control}
-                      name="brickType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Brick/Block Type</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="red_brick">Red Brick</SelectItem>
-                              <SelectItem value="alo_block">ALO/AAC Block</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                 </div>
+                
+                 <FormField
+                  control={brickForm.control}
+                  name="brickType"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Brick/Block Type</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                        >
+                          <FormItem>
+                            <Label htmlFor="red_brick" className="block cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm has-[:checked]:border-primary">
+                                <RadioGroupItem value="red_brick" id="red_brick" className="sr-only" />
+                                <CardContent className="p-4 flex items-center gap-4">
+                                    <Image src="https://placehold.co/80x80.png" alt="Red brick" width={80} height={80} className="rounded-md" data-ai-hint="red brick" />
+                                    <div>
+                                        <h3 className="font-semibold">Red Brick</h3>
+                                        <p className="text-sm text-muted-foreground">Standard clay bricks.</p>
+                                    </div>
+                                </CardContent>
+                            </Label>
+                          </FormItem>
+                          <FormItem>
+                            <Label htmlFor="alo_block" className="block cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm has-[:checked]:border-primary">
+                               <RadioGroupItem value="alo_block" id="alo_block" className="sr-only" />
+                               <CardContent className="p-4 flex items-center gap-4">
+                                    <Image src="https://placehold.co/80x80.png" alt="ALO/AAC Block" width={80} height={80} className="rounded-md" data-ai-hint="concrete block" />
+                                    <div>
+                                        <h3 className="font-semibold">ALO/AAC Block</h3>
+                                        <p className="text-sm text-muted-foreground">Lightweight concrete blocks.</p>
+                                    </div>
+                                </CardContent>
+                            </Label>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <Button type="submit">Calculate Bricks</Button>
               </form>
             </Form>
