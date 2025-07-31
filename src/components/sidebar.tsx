@@ -28,6 +28,7 @@ import {
   Image as ImageIcon,
   Truck,
   QrCode,
+  Database,
 } from 'lucide-react';
 
 const navItems = [
@@ -41,6 +42,7 @@ const navItems = [
   { href: '/delivery', icon: Truck, label: 'Delivery' },
   { href: '/qr', icon: QrCode, label: 'QR' },
   { href: '/appearance', icon: ImageIcon, label: 'Appearance' },
+  { href: '/seeder', icon: Database, label: 'Data Seeder' },
 ];
 
 export function AppSidebar() {
