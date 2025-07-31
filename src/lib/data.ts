@@ -1,5 +1,4 @@
 
-
 import type { Order, Product, Customer, LoyaltyData, Address, Supplier } from '@/lib/types';
 
 // Mock data for components that are not yet connected to Firestore
