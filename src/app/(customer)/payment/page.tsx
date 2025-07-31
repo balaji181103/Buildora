@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { CreditCard, Loader2, QrCode } from "lucide-react"
+import { CreditCard, Loader2, QrCode, Star } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/lib/firebase-client";
 import { collection, doc, runTransaction, serverTimestamp, onSnapshot } from "firebase/firestore";
@@ -223,6 +223,7 @@ export default function PaymentPage() {
     }
 
     const { cart, subtotal, shippingCost, taxes, total } = orderDetails;
+    const pointsEarned = Math.floor(subtotal * 0.02);
 
     return (
         <div className="flex flex-col gap-8">
@@ -386,6 +387,13 @@ export default function PaymentPage() {
                                     <span className="text-muted-foreground">Taxes (18%)</span>
                                     <span>₹{taxes.toFixed(2)}</span>
                                 </div>
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <span className="flex items-center gap-1 font-medium">
+                                        <Star className="h-4 w-4" />
+                                        Points You'll Earn
+                                    </span>
+                                    <span className="font-bold">{pointsEarned}</span>
+                                </div>
                                 <Separator />
                                 <div className="flex justify-between font-bold text-base">
                                     <span>Total</span>
@@ -408,3 +416,5 @@ export default function PaymentPage() {
         </div>
     )
 }
+
+    

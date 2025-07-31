@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb"
-import { PlusCircle, Loader2, Package, Truck } from "lucide-react"
+import { PlusCircle, Loader2, Package, Truck, Star } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid'
 import { db } from "@/lib/firebase-client";
@@ -80,6 +80,7 @@ export default function CheckoutPage() {
 
     const shippingCost = deliveryOptions[selectedDeliveryMethod as keyof typeof deliveryOptions]?.cost || 0;
     const taxes = subtotal * 0.18; // Mock 18% tax
+    const pointsEarned = Math.floor(subtotal * 0.02);
     const total = subtotal + shippingCost + taxes;
 
     const handleSaveAddress = async () => {
@@ -326,6 +327,13 @@ export default function CheckoutPage() {
                                     <span className="text-muted-foreground">Taxes (18%)</span>
                                     <span>₹{taxes.toFixed(2)}</span>
                                 </div>
+                                <div className="flex justify-between text-green-600 dark:text-green-400">
+                                    <span className="flex items-center gap-1 font-medium">
+                                        <Star className="h-4 w-4" />
+                                        Points You'll Earn
+                                    </span>
+                                    <span className="font-bold">{pointsEarned}</span>
+                                </div>
                                 <Separator />
                                 <div className="flex justify-between font-bold text-base">
                                     <span>Total</span>
@@ -343,5 +351,7 @@ export default function CheckoutPage() {
         </div>
     )
 }
+
+    
 
     
