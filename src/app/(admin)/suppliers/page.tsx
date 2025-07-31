@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from "react";
@@ -46,7 +45,7 @@ export default function SuppliersPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
-    const q = query(collection(db, "suppliers"), orderBy("name"));
+    const q = query(collection(db, "suppliers"), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const suppliersData: Supplier[] = [];
         snapshot.forEach(doc => {
