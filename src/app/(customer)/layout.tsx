@@ -119,7 +119,7 @@ export default function CustomerLayout({
 
   const totalCartItems = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  const showFloatingCart = pathname !== '/cart' && pathname !== '/checkout';
+  const showFloatingCart = pathname !== '/cart' && pathname !== '/checkout' && pathname !== '/payment';
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
