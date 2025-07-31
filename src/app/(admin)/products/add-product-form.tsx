@@ -20,11 +20,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
-import { Trash2 } from 'lucide-react';
+import { Loader2, Trash2, Wand2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/lib/firebase-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { collection as firestoreCollection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { generateProductListing } from '@/ai/flows/generate-product-listing-flow';
+import { dataUriToFile } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
@@ -46,6 +50,10 @@ type ProductFormValues = z.infer<typeof ProductFormSchema>;
 
 export function AddProductForm({ onProductAdded }: { onProductAdded: () => void }) {
   const [isPending, startTransition] = useTransition();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiProductName, setAiProductName] = useState('');
+  const [aiKeywords, setAiKeywords] = useState('');
+
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -111,6 +119,32 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     const fileInput = document.getElementById('image-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
+
+  const handleGenerate = async () => {
+    if (!aiProductName) {
+        toast({ variant: 'destructive', title: 'Product name is required for AI generation.' });
+        return;
+    }
+    setIsGenerating(true);
+    try {
+        const result = await generateProductListing({ name: aiProductName, keywords: aiKeywords });
+        if (result.description) {
+            form.setValue('description', result.description);
+        }
+        if (result.imageDataUri) {
+            setImagePreview(result.imageDataUri);
+            const file = await dataUriToFile(result.imageDataUri, `${aiProductName.replace(/\s+/g, '_')}.png`, 'image/png');
+            setImageFile(file);
+            form.setValue('image', file);
+        }
+        form.setValue('name', aiProductName);
+    } catch (error) {
+        console.error("AI Generation Error: ", error);
+        toast({ variant: 'destructive', title: 'AI Generation Failed', description: 'Could not generate product details. Please try again.' });
+    } finally {
+        setIsGenerating(false);
+    }
+  };
 
   async function uploadImage(file: File): Promise<{ url: string } | null> {
     const formData = new FormData();
@@ -201,248 +235,289 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
 
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Power Drill Kit" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Tools" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-        </div>
+    <div className="space-y-6">
+        <Card className="bg-muted/50">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Wand2 /> AI Listing Generator</CardTitle>
+                <CardDescription>
+                    Enter a product name and some keywords, and let AI generate the description and a product image for you.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="ai-product-name">Product Name *</Label>
+                        <Input 
+                            id="ai-product-name"
+                            placeholder="e.g., Heavy Duty Angle Grinder"
+                            value={aiProductName}
+                            onChange={(e) => setAiProductName(e.target.value)} 
+                            disabled={isGenerating}
+                        />
+                    </div>
+                    <div>
+                        <Label htmlFor="ai-keywords">Keywords</Label>
+                        <Input 
+                            id="ai-keywords"
+                            placeholder="e.g., 5-inch, powerful, metal cutting"
+                            value={aiKeywords}
+                            onChange={(e) => setAiKeywords(e.target.value)} 
+                            disabled={isGenerating}
+                        />
+                    </div>
+                </div>
+                <Button onClick={handleGenerate} disabled={isGenerating || !aiProductName}>
+                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    {isGenerating ? 'Generating...' : 'Generate with AI'}
+                </Button>
+            </CardContent>
+        </Card>
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Tell us a little bit about the product"
-                  className="resize-none"
-                  {...field}
+        <Separator />
+    
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Product Name</FormLabel>
+                    <FormControl>
+                        <Input placeholder="e.g., Power Drill Kit" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-       
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                        <Input placeholder="e.g., Tools" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+
             <FormField
             control={form.control}
-            name="stock"
+            name="description"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Stock</FormLabel>
+                <FormLabel>Description</FormLabel>
                 <FormControl>
-                    <Input type="number" {...field} />
+                    <Textarea
+                    placeholder="Tell us a little bit about the product"
+                    className="resize-none h-24"
+                    {...field}
+                    />
                 </FormControl>
                 <FormMessage />
                 </FormItem>
             )}
             />
-             <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Price (₹)</FormLabel>
-                <FormControl>
-                    <Input type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
-        </div>
         
-        <div>
-            <FormLabel>Weight</FormLabel>
-            <div className="grid grid-cols-4 gap-4 mt-2">
-                 <div className="col-span-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="stock"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Stock</FormLabel>
+                    <FormControl>
+                        <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Price (₹)</FormLabel>
+                    <FormControl>
+                        <Input type="number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+            </div>
+            
+            <div>
+                <FormLabel>Weight</FormLabel>
+                <div className="grid grid-cols-4 gap-4 mt-2">
+                    <div className="col-span-3">
+                        <FormField
+                            control={form.control}
+                            name="weight"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormControl>
+                                    <Input type="number" step="0.1" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
                     <FormField
                         control={form.control}
-                        name="weight"
+                        name="weightUnit"
+                        render={({ field }) => (
+                            <FormItem>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Unit" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="kg">kg</SelectItem>
+                                    <SelectItem value="g">g</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                control={form.control}
+                name="supplier"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Supplier</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a supplier" />
+                        </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                        {suppliers.map(supplier => (
+                            <SelectItem key={supplier.id} value={supplier.name}>
+                            {supplier.name}
+                            </SelectItem>
+                        ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                <FormField
+                    control={form.control}
+                    name="image"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Product Image</FormLabel>
+                        <div className="flex items-center gap-4">
+                            <FormControl>
+                            <Input 
+                                id="image-upload"
+                                type="file" 
+                                accept="image/png, image/jpeg, image/webp, image/jpg"
+                                onChange={handleImageChange}
+                                className="max-w-xs"
+                            />
+                            </FormControl>
+                            {imagePreview && (
+                            <div className="relative h-20 w-20 shrink-0">
+                                <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-md border p-1" />
+                                <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 z-10 h-6 w-6" onClick={removeImage}>
+                                <Trash2 className="h-3 w-3" />
+                                </Button>
+                            </div>
+                            )}
+                        </div>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+            </div>
+        
+            <div>
+                <FormLabel>Dimensions</FormLabel>
+                <div className="grid grid-cols-4 gap-4 mt-2">
+                    <FormField
+                        control={form.control}
+                        name="length"
                         render={({ field }) => (
                             <FormItem>
                             <FormControl>
-                                <Input type="number" step="0.1" {...field} />
+                                <Input type="number" placeholder="Length" {...field} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
                         )}
                     />
-                 </div>
-                 <FormField
-                    control={form.control}
-                    name="weightUnit"
-                    render={({ field }) => (
-                        <FormItem>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormField
+                        control={form.control}
+                        name="width"
+                        render={({ field }) => (
+                            <FormItem>
                             <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Unit" />
-                            </SelectTrigger>
+                                <Input type="number" placeholder="Width" {...field} />
                             </FormControl>
-                            <SelectContent>
-                                <SelectItem value="kg">kg</SelectItem>
-                                <SelectItem value="g">g</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="supplier"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Supplier</FormLabel>
-                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a supplier" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {suppliers.map(supplier => (
-                        <SelectItem key={supplier.id} value={supplier.name}>
-                          {supplier.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Product Image</FormLabel>
-                    <div className="flex items-center gap-4">
-                        <FormControl>
-                        <Input 
-                            id="image-upload"
-                            type="file" 
-                            accept="image/png, image/jpeg, image/webp, image/jpg"
-                            onChange={handleImageChange}
-                            className="max-w-xs"
-                        />
-                        </FormControl>
-                        {imagePreview && (
-                        <div className="relative h-20 w-20 shrink-0">
-                            <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-md border p-1" />
-                            <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 z-10 h-6 w-6" onClick={removeImage}>
-                            <Trash2 className="h-3 w-3" />
-                            </Button>
-                        </div>
+                            <FormMessage />
+                            </FormItem>
                         )}
-                    </div>
-                    <FormMessage />
-                    </FormItem>
-                )}
-                />
-        </div>
-       
-        <div>
-            <FormLabel>Dimensions</FormLabel>
-            <div className="grid grid-cols-4 gap-4 mt-2">
-                <FormField
-                    control={form.control}
-                    name="length"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormControl>
-                            <Input type="number" placeholder="Length" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="width"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormControl>
-                            <Input type="number" placeholder="Width" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                 <FormField
-                    control={form.control}
-                    name="height"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormControl>
-                            <Input type="number" placeholder="Height" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="dimensionUnit"
-                    render={({ field }) => (
-                        <FormItem>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    />
+                    <FormField
+                        control={form.control}
+                        name="height"
+                        render={({ field }) => (
+                            <FormItem>
                             <FormControl>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Unit" />
-                            </SelectTrigger>
+                                <Input type="number" placeholder="Height" {...field} />
                             </FormControl>
-                            <SelectContent>
-                                <SelectItem value="cm">cm</SelectItem>
-                                <SelectItem value="inch">inch</SelectItem>
-                                <SelectItem value="ft">ft</SelectItem>
-                                <SelectItem value="mm">mm</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="dimensionUnit"
+                        render={({ field }) => (
+                            <FormItem>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Unit" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="cm">cm</SelectItem>
+                                    <SelectItem value="inch">inch</SelectItem>
+                                    <SelectItem value="ft">ft</SelectItem>
+                                    <SelectItem value="mm">mm</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
             </div>
-        </div>
-        
-        <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? 'Adding...' : 'Add Product'}
-        </Button>
-      </form>
-    </Form>
+            
+            <Button type="submit" disabled={isPending} className="w-full">
+            {isPending ? 'Adding...' : 'Add Product'}
+            </Button>
+        </form>
+        </Form>
+    </div>
   );
 }
