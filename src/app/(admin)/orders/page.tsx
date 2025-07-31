@@ -268,7 +268,7 @@ export default function OrdersPage() {
                         {outForDeliveryOrders.length === 0 ? (
                             <TableRow><TableCell colSpan={5} className="h-24 text-center">No orders are out for delivery.</TableCell></TableRow>
                         ) : (
-                            outForDeliveryOrders.map(renderOrderRow)
+                            outForDeliveryOrders.map(order => renderOrderRow(order))
                         )}
                     </TableBody>
                 </Table>
