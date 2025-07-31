@@ -8,11 +8,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { db } from '@/lib/firebase-client';
-import { collection, getDocs, writeBatch, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, writeBatch } from 'firebase/firestore';
 import { AlertTriangle, Loader2, Trash2 } from 'lucide-react';
 import {
   AlertDialog,
@@ -26,52 +27,52 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+const collectionsToManage = [
+    { name: 'orders', title: 'Orders', description: 'all customer orders.' },
+    { name: 'customers', title: 'Customers', description: 'all customer accounts and data.' },
+    { name: 'suppliers', title: 'Suppliers', description: 'all supplier information.' },
+    { name: 'products', title: 'Products', description: 'all product listings from inventory.' },
+];
 
 export default function SeederPage() {
   const { toast } = useToast();
-  const [isClearing, setIsClearing] = React.useState(false);
+  const [clearingStates, setClearingStates] = React.useState<Record<string, boolean>>({});
 
-  const clearCollection = async (collectionName: string) => {
+  const handleClearCollection = async (collectionName: string) => {
+    setClearingStates(prev => ({ ...prev, [collectionName]: true }));
     try {
       const collectionRef = collection(db, collectionName);
       const querySnapshot = await getDocs(collectionRef);
+      
+      if (querySnapshot.empty) {
+        toast({
+            title: 'Collection is Already Empty',
+            description: `The '${collectionName}' collection has no documents to delete.`,
+        });
+        return;
+      }
+
       const batch = writeBatch(db);
       querySnapshot.forEach((doc) => {
         batch.delete(doc.ref);
       });
       await batch.commit();
-      return { success: true, count: querySnapshot.size };
+
+      toast({
+            title: 'Collection Cleared',
+            description: `Successfully deleted ${querySnapshot.size} documents from '${collectionName}'.`,
+      });
+
     } catch (error: any) {
       console.error(`Error clearing ${collectionName}:`, error);
-      return { success: false, error: error.message };
-    }
-  };
-
-  const handleClearData = async () => {
-    setIsClearing(true);
-    const results = await Promise.all([
-      clearCollection('orders'),
-      clearCollection('customers'),
-      clearCollection('suppliers'),
-    ]);
-
-    const errors = results.filter(r => !r.success);
-    
-    if (errors.length > 0) {
-        toast({
+       toast({
             variant: 'destructive',
-            title: 'Error Clearing Data',
-            description: `Could not clear all collections. Please check the console.`,
+            title: 'Error Clearing Collection',
+            description: `Could not clear '${collectionName}'. See console for details.`,
         });
-    } else {
-        const totalCount = results.reduce((acc, r) => acc + (r.count || 0), 0);
-        toast({
-            title: 'Data Cleared Successfully',
-            description: `Removed ${totalCount} total documents.`,
-        });
+    } finally {
+        setClearingStates(prev => ({ ...prev, [collectionName]: false }));
     }
-
-    setIsClearing(false);
   };
 
 
@@ -82,55 +83,56 @@ export default function SeederPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Data Management</h1>
           <p className="text-muted-foreground">
-            Use these utilities to manage your Firestore data.
+            Use these utilities to permanently delete data from your Firestore collections. This action cannot be undone.
           </p>
         </div>
       </div>
 
-      <Card className="border-destructive">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" /> Clear Transactional Data
-          </CardTitle>
-          <CardDescription>
-            This will permanently delete all customers, suppliers, and orders
-            from your Firestore database. Products will not be affected. This
-            action cannot be undone.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={isClearing}>
-                {isClearing ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="mr-2 h-4 w-4" />
-                )}
-                Clear All Data
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete all
-                  customers, suppliers, and orders from your database.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleClearData}
-                  className="bg-destructive hover:bg-destructive/90"
-                >
-                  Yes, delete all data
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 md:grid-cols-2">
+        {collectionsToManage.map((item) => (
+            <Card key={item.name} className="border-destructive">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5" /> Clear {item.title}
+                    </CardTitle>
+                    <CardDescription>
+                        This will permanently delete {item.description}
+                    </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                    <Button variant="destructive" disabled={clearingStates[item.name]}>
+                        {clearingStates[item.name] ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        )}
+                        Clear {item.title}
+                    </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete all data from the '{item.name}' collection.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                        onClick={() => handleClearCollection(item.name)}
+                        className="bg-destructive hover:bg-destructive/90"
+                        >
+                        Yes, delete all data
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                </CardFooter>
+            </Card>
+        ))}
+      </div>
     </div>
   );
 }
