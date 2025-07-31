@@ -110,7 +110,7 @@ export function MaterialEstimator() {
       <CardContent>
         <Tabs defaultValue="cement">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="cement">Cement for Slab</TabsTrigger>
+            <TabsTrigger value="cement">Cement for Roof Concrete</TabsTrigger>
             <TabsTrigger value="bricks">Bricks for Wall</TabsTrigger>
           </TabsList>
           <TabsContent value="cement" className="mt-6">
@@ -125,7 +125,7 @@ export function MaterialEstimator() {
                     name="length"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Slab Length (ft)</FormLabel>
+                        <FormLabel>Roof Length (ft)</FormLabel>
                         <FormControl>
                           <Input type="number" step="0.1" {...field} />
                         </FormControl>
@@ -138,7 +138,7 @@ export function MaterialEstimator() {
                     name="width"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Slab Width (ft)</FormLabel>
+                        <FormLabel>Roof Width (ft)</FormLabel>
                         <FormControl>
                           <Input type="number" step="0.1" {...field} />
                         </FormControl>
@@ -151,7 +151,7 @@ export function MaterialEstimator() {
                     name="thickness"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Slab Thickness (in)</FormLabel>
+                        <FormLabel>Roof Thickness (in)</FormLabel>
                         <FormControl>
                           <Input type="number" step="0.1" {...field} />
                         </FormControl>
@@ -170,7 +170,7 @@ export function MaterialEstimator() {
                 <AlertDescription>
                   You will need approximately{' '}
                   <span className="font-bold">{cementResult} bags</span> of
-                  cement (50kg each) for a standard M20 grade concrete slab.
+                  cement (50kg each) for a standard M20 grade roof concrete.
                 </AlertDescription>
               </Alert>
             )}
