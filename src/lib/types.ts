@@ -1,6 +1,6 @@
 
 
-export type OrderStatus = 'Pending' | 'Processing' | 'Out for Delivery' | 'Delivered' | 'Cancelled';
+export type OrderStatus = 'Pending' | 'Processing' | 'At Hub' | 'Out for Delivery' | 'Delivered' | 'Cancelled' | 'Ready for Pickup';
 
 export type OrderItem = {
   productId: string;

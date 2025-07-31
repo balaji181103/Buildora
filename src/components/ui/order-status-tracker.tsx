@@ -3,17 +3,27 @@
 
 import * as React from 'react';
 import { cn } from "@/lib/utils";
-import { Check, Package, ClipboardList, PackageCheck } from "lucide-react";
+import { Check, Package, ClipboardList, PackageCheck, Warehouse, Truck } from "lucide-react";
 import type { OrderStatus } from "@/lib/types";
 
 const stepsData: { name: string; icon: React.ReactNode; status: OrderStatus }[] = [
     { name: "Order Placed", icon: <ClipboardList className="h-6 w-6" />, status: 'Pending' },
     { name: "Processing", icon: <Package className="h-6 w-6" />, status: 'Processing' },
-    { name: "Out for Delivery", icon: <Package className="h-6 w-6" />, status: 'Out for Delivery' },
-    { name: "Delivered", icon: <Check className="h-6 w-6" />, status: 'Delivered' }
+    { name: "At Hub", icon: <Warehouse className="h-6 w-6" />, status: 'At Hub' },
+    { name: "Out for Delivery", icon: <Truck className="h-6 w-6" />, status: 'Out for Delivery' },
+    { name: "Delivered", icon: <PackageCheck className="h-6 w-6" />, status: 'Delivered' }
 ];
 
 export function OrderStatusTracker({ currentStatus }: { currentStatus: OrderStatus }) {
+
+    // Handle 'Cancelled' status by showing no progress
+    if (currentStatus === 'Cancelled') {
+        return (
+            <div className="p-6 bg-card rounded-lg border text-center">
+                <p className="text-lg font-semibold text-destructive">Order Cancelled</p>
+            </div>
+        );
+    }
 
     const steps = stepsData;
 
