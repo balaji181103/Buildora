@@ -50,10 +50,12 @@ export default function SuppliersPage() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const suppliersData: Supplier[] = [];
         snapshot.forEach(doc => {
-            // We push the data as-is, the rendering logic will handle checks
             suppliersData.push({ id: doc.id, ...doc.data() } as Supplier);
         });
         setSuppliers(suppliersData);
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching suppliers:", error);
         setLoading(false);
     });
 
@@ -95,7 +97,7 @@ export default function SuppliersPage() {
                   <DialogDescription>
                     Enter the details of the new supplier below.
                   </DialogDescription>
-                </Header>
+                </DialogHeader>
                 <AddSupplierForm onSupplierAdded={handleSupplierAdded} />
               </DialogContent>
             </Dialog>
