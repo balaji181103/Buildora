@@ -35,7 +35,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Order } from "@/lib/types";
-import { MoreHorizontal, PlusCircle, FileText, Edit, Package, Waypoints, Loader2, Clock, CheckCircle, Truck } from "lucide-react"
+import { MoreHorizontal, PlusCircle, FileText, Edit, Package, Waypoints, Loader2, Clock, CheckCircle, Truck, Send } from "lucide-react"
 import Link from "next/link"
 import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, query, orderBy, doc, updateDoc, where, limit } from "firebase/firestore";
@@ -46,7 +46,7 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
   const [allOrders, setAllOrders] = React.useState<Order[]>([]);
-  const [recentOrders, setRecentOrders] = React.useState<Order[]>([]);
+  const [newOrders, setNewOrders] = React.useState<Order[]>([]);
   const [pendingOrders, setPendingOrders] = React.useState<Order[]>([]);
   const [outForDeliveryOrders, setOutForDeliveryOrders] = React.useState<Order[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -69,15 +69,16 @@ export default function OrdersPage() {
         setLoading(false);
     });
 
-    // Listener for recent orders
-    const recentOrdersQuery = query(collection(db, "orders"), orderBy("date", "desc"), limit(5));
-    const unsubRecent = onSnapshot(recentOrdersQuery, (snapshot) => {
+    // Listener for new orders
+    const newOrdersQuery = query(collection(db, "orders"), where("status", "==", "Pending"));
+    const unsubNew = onSnapshot(newOrdersQuery, (snapshot) => {
         const ordersData: Order[] = [];
         snapshot.forEach(doc => {
             const data = doc.data();
             ordersData.push({ id: doc.id, ...data, date: data.date.toDate() } as Order);
         });
-        setRecentOrders(ordersData);
+        ordersData.sort((a, b) => b.date.getTime() - a.date.getTime());
+        setNewOrders(ordersData);
     });
 
     // Listener for pending orders
@@ -108,7 +109,7 @@ export default function OrdersPage() {
 
     return () => {
         unsubAll();
-        unsubRecent();
+        unsubNew();
         unsubPending();
         unsubOutForDelivery();
     };
@@ -147,21 +148,23 @@ export default function OrdersPage() {
     )
   }
 
-  const renderOrderRow = (order: Order) => (
+  const renderOrderRow = (order: Order, actions?: ('approve' | 'ship')[]) => (
      <TableRow key={order.id}>
         <TableCell className="font-medium">#{order.id}</TableCell>
         <TableCell>{order.customerName}</TableCell>
         <TableCell>
             <Badge 
                 variant={
-                order.status === 'Delivered' ? 'default' :
-                order.status === 'Processing' ? 'secondary' : 'destructive'
+                    order.status === 'Delivered' ? 'default' :
+                    order.status === 'Processing' ? 'secondary' : 
+                    order.status === 'Pending' ? 'secondary' : 'destructive'
                 }
                 className={
-                order.status === 'Delivered' ? 'bg-green-500/20 text-green-700 dark:text-green-300' :
-                order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300' :
-                order.status === 'Out for Delivery' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
-                'bg-red-500/20 text-red-700 dark:text-red-300'
+                    order.status === 'Delivered' ? 'bg-green-500/20 text-green-700 dark:text-green-300' :
+                    order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300' :
+                    order.status === 'Out for Delivery' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
+                    order.status === 'Pending' ? 'bg-gray-500/20 text-gray-700 dark:text-gray-300' :
+                    'bg-red-500/20 text-red-700 dark:text-red-300'
                 }
             >
                 {order.status}
@@ -169,9 +172,21 @@ export default function OrdersPage() {
         </TableCell>
         <TableCell className="text-right">₹{order.total.toLocaleString('en-IN')}</TableCell>
         <TableCell className="text-right">
-            <Button variant="outline" size="sm" asChild>
-                <Link href={`/orders/${order.id}`}>View</Link>
-            </Button>
+             <div className="flex items-center justify-end gap-2">
+                {actions?.includes('approve') && (
+                    <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(order.id, 'Processing')}>
+                        <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                    </Button>
+                )}
+                {actions?.includes('ship') && (
+                     <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(order.id, 'Out for Delivery')}>
+                        <Truck className="mr-2 h-4 w-4" /> Ship Package
+                    </Button>
+                )}
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/orders/${order.id}`}>View</Link>
+                </Button>
+            </div>
         </TableCell>
     </TableRow>
   );
@@ -181,8 +196,35 @@ export default function OrdersPage() {
     <div className="space-y-6">
         <Card>
             <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Send className="h-5 w-5"/> New Orders</CardTitle>
+                <CardDescription>Approve these new orders to begin processing.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {newOrders.length === 0 ? (
+                            <TableRow><TableCell colSpan={5} className="h-24 text-center">No new orders.</TableCell></TableRow>
+                        ) : (
+                            newOrders.map(order => renderOrderRow(order, ['approve']))
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5"/> Pending Orders</CardTitle>
-                <CardDescription>These orders are still in processing and need attention.</CardDescription>
+                <CardDescription>These orders are approved and ready for shipping.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -199,67 +241,39 @@ export default function OrdersPage() {
                         {pendingOrders.length === 0 ? (
                             <TableRow><TableCell colSpan={5} className="h-24 text-center">No pending orders.</TableCell></TableRow>
                         ) : (
-                            pendingOrders.map(renderOrderRow)
+                            pendingOrders.map(order => renderOrderRow(order, ['ship']))
                         )}
                     </TableBody>
                 </Table>
             </CardContent>
         </Card>
         
-        <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><Truck className="h-5 w-5"/> Out for Delivery</CardTitle>
-                    <CardDescription>Orders currently on their way to the customer.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                         <TableHeader>
-                            <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead>Customer</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                                <TableHead className="text-right">Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {outForDeliveryOrders.length === 0 ? (
-                                <TableRow><TableCell colSpan={5} className="h-24 text-center">No orders are out for delivery.</TableCell></TableRow>
-                            ) : (
-                                outForDeliveryOrders.map(renderOrderRow)
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5"/> Recent Orders</CardTitle>
-                    <CardDescription>The last 5 orders that have been placed.</CardDescription>
-                </CardHeader>
-                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>ID</TableHead>
-                                <TableHead>Customer</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                                <TableHead className="text-right">Action</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {recentOrders.length === 0 ? (
-                                <TableRow><TableCell colSpan={5} className="h-24 text-center">No recent orders.</TableCell></TableRow>
-                            ) : (
-                                recentOrders.map(renderOrderRow)
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Truck className="h-5 w-5"/> Out for Delivery</CardTitle>
+                <CardDescription>Orders currently on their way to the customer.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                     <TableHeader>
+                        <TableRow>
+                            <TableHead>ID</TableHead>
+                            <TableHead>Customer</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {outForDeliveryOrders.length === 0 ? (
+                            <TableRow><TableCell colSpan={5} className="h-24 text-center">No orders are out for delivery.</TableCell></TableRow>
+                        ) : (
+                            outForDeliveryOrders.map(renderOrderRow)
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
 
 
       <Card>
@@ -306,16 +320,18 @@ export default function OrdersPage() {
                   <TableCell>{order.customerName}</TableCell>
                   <TableCell>
                     <Badge 
-                      variant={
-                        order.status === 'Delivered' ? 'default' :
-                        order.status === 'Processing' ? 'secondary' : 'destructive'
-                      }
-                      className={
-                        order.status === 'Delivered' ? 'bg-green-500/20 text-green-700 dark:text-green-300' :
-                        order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300' :
-                        order.status === 'Out for Delivery' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
-                        'bg-red-500/20 text-red-700 dark:text-red-300'
-                      }
+                        variant={
+                            order.status === 'Delivered' ? 'default' :
+                            order.status === 'Processing' ? 'secondary' : 
+                            order.status === 'Pending' ? 'secondary' : 'destructive'
+                        }
+                        className={
+                            order.status === 'Delivered' ? 'bg-green-500/20 text-green-700 dark:text-green-300' :
+                            order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300' :
+                            order.status === 'Out for Delivery' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
+                            order.status === 'Pending' ? 'bg-gray-500/20 text-gray-700 dark:text-gray-300' :
+                            'bg-red-500/20 text-red-700 dark:text-red-300'
+                        }
                     >
                       {order.status}
                     </Badge>
@@ -397,8 +413,8 @@ export default function OrdersPage() {
                             <h4 className="font-semibold">Order Status</h4>
                             <p className="text-sm text-muted-foreground">Current Status: {selectedOrder.status}</p>
                             <div className="flex items-center gap-2 flex-wrap">
-                                <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Processing')} disabled={selectedOrder.status === 'Processing'}>Set to Processing</Button>
-                                <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Out for Delivery')} disabled={selectedOrder.status === 'Out for Delivery'}>Set to Out for Delivery</Button>
+                                {selectedOrder.status === 'Pending' && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Processing')}>Approve Order</Button>}
+                                {selectedOrder.status === 'Processing' && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Out for Delivery')}>Ship Package</Button>}
                                 <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Delivered')} disabled={selectedOrder.status === 'Delivered'}>Set to Delivered</Button>
                                 <Button variant="destructive" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Cancelled')} disabled={selectedOrder.status === 'Cancelled'}>Cancel Order</Button>
                             </div>

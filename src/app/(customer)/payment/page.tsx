@@ -158,7 +158,7 @@ export default function PaymentPage() {
                 const newOrder: Omit<Order, 'id' | 'date'> & { date: any } = {
                     customerName: customerName,
                     customerId: customerId,
-                    status: 'Processing',
+                    status: 'Pending',
                     date: serverTimestamp(),
                     total,
                     items: orderItems,
