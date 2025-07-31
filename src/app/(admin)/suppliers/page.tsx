@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from "react";
@@ -49,11 +50,7 @@ export default function SuppliersPage() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const suppliersData: Supplier[] = [];
         snapshot.forEach(doc => {
-            const data = doc.data();
-            // Ensure the document has a name before pushing it to the state
-            if (data && data.name) {
-                suppliersData.push({ id: doc.id, ...data } as Supplier);
-            }
+            suppliersData.push({ id: doc.id, ...doc.data() } as Supplier);
         });
         setSuppliers(suppliersData);
         setLoading(false);
@@ -122,7 +119,12 @@ export default function SuppliersPage() {
                         <Loader2 className="h-6 w-6 animate-spin" />
                     </TableCell>
                 </TableRow>
-            ) : suppliers.map((supplier) => (
+            ) : suppliers.map((supplier) => {
+              // Add a guard clause to prevent rendering if supplier or supplier.name is invalid
+              if (!supplier || !supplier.name) {
+                  return null;
+              }
+              return (
               <TableRow key={supplier.id}>
                 <TableCell className="font-medium">
                   {supplier.name}
@@ -153,7 +155,8 @@ export default function SuppliersPage() {
                   </DropdownMenu>
                 </TableCell>
               </TableRow>
-            ))}
+              )
+            })}
           </TableBody>
         </Table>
       </CardContent>
