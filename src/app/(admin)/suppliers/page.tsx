@@ -50,6 +50,7 @@ export default function SuppliersPage() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const suppliersData: Supplier[] = [];
         snapshot.forEach(doc => {
+            // We push the data as-is, the rendering logic will handle checks
             suppliersData.push({ id: doc.id, ...doc.data() } as Supplier);
         });
         setSuppliers(suppliersData);
@@ -94,7 +95,7 @@ export default function SuppliersPage() {
                   <DialogDescription>
                     Enter the details of the new supplier below.
                   </DialogDescription>
-                </DialogHeader>
+                </Header>
                 <AddSupplierForm onSupplierAdded={handleSupplierAdded} />
               </DialogContent>
             </Dialog>
@@ -119,44 +120,54 @@ export default function SuppliersPage() {
                         <Loader2 className="h-6 w-6 animate-spin" />
                     </TableCell>
                 </TableRow>
-            ) : suppliers.map((supplier) => {
-              // Add a guard clause to prevent rendering if supplier or supplier.name is invalid
-              if (!supplier || !supplier.name) {
-                  return null;
-              }
-              return (
-              <TableRow key={supplier.id}>
-                <TableCell className="font-medium">
-                  {supplier.name}
-                </TableCell>
-                <TableCell>
-                    <div>{supplier.contactPerson}</div>
-                    <div className="text-sm text-muted-foreground">{supplier.email}</div>
-                    <div className="text-sm text-muted-foreground">{supplier.phone}</div>
-                </TableCell>
-                <TableCell>
-                    {/* This would require querying products collection */}
-                    <Badge variant="secondary">{supplier.productCount || 0}</Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>View Products</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-              )
-            })}
+            ) : (
+              suppliers.map((supplier) => {
+                // This guard clause is the most robust way to prevent the error.
+                // It ensures we don't try to render a row for invalid data.
+                if (!supplier || !supplier.name) {
+                    return null;
+                }
+                return (
+                  <TableRow key={supplier.id}>
+                    <TableCell className="font-medium">
+                      {supplier.name}
+                    </TableCell>
+                    <TableCell>
+                        <div>{supplier.contactPerson}</div>
+                        <div className="text-sm text-muted-foreground">{supplier.email}</div>
+                        <div className="text-sm text-muted-foreground">{supplier.phone}</div>
+                    </TableCell>
+                    <TableCell>
+                        {/* This would require querying products collection */}
+                        <Badge variant="secondary">{supplier.productCount || 0}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                          <DropdownMenuItem>View Products</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })
+            )}
+            {!loading && suppliers.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                        No suppliers found.
+                    </TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </CardContent>
