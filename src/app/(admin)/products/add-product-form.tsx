@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
-import { Loader2, Trash2, Wand2 } from 'lucide-react';
+import { Loader2, Trash2, Wand2, PlusCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/lib/firebase-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -30,6 +30,9 @@ import { dataUriToFile } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AddSupplierForm } from '../suppliers/add-supplier-form';
+
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
@@ -54,6 +57,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiProductName, setAiProductName] = useState('');
   const [aiKeywords, setAiKeywords] = useState('');
+  const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
 
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -236,6 +240,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
 
 
   return (
+    <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>
     <div className="space-y-6">
         <Card className="bg-muted/50">
             <CardHeader>
@@ -401,7 +406,16 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 render={({ field }) => (
                     <FormItem>
                     <FormLabel>Supplier</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                        onValueChange={(value) => {
+                            if (value === 'add-new-supplier') {
+                                setIsSupplierDialogOpen(true);
+                            } else {
+                                field.onChange(value);
+                            }
+                        }}
+                        value={field.value}
+                    >
                         <FormControl>
                         <SelectTrigger>
                             <SelectValue placeholder="Select a supplier" />
@@ -413,6 +427,18 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                             {supplier.name}
                             </SelectItem>
                         ))}
+                        <Separator className="my-1" />
+                        <div
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
+                            onClick={() => setIsSupplierDialogOpen(true)}
+                            className="flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm text-primary outline-none focus:bg-accent focus:text-accent-foreground"
+                        >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add New Supplier
+                        </div>
                         </SelectContent>
                     </Select>
                     <FormMessage />
@@ -520,5 +546,18 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
         </form>
         </Form>
     </div>
+    <DialogContent>
+        <DialogHeader>
+        <DialogTitle>Add New Supplier</DialogTitle>
+        <DialogDescription>
+            Enter the details of the new supplier below.
+        </DialogDescription>
+        </DialogHeader>
+        <AddSupplierForm onSupplierAdded={() => {
+            setIsSupplierDialogOpen(false);
+            toast({ title: "Supplier Added", description: "You can now select them from the list." });
+        }} />
+    </DialogContent>
+    </Dialog>
   );
 }
