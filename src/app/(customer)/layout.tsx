@@ -165,9 +165,11 @@ export default function CustomerLayout({
             </SheetContent>
           </Sheet>
           
-          <Button variant="ghost" size="icon" className="hidden sm:inline-flex" onClick={() => router.back()}>
-              <ArrowLeft className="h-5 w-5" />
-              <span className="sr-only">Back</span>
+          <Button variant="ghost" size="icon" className="hidden sm:inline-flex" asChild>
+              <Link href="/home">
+                <Home className="h-5 w-5" />
+                <span className="sr-only">Home</span>
+              </Link>
           </Button>
 
           <div className="relative ml-auto flex-1 md:grow-0">
