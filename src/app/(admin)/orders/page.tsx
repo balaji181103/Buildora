@@ -22,7 +22,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -34,16 +33,29 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import type { Order } from "@/lib/types";
-import { MoreHorizontal, PlusCircle, FileText, Edit, Package, Waypoints, Loader2, Clock, CheckCircle, Truck, Send } from "lucide-react"
+import type { Order, Product } from "@/lib/types";
+import { MoreHorizontal, PlusCircle, FileText, Package, Loader2, Clock, CheckCircle, Truck, Send, View } from "lucide-react"
 import Link from "next/link"
 import { db } from "@/lib/firebase-client";
-import { collection, onSnapshot, query, orderBy, doc, updateDoc, where, limit } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, where, getDoc } from "firebase/firestore";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
+
+type OrderItemWithProduct = {
+    productId: string;
+    name: string;
+    quantity: number;
+    price: number;
+    product?: Product;
+};
+
+type OrderWithProductDetails = Order & {
+    items: OrderItemWithProduct[];
+}
 
 export default function OrdersPage() {
-  const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
+  const [selectedOrder, setSelectedOrder] = React.useState<OrderWithProductDetails | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
   const [allOrders, setAllOrders] = React.useState<Order[]>([]);
   const [newOrders, setNewOrders] = React.useState<Order[]>([]);
@@ -70,14 +82,13 @@ export default function OrdersPage() {
     });
 
     // Listener for new orders
-    const newOrdersQuery = query(collection(db, "orders"), where("status", "==", "Pending"));
+    const newOrdersQuery = query(collection(db, "orders"), where("status", "==", "Pending"), orderBy("date", "desc"));
     const unsubNew = onSnapshot(newOrdersQuery, (snapshot) => {
         const ordersData: Order[] = [];
         snapshot.forEach(doc => {
             const data = doc.data();
             ordersData.push({ id: doc.id, ...data, date: data.date.toDate() } as Order);
         });
-        ordersData.sort((a, b) => b.date.getTime() - a.date.getTime());
         setNewOrders(ordersData);
     });
 
@@ -115,8 +126,18 @@ export default function OrdersPage() {
     };
   }, []);
 
-  const handleViewDetails = (order: Order) => {
-    setSelectedOrder(order);
+  const handleViewDetails = async (order: Order) => {
+    const itemsWithProductDetails = await Promise.all(
+        order.items.map(async (item) => {
+            const productRef = doc(db, "products", item.productId);
+            const productSnap = await getDoc(productRef);
+            return {
+                ...item,
+                product: productSnap.exists() ? productSnap.data() as Product : undefined
+            }
+        })
+    );
+    setSelectedOrder({ ...order, items: itemsWithProductDetails });
     setIsDetailsOpen(true);
   };
 
@@ -183,9 +204,7 @@ export default function OrdersPage() {
                         <Truck className="mr-2 h-4 w-4" /> Ship Package
                     </Button>
                 )}
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={`/orders/${order.id}`}>View</Link>
-                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleViewDetails(order)}>View</Button>
             </div>
         </TableCell>
     </TableRow>
@@ -285,12 +304,6 @@ export default function OrdersPage() {
                 Manage and track all customer orders.
               </CardDescription>
             </div>
-            <Button asChild size="sm" className="gap-1">
-              <Link href="#">
-                <PlusCircle className="h-4 w-4" />
-                New Order
-              </Link>
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -348,21 +361,10 @@ export default function OrdersPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                         <DropdownMenuItem asChild>
-                           <Link href={`/orders/${order.id}`}>
-                              <Waypoints className="mr-2 h-4 w-4" />
-                              Track Order
-                           </Link>
-                        </DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => handleViewDetails(order)}>
-                            <Package className="mr-2 h-4 w-4" />
+                            <View className="mr-2 h-4 w-4" />
                             View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleUpdateStatus(order.id, 'Out for Delivery')} disabled={order.status === 'Out for Delivery' || order.status === 'Delivered'}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Set Out for Delivery
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem>
                             <FileText className="mr-2 h-4 w-4" />
                             Generate Invoice
@@ -378,7 +380,7 @@ export default function OrdersPage() {
       </Card>
       
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="sm:max-w-xl">
+        <DialogContent className="sm:max-w-3xl">
             {selectedOrder && (
                 <>
                     <DialogHeader>
@@ -387,28 +389,56 @@ export default function OrdersPage() {
                             Full details for the order placed by {selectedOrder.customerName} on {format(selectedOrder.date, 'PPP')}.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-4">
-                        <div className="space-y-2">
-                            <h4 className="font-semibold">Items Ordered</h4>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Product</TableHead>
-                                        <TableHead className="text-right">Qty</TableHead>
-                                        <TableHead className="text-right">Price</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {selectedOrder.items.map(item => (
-                                        <TableRow key={item.productId}>
-                                            <TableCell>{item.name}</TableCell>
-                                            <TableCell className="text-right">{item.quantity}</TableCell>
-                                            <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
+                    <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <h4 className="font-semibold">Customer Details</h4>
+                                <div className="text-sm text-muted-foreground">
+                                    <p>{selectedOrder.customerName}</p>
+                                    <p>{selectedOrder.shippingAddress.line1}, {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.pincode}</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="font-semibold">Items Ordered</h4>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-[64px]">Image</TableHead>
+                                            <TableHead>Product</TableHead>
+                                            <TableHead className="text-right">Qty</TableHead>
+                                            <TableHead className="text-right">Price</TableHead>
+                                            <TableHead className="text-right">Total</TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {selectedOrder.items.map(item => (
+                                            <TableRow key={item.productId}>
+                                                <TableCell>
+                                                    <Image 
+                                                        src={item.product?.imageUrl || 'https://placehold.co/64x64.png'} 
+                                                        alt={item.name} 
+                                                        width={48} 
+                                                        height={48} 
+                                                        className="rounded-md object-cover"
+                                                        data-ai-hint="product image"
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="font-medium">{item.name}</div>
+                                                    <div className="text-xs text-muted-foreground">{item.product?.category} | {item.product?.supplier}</div>
+                                                </TableCell>
+                                                <TableCell className="text-right">{item.quantity}</TableCell>
+                                                <TableCell className="text-right">₹{item.price.toFixed(2)}</TableCell>
+                                                <TableCell className="text-right">₹{(item.price * item.quantity).toFixed(2)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
                         </div>
+
                          <div className="space-y-2">
                             <h4 className="font-semibold">Order Status</h4>
                             <p className="text-sm text-muted-foreground">Current Status: {selectedOrder.status}</p>
@@ -419,13 +449,7 @@ export default function OrdersPage() {
                                 <Button variant="destructive" size="sm" onClick={() => handleUpdateStatus(selectedOrder.id, 'Cancelled')} disabled={selectedOrder.status === 'Cancelled'}>Cancel Order</Button>
                             </div>
                         </div>
-                         <div className="space-y-2">
-                            <h4 className="font-semibold">Delivery Information</h4>
-                             <p className="text-sm font-medium mt-2">Shipping Address:</p>
-                             <p className="text-sm text-muted-foreground">
-                                {selectedOrder.shippingAddress.line1}, {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.pincode}
-                             </p>
-                        </div>
+                         
                          <div className="space-y-2">
                             <h4 className="font-semibold">Invoice</h4>
                             <Button variant="secondary" disabled>
@@ -443,3 +467,5 @@ export default function OrdersPage() {
     </>
   )
 }
+
+    
