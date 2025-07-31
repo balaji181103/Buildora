@@ -82,13 +82,14 @@ export default function OrdersPage() {
     });
 
     // Listener for new orders
-    const newOrdersQuery = query(collection(db, "orders"), where("status", "==", "Pending"), orderBy("date", "desc"));
+    const newOrdersQuery = query(collection(db, "orders"), where("status", "==", "Pending"));
     const unsubNew = onSnapshot(newOrdersQuery, (snapshot) => {
         const ordersData: Order[] = [];
         snapshot.forEach(doc => {
             const data = doc.data();
             ordersData.push({ id: doc.id, ...data, date: data.date.toDate() } as Order);
         });
+        ordersData.sort((a, b) => b.date.getTime() - a.date.getTime());
         setNewOrders(ordersData);
     });
 
