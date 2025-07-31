@@ -50,7 +50,11 @@ export default function SuppliersPage() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
         const suppliersData: Supplier[] = [];
         snapshot.forEach(doc => {
-            suppliersData.push({ id: doc.id, ...doc.data() } as Supplier);
+            const data = doc.data();
+            // Ensure the document has a name before pushing it to the state
+            if (data && data.name) {
+                suppliersData.push({ id: doc.id, ...data } as Supplier);
+            }
         });
         setSuppliers(suppliersData);
         setLoading(false);
@@ -67,8 +71,6 @@ export default function SuppliersPage() {
       // This part will need to be connected to the products collection in the future
       return [];
   }
-
-  const validSuppliers = suppliers.filter(s => s && s.name);
 
   return (
     <Card>
@@ -121,7 +123,7 @@ export default function SuppliersPage() {
                         <Loader2 className="h-6 w-6 animate-spin" />
                     </TableCell>
                 </TableRow>
-            ) : validSuppliers.map((supplier) => (
+            ) : suppliers.map((supplier) => (
               <TableRow key={supplier.id}>
                 <TableCell className="font-medium">
                   {supplier.name}
