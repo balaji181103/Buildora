@@ -14,7 +14,7 @@ export const loyaltyData: LoyaltyData = {
     history: [],
     availableOffers: [
         { title: '₹500 Off Your Next Order', points: 5000 },
-        { title: 'Free Drone Delivery', points: 2500 },
+        { title: 'Free Faster Delivery', points: 2500 },
         { title: '15% Off on Tools', points: 7500 },
     ]
 };
