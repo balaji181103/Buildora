@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const collectionsToManage = [
-    { name: 'orders', title: 'Orders', description: 'all customer orders.' },
+    { name: 'orders', title: 'Customer Orders', description: 'all customer orders.' },
     { name: 'customers', title: 'Customers', description: 'all customer accounts and data.' },
     { name: 'suppliers', title: 'Suppliers', description: 'all supplier information.' },
     { name: 'products', title: 'Products', description: 'all product listings from inventory.' },
