@@ -29,6 +29,7 @@ import { generateProductListing } from '@/ai/flows/generate-product-listing-flow
 import { dataUriToFile } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 const ProductFormSchema = z.object({
   name: z.string().min(1, 'Product name is required.'),
