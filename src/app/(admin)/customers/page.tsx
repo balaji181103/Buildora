@@ -25,6 +25,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, PlusCircle, Star, Package, Loader2 } from "lucide-react"
@@ -32,10 +40,12 @@ import type { Customer } from "@/lib/types";
 import { db } from "@/lib/firebase-client";
 import { collection, onSnapshot, doc, updateDoc, query, orderBy } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { AddCustomerForm } from "./add-customer-form";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -78,6 +88,7 @@ export default function CustomersPage() {
     }
 
   return (
+    <>
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
@@ -87,12 +98,23 @@ export default function CustomersPage() {
               Manage your customers and view their order history.
             </CardDescription>
           </div>
-          <Button asChild size="sm" className="gap-1">
-            <Link href="#">
-              <PlusCircle className="h-4 w-4" />
-              Add Customer
-            </Link>
-          </Button>
+          <Dialog open={isAddCustomerOpen} onOpenChange={setIsAddCustomerOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-1">
+                <PlusCircle className="h-4 w-4" />
+                Add Customer
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[525px]">
+              <DialogHeader>
+                <DialogTitle>Add New Customer</DialogTitle>
+                <DialogDescription>
+                    Enter the details for the new customer. They will be invited via email.
+                </DialogDescription>
+              </DialogHeader>
+              <AddCustomerForm onCustomerAdded={() => setIsAddCustomerOpen(false)} />
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
       <CardContent>
@@ -166,5 +188,6 @@ export default function CustomersPage() {
         </Table>
       </CardContent>
     </Card>
+    </>
   )
 }
