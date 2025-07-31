@@ -35,37 +35,67 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Order } from "@/lib/types";
-import { MoreHorizontal, PlusCircle, FileText, Edit, Package, Waypoints, Loader2 } from "lucide-react"
+import { MoreHorizontal, PlusCircle, FileText, Edit, Package, Waypoints, Loader2, Clock, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { db } from "@/lib/firebase-client";
-import { collection, onSnapshot, query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { collection, onSnapshot, query, orderBy, doc, updateDoc, where, limit } from "firebase/firestore";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
 export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = React.useState<Order | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
-  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [allOrders, setAllOrders] = React.useState<Order[]>([]);
+  const [recentOrders, setRecentOrders] = React.useState<Order[]>([]);
+  const [pendingOrders, setPendingOrders] = React.useState<Order[]>([]);
   const [loading, setLoading] = React.useState(true);
   const { toast } = useToast();
 
   React.useEffect(() => {
-    const q = query(collection(db, "orders"), orderBy("date", "desc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    // Listener for all orders
+    const allOrdersQuery = query(collection(db, "orders"), orderBy("date", "desc"));
+    const unsubAll = onSnapshot(allOrdersQuery, (snapshot) => {
         const ordersData: Order[] = [];
         snapshot.forEach(doc => {
             const data = doc.data();
             ordersData.push({ 
                 id: doc.id,
                 ...data,
-                date: data.date.toDate() // Convert Firestore Timestamp to JS Date
+                date: data.date.toDate()
             } as Order);
         });
-        setOrders(ordersData);
+        setAllOrders(ordersData);
         setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Listener for recent orders
+    const recentOrdersQuery = query(collection(db, "orders"), orderBy("date", "desc"), limit(5));
+    const unsubRecent = onSnapshot(recentOrdersQuery, (snapshot) => {
+        const ordersData: Order[] = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            ordersData.push({ id: doc.id, ...data, date: data.date.toDate() } as Order);
+        });
+        setRecentOrders(ordersData);
+    });
+
+    // Listener for pending orders
+    const pendingOrdersQuery = query(collection(db, "orders"), where("status", "==", "Processing"), orderBy("date", "desc"));
+    const unsubPending = onSnapshot(pendingOrdersQuery, (snapshot) => {
+        const ordersData: Order[] = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            ordersData.push({ id: doc.id, ...data, date: data.date.toDate() } as Order);
+        });
+        setPendingOrders(ordersData);
+    });
+
+
+    return () => {
+        unsubAll();
+        unsubRecent();
+        unsubPending();
+    };
   }, []);
 
   const handleViewDetails = (order: Order) => {
@@ -101,13 +131,99 @@ export default function OrdersPage() {
     )
   }
 
+  const renderOrderRow = (order: Order) => (
+     <TableRow key={order.id}>
+        <TableCell className="font-medium">#{order.id}</TableCell>
+        <TableCell>{order.customerName}</TableCell>
+        <TableCell>
+            <Badge 
+                variant={
+                order.status === 'Delivered' ? 'default' :
+                order.status === 'Processing' ? 'secondary' : 'destructive'
+                }
+                className={
+                order.status === 'Delivered' ? 'bg-green-500/20 text-green-700 dark:text-green-300' :
+                order.status === 'Processing' ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300' :
+                order.status === 'Out for Delivery' ? 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-300' :
+                'bg-red-500/20 text-red-700 dark:text-red-300'
+                }
+            >
+                {order.status}
+            </Badge>
+        </TableCell>
+        <TableCell className="text-right">₹{order.total.toLocaleString('en-IN')}</TableCell>
+        <TableCell className="text-right">
+            <Button variant="outline" size="sm" asChild>
+                <Link href={`/orders/${order.id}`}>View</Link>
+            </Button>
+        </TableCell>
+    </TableRow>
+  );
+
   return (
     <>
+    <div className="space-y-6">
+        <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5"/> Pending Orders</CardTitle>
+                    <CardDescription>These orders are still in processing and need attention.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>ID</TableHead>
+                                <TableHead>Customer</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {pendingOrders.length === 0 ? (
+                                <TableRow><TableCell colSpan={5} className="h-24 text-center">No pending orders.</TableCell></TableRow>
+                            ) : (
+                                pendingOrders.map(renderOrderRow)
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><CheckCircle className="h-5 w-5"/> Recent Orders</CardTitle>
+                    <CardDescription>The last 5 orders that have been placed.</CardDescription>
+                </CardHeader>
+                 <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>ID</TableHead>
+                                <TableHead>Customer</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                                <TableHead className="text-right">Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {recentOrders.length === 0 ? (
+                                <TableRow><TableCell colSpan={5} className="h-24 text-center">No recent orders.</TableCell></TableRow>
+                            ) : (
+                                recentOrders.map(renderOrderRow)
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Orders</CardTitle>
+              <CardTitle>All Orders</CardTitle>
               <CardDescription>
                 Manage and track all customer orders.
               </CardDescription>
@@ -135,13 +251,13 @@ export default function OrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.length === 0 ? (
+              {allOrders.length === 0 ? (
                   <TableRow>
                       <TableCell colSpan={6} className="h-24 text-center">
                           No orders found.
                       </TableCell>
                   </TableRow>
-              ) : orders.map((order) => (
+              ) : allOrders.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell className="font-medium">#{order.id}</TableCell>
                   <TableCell>{order.customerName}</TableCell>
@@ -264,6 +380,7 @@ export default function OrdersPage() {
             )}
         </DialogContent>
       </Dialog>
+    </div>
     </>
   )
 }
