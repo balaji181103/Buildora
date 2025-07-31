@@ -122,7 +122,7 @@ export default function SuppliersPage() {
             ) : suppliers.map((supplier) => (
               <TableRow key={supplier.id}>
                 <TableCell className="font-medium">
-                  {supplier.name}
+                  {supplier?.name}
                 </TableCell>
                 <TableCell>
                     <div>{supplier.contactPerson}</div>
