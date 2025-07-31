@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Database, Loader2 } from 'lucide-react';
 import { db } from '@/lib/firebase-client';
-import { collection, writeBatch, serverTimestamp, getDocs, query } from 'firebase/firestore';
+import { collection, writeBatch, serverTimestamp, getDocs, query, doc } from 'firebase/firestore';
 import { Customer, Supplier, Product, Order, Address } from '@/lib/types';
 
 // Mock Data
@@ -43,8 +43,8 @@ export default function SeederPage() {
 
             const batch = writeBatch(db);
             data.forEach(item => {
-                const docRef = collection(db, collectionName).doc();
-                batch.set(docRef, { ...item, createdAt: serverTimestamp() });
+                const newDocRef = doc(collection(db, collectionName));
+                batch.set(newDocRef, { ...item, createdAt: serverTimestamp() });
             });
             await batch.commit();
 
@@ -124,7 +124,7 @@ export default function SeederPage() {
             let orderIdCounter = 1001; // Start order IDs from 1001
             
             sampleOrders.forEach(order => {
-                const docRef = collection(db, "orders").doc(String(orderIdCounter++));
+                const docRef = doc(db, "orders", String(orderIdCounter++));
                 batch.set(docRef, { ...order, date: serverTimestamp() });
             });
             await batch.commit();
@@ -184,4 +184,3 @@ export default function SeederPage() {
         </div>
     );
 }
-
