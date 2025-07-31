@@ -37,6 +37,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Calculator, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { db } from '@/lib/firebase-client';
+import { doc, onSnapshot } from 'firebase/firestore';
+
 
 // --- Cement Estimation ---
 const cementSchema = z.object({
@@ -59,6 +62,24 @@ type BrickFormValues = z.infer<typeof brickSchema>;
 export function MaterialEstimator() {
   const [cementResult, setCementResult] = React.useState<number | null>(null);
   const [brickResult, setBrickResult] = React.useState<number | null>(null);
+  const [redBrickUrl, setRedBrickUrl] = React.useState('https://placehold.co/80x80.png');
+  const [aacBlockUrl, setAacBlockUrl] = React.useState('https://placehold.co/80x80.png');
+
+  React.useEffect(() => {
+    const docRef = doc(db, 'siteContent', 'appearance');
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.estimatorRedBrick?.url) {
+                setRedBrickUrl(data.estimatorRedBrick.url);
+            }
+            if (data.estimatorAacBlock?.url) {
+                setAacBlockUrl(data.estimatorAacBlock.url);
+            }
+        }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const cementForm = useForm<CementFormValues>({
     resolver: zodResolver(cementSchema),
@@ -232,7 +253,7 @@ export function MaterialEstimator() {
                             <Label htmlFor="red_brick" className="block cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm has-[:checked]:border-primary">
                                 <RadioGroupItem value="red_brick" id="red_brick" className="sr-only" />
                                 <CardContent className="p-4 flex items-center gap-4">
-                                    <Image src="https://placehold.co/80x80.png" alt="Red brick" width={80} height={80} className="rounded-md" data-ai-hint="red brick" />
+                                    <Image src={redBrickUrl} alt="Red brick" width={80} height={80} className="rounded-md" data-ai-hint="red brick" />
                                     <div>
                                         <h3 className="font-semibold">Red Brick</h3>
                                         <p className="text-sm text-muted-foreground">Standard clay bricks.</p>
@@ -244,7 +265,7 @@ export function MaterialEstimator() {
                             <Label htmlFor="alo_block" className="block cursor-pointer rounded-lg border bg-card text-card-foreground shadow-sm has-[:checked]:border-primary">
                                <RadioGroupItem value="alo_block" id="alo_block" className="sr-only" />
                                <CardContent className="p-4 flex items-center gap-4">
-                                    <Image src="https://placehold.co/80x80.png" alt="ALO/AAC Block" width={80} height={80} className="rounded-md" data-ai-hint="concrete block" />
+                                    <Image src={aacBlockUrl} alt="ALO/AAC Block" width={80} height={80} className="rounded-md" data-ai-hint="concrete block" />
                                     <div>
                                         <h3 className="font-semibold">ALO/AAC Block</h3>
                                         <p className="text-sm text-muted-foreground">Lightweight concrete blocks.</p>

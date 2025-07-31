@@ -21,6 +21,8 @@ interface AppearanceContent {
   mainLandingHero?: ImageSetting;
   mainLandingAbout?: ImageSetting;
   customerLandingHero?: ImageSetting;
+  estimatorRedBrick?: ImageSetting;
+  estimatorAacBlock?: ImageSetting;
 }
 
 export default function AppearancePage() {
@@ -207,6 +209,52 @@ export default function AppearancePage() {
         </CardContent>
       </Card>
 
+       <Card>
+        <CardHeader>
+          <CardTitle>Material Estimator Images</CardTitle>
+          <CardDescription>Customize the images shown in the material estimator on the customer home page.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-8 divide-y">
+          <div className="space-y-2 pt-6 first:pt-0">
+            <Label>Red Brick Image</Label>
+            <div className="flex items-center gap-4">
+              <Image
+                src={previewStates.estimatorRedBrick || content.estimatorRedBrick?.url || 'https://placehold.co/80x80.png'}
+                alt="Red Brick"
+                width={80}
+                height={80}
+                className="rounded-md object-cover border"
+              />
+              <div className="space-y-2">
+                <Input id="estimator-red-brick-upload" type="file" onChange={(e) => handleFileChange(e, 'estimatorRedBrick')} accept="image/*" />
+                <Button onClick={() => handleSave('estimatorRedBrick', 'estimator-red-brick-upload')} disabled={savingStates.estimatorRedBrick || !previewStates.estimatorRedBrick}>
+                  {savingStates.estimatorRedBrick ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                  Save Image
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2 pt-6 first:pt-0">
+            <Label>AAC Block Image</Label>
+            <div className="flex items-center gap-4">
+              <Image
+                src={previewStates.estimatorAacBlock || content.estimatorAacBlock?.url || 'https://placehold.co/80x80.png'}
+                alt="AAC Block"
+                width={80}
+                height={80}
+                className="rounded-md object-cover border"
+              />
+              <div className="space-y-2">
+                <Input id="estimator-aac-block-upload" type="file" onChange={(e) => handleFileChange(e, 'estimatorAacBlock')} accept="image/*" />
+                <Button onClick={() => handleSave('estimatorAacBlock', 'estimator-aac-block-upload')} disabled={savingStates.estimatorAacBlock || !previewStates.estimatorAacBlock}>
+                  {savingStates.estimatorAacBlock ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                  Save Image
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
