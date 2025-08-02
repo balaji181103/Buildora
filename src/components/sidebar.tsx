@@ -30,6 +30,7 @@ import {
   QrCode,
   Database,
   Trash2,
+  Cpu,
 } from 'lucide-react';
 
 const navItems = [
@@ -41,11 +42,15 @@ const navItems = [
   { href: '/suppliers', icon: Building2, label: 'Suppliers' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
   { href: '/delivery', icon: Truck, label: 'Delivery' },
-  { href: '/qr', icon: QrCode, label: 'QR' },
-  { href: '/appearance', icon: ImageIcon, label: 'Appearance' },
 ];
 
+const contentManagementItems = [
+    { href: '/qr', icon: QrCode, label: 'QR' },
+    { href: '/appearance', icon: ImageIcon, label: 'Appearance' },
+]
+
 const utilityItems = [
+    { href: '/tools', icon: Cpu, label: 'Technology' },
     { href: '/seeder', icon: Trash2, label: 'Data Manager' },
 ]
 
@@ -78,6 +83,20 @@ export function AppSidebar() {
       <SidebarContent className="flex-1 p-2">
         <SidebarMenu>
           {navItems.map((item) => (
+            <SidebarMenuItem key={item.href}>
+              <Link href={item.href}>
+                <SidebarMenuButton
+                  isActive={isActive(item.href)}
+                  tooltip={{ children: item.label, side: 'right', align: 'center' }}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          ))}
+           <Separator className="my-2" />
+           {contentManagementItems.map((item) => (
             <SidebarMenuItem key={item.href}>
               <Link href={item.href}>
                 <SidebarMenuButton
