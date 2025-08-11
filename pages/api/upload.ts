@@ -32,7 +32,7 @@ const uploadFromFile = (req: NextApiRequest): Promise<{ secure_url: string; publ
             }
 
             cloudinary.uploader.upload(file.filepath, {
-                folder: 'buildora_assets',
+                folder: 'smart_inventory_assets',
                 resource_type: 'auto',
             })
             .then(result => {

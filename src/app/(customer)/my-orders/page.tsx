@@ -78,7 +78,7 @@ export default function MyOrdersPage() {
             <CardHeader>
                 <CardTitle>Order History</CardTitle>
                 <CardDescription>
-                Here is a list of all your past and current orders with Buildora.
+                Here is a list of all your past and current orders with Smart Inventory.
                 </CardDescription>
             </CardHeader>
             <CardContent>

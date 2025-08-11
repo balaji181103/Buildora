@@ -61,7 +61,7 @@ export default function ToolsPage() {
             <div className="grid gap-2">
                 <h1 className="text-3xl font-bold tracking-tight">Tools & Technology Used</h1>
                 <p className="text-muted-foreground">
-                    An overview of the modern technology stack that powers the Buildora application.
+                    An overview of the modern technology stack that powers the Smart Inventory application.
                 </p>
             </div>
             <div className="grid gap-6">

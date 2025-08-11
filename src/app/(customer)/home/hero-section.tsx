@@ -33,7 +33,7 @@ export function HeroSection() {
                         Your Construction Supplies, Delivered Faster.
                     </h1>
                     <p className="max-w-xl text-lg text-muted-foreground animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-200">
-                        From AI-powered material estimation to rapid drone delivery, Buildora is your partner in building the future.
+                        From AI-powered material estimation to rapid drone delivery, Smart Inventory is your partner in building the future.
                     </p>
                     <div className="flex flex-col gap-4 sm:flex-row animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-300">
                         <Button size="lg" asChild>

@@ -22,7 +22,7 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle>System Configuration</CardTitle>
             <CardDescription>
-              Adjust core settings for the Buildora platform.
+              Adjust core settings for the Smart Inventory platform.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -33,7 +33,7 @@ export default function SettingsPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="notification-email">Notification Email</Label>
-                <Input id="notification-email" type="email" defaultValue="notifications@buildora.com" />
+                <Input id="notification-email" type="email" defaultValue="notifications@smartinventory.com" />
               </div>
               <Button>Save Settings</Button>
             </form>

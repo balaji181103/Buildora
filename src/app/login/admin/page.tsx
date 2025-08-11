@@ -25,7 +25,7 @@ export default function AdminLoginPage() {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (email === 'admin@buildora.com' && password === 'admin') {
+        if (email === 'admin@smartinventory.com' && password === 'admin') {
             toast({
                 title: "Login Successful",
                 description: "Redirecting to your dashboard...",
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
             <div className="w-full max-w-md mx-4">
                 <Link href="/" className="flex items-center justify-center gap-2 font-bold text-2xl mb-8">
                     <Rocket className="w-8 h-8 text-primary" />
-                    <span>Buildora</span>
+                    <span>Smart Inventory</span>
                 </Link>
                 <form onSubmit={handleSignIn}>
                     <Card className="relative">

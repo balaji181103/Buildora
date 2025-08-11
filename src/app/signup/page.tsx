@@ -87,7 +87,7 @@ export default function CustomerSignupPage() {
              <div className="w-full max-w-md mx-4">
                 <Link href="/" className="flex items-center justify-center gap-2 font-bold text-2xl mb-8">
                     <Rocket className="w-8 h-8 text-primary" />
-                    <span>Buildora</span>
+                    <span>Smart Inventory</span>
                 </Link>
                 <Card className="relative">
                     <CardHeader className="text-center">
@@ -96,7 +96,7 @@ export default function CustomerSignupPage() {
                             <span className="sr-only">Back</span>
                         </Button>
                         <CardTitle>Create an Account</CardTitle>
-                        <CardDescription>Join Buildora to streamline your construction supplies.</CardDescription>
+                        <CardDescription>Join Smart Inventory to streamline your construction supplies.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Form {...form}>

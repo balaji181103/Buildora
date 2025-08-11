@@ -54,7 +54,7 @@ export default function LandingPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl">
             <Rocket className="w-7 h-7 text-primary" />
-            <span>Buildora</span>
+            <span>Smart Inventory</span>
           </Link>
           <nav className="hidden items-center gap-6 md:flex">
             <Link href="/login/customer" className="text-sm font-medium hover:underline underline-offset-4">
@@ -101,7 +101,7 @@ export default function LandingPage() {
                         Construction Logistics, Reimagined.
                     </h1>
                     <p className="max-w-[600px] text-muted-foreground md:text-xl animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-200">
-                        Buildora revolutionizes supply delivery with autonomous drones and AI-powered logistics, ensuring you get the right materials, right when you need them.
+                        Smart Inventory revolutionizes supply delivery with autonomous drones and AI-powered logistics, ensuring you get the right materials, right when you need them.
                     </p>
                     <div className="flex flex-col gap-4 sm:flex-row animate-in fade-in-0 slide-in-from-bottom-4 duration-1000 delay-300">
                         <Button size="lg" asChild>
@@ -192,9 +192,9 @@ export default function LandingPage() {
             <div className="container mx-auto px-4 md:px-6">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className={cn("space-y-4", aboutInView ? "animate-in fade-in-0 slide-in-from-left-12 duration-1000" : "opacity-0")}>
-                         <h2 className="text-3xl font-bold tracking-tight md:text-4xl">About Buildora</h2>
+                         <h2 className="text-3xl font-bold tracking-tight md:text-4xl">About Smart Inventory</h2>
                          <p className="text-muted-foreground">
-                            Founded by a team of construction veterans and tech innovators, Buildora was born from a simple observation: construction projects are consistently plagued by logistical inefficiencies. Waiting for materials, incorrect orders, and cluttered sites cost time and money.
+                            Founded by a team of construction veterans and tech innovators, Smart Inventory was born from a simple observation: construction projects are consistently plagued by logistical inefficiencies. Waiting for materials, incorrect orders, and cluttered sites cost time and money.
                          </p>
                          <p className="text-muted-foreground">
                             We envisioned a future where the supply chain is as smart and automated as the buildings we construct. By integrating AI-powered logistics with a dual fleet of drones and trucks, we're not just delivering materials; we're delivering confidence, predictability, and a new standard of efficiency to the construction industry.
@@ -218,7 +218,7 @@ export default function LandingPage() {
       <footer className="bg-muted">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-6 md:flex-row md:px-6">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Buildora. All rights reserved.
+            © {new Date().getFullYear()} Smart Inventory. All rights reserved.
           </p>
           <nav className="flex gap-4">
             <Link href="#" className="text-sm hover:underline">Terms of Service</Link>
