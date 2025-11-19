@@ -136,14 +136,14 @@ export default function CustomerOrderTrackingPage() {
     const shippingCost = order.shippingCost ?? 0;
     const taxes = order.taxes ?? subtotal * 0.18;
     const finalTotal = order.total ?? (subtotal + shippingCost + taxes);
-    const shippingMethod = order.deliveryMethod === 'faster' ? 'Fast Shipping' : 'Standard';
+    const shippingMethodLabel = order.deliveryMethod === 'faster' ? 'Shipping (Fast)' : 'Shipping (Std)';
     
     finalY += 10;
     doc.text("Subtotal:", leftAlignX, finalY);
     doc.text(`${subtotal.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
 
     finalY += 7;
-    doc.text(`Shipping (${shippingMethod}):`, leftAlignX, finalY);
+    doc.text(`${shippingMethodLabel}:`, leftAlignX, finalY);
     doc.text(`${shippingCost.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
 
     finalY += 7;
