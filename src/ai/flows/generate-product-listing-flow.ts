@@ -3,7 +3,7 @@
 /**
  * @fileOverview An AI agent for generating product listings.
  *
- * - generateProductListing - A function that handles product description and image generation.
+ * - generateProductListing - A function that handles product description generation.
  * - GenerateProductListingInput - The input type for the generateProductListing function.
  * - GenerateProductListingOutput - The return type for the generateProductListing function.
  */
@@ -25,9 +25,6 @@ export type GenerateProductListingInput = z.infer<
 
 const GenerateProductListingOutputSchema = z.object({
   description: z.string().describe('The generated product description.'),
-  imageDataUri: z
-    .string()
-    .describe('The generated product image as a data URI.'),
 });
 export type GenerateProductListingOutput = z.infer<
   typeof GenerateProductListingOutputSchema
@@ -62,27 +59,11 @@ const generateProductListingFlow = ai.defineFlow(
     outputSchema: GenerateProductListingOutputSchema,
   },
   async (input) => {
-    // Step 1: Await the description prompt first.
     const descriptionResponse = await descriptionPrompt(input);
     const generatedDescription = descriptionResponse.output?.description || '';
 
-    // Step 2: Use the description and original input to generate a better image.
-    const imageResponse = await ai.generate({
-      model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: `A professional, clean studio-quality photo of the following product on a plain white background: ${input.name}, ${input.keywords}. Product details: ${generatedDescription}`,
-    });
-    
-    // Correctly access the image URL from the media array.
-    const imageDataUri = imageResponse.media[0]?.url || '';
-
-    if (!imageDataUri) {
-        throw new Error('Image generation failed to produce a data URI.');
-    }
-
-    // Step 3: Return both results.
     return {
       description: generatedDescription,
-      imageDataUri: imageDataUri,
     };
   }
 );

@@ -136,12 +136,6 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
         if (result.description) {
             form.setValue('description', result.description);
         }
-        if (result.imageDataUri) {
-            setImagePreview(result.imageDataUri);
-            const file = await dataUriToFile(result.imageDataUri, `${aiProductName.replace(/\s+/g, '_')}.png`, 'image/png');
-            setImageFile(file);
-            form.setValue('image', file);
-        }
         form.setValue('name', aiProductName);
     } catch (error) {
         console.error("AI Generation Error: ", error);
@@ -244,9 +238,9 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     <div className="space-y-6">
         <Card className="bg-muted/50">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Wand2 /> AI Listing Generator</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Wand2 /> AI Description Generator</CardTitle>
                 <CardDescription>
-                    Enter a product name and some keywords, and let AI generate the description and a product image for you.
+                    Enter a product name and some keywords, and let AI generate a compelling description for you.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -274,7 +268,7 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 </div>
                 <Button onClick={handleGenerate} disabled={isGenerating || !aiProductName}>
                     {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                    {isGenerating ? 'Generating...' : 'Generate with AI'}
+                    {isGenerating ? 'Generating...' : 'Generate Description'}
                 </Button>
             </CardContent>
         </Card>
