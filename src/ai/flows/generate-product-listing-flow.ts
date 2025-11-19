@@ -43,7 +43,7 @@ const descriptionPrompt = ai.definePrompt({
   name: 'generateProductDescriptionPrompt',
   input: { schema: GenerateProductListingInputSchema },
   output: { schema: z.object({ description: z.string() }) },
-  model: 'googleai/gemini-1.5-pro-latest',
+  model: 'googleai/gemini-1.5-pro',
   prompt: `You are an expert copywriter for an e-commerce store that sells construction materials and tools.
 
 Your task is to generate a compelling, professional, and informative product description.
