@@ -115,17 +115,20 @@ export default function CustomerOrderTrackingPage() {
     // Totals
     let finalY = (doc as any).lastAutoTable.finalY || 140;
     
+    const rightAlign = 190;
     doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+
     doc.text("Subtotal:", 140, finalY + 10);
-    doc.text(`₹${subtotal.toLocaleString('en-IN')}`, 170, finalY + 10);
+    doc.text(`₹${subtotal.toFixed(2)}`, rightAlign, finalY + 10, { align: 'right' });
 
     doc.text("GST (18%):", 140, finalY + 17);
-    doc.text(`₹${gstAmount.toLocaleString('en-IN')}`, 170, finalY + 17);
+    doc.text(`₹${gstAmount.toFixed(2)}`, rightAlign, finalY + 17, { align: 'right' });
     
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text("Total Paid:", 140, finalY + 25);
-    doc.text(`₹${order.total.toLocaleString('en-IN')}`, 170, finalY + 25);
+    doc.text(`₹${order.total.toFixed(2)}`, rightAlign, finalY + 25, { align: 'right' });
 
     // Footer
     doc.setFontSize(10);
