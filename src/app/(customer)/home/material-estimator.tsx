@@ -265,7 +265,7 @@ export function MaterialEstimator() {
                                     <Image src={redBrickUrl} alt="Red brick" width={80} height={80} className="rounded-md" data-ai-hint="red brick" />
                                     <div>
                                         <h3 className="font-semibold">Red Brick</h3>
-                                        <p className="text-sm text-muted-foreground">Standard clay bricks.</p>
+                                        <p className="text-sm text-muted-foreground">Size: 9" x 4.5" x 3"</p>
                                     </div>
                                 </CardContent>
                             </Label>
@@ -277,7 +277,7 @@ export function MaterialEstimator() {
                                     <Image src={aacBlockUrl} alt="ALO/AAC Block" width={80} height={80} className="rounded-md" data-ai-hint="concrete block" />
                                     <div>
                                         <h3 className="font-semibold">ALO/AAC Block</h3>
-                                        <p className="text-sm text-muted-foreground">Lightweight concrete blocks.</p>
+                                        <p className="text-sm text-muted-foreground">Size: 24" x 8" x 4-8"</p>
                                     </div>
                                 </CardContent>
                             </Label>
