@@ -42,7 +42,6 @@ export async function generateProductListing(
 
 const descriptionPrompt = ai.definePrompt({
   name: 'generateProductDescriptionPrompt',
-  model: 'gemini-1.5-flash',
   input: { schema: GenerateProductListingInputSchema },
   output: { schema: z.object({ description: z.string() }) },
   prompt: `You are an expert copywriter for an e-commerce store that sells construction materials and tools.
@@ -66,13 +65,13 @@ const generateProductListingFlow = ai.defineFlow(
     const [descriptionResponse, imageResponse] = await Promise.all([
       descriptionPrompt(input),
       ai.generate({
-        model: 'imagen-4.0-fast-generate-001',
+        model: googleAI('imagen-4.0-fast-generate-001'),
         prompt: `A professional, clean studio-quality photo of the following product: ${input.name}, ${input.keywords}. The product should be on a plain, solid white background.`,
       }),
     ]);
 
     const description = descriptionResponse.output?.description || '';
-    const imageDataUri = imageResponse.media.url || '';
+    const imageDataUri = imageResponse.media?.url || '';
 
     return { description, imageDataUri };
   }
