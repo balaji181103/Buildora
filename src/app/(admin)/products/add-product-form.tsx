@@ -20,17 +20,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
-import { Loader2, Trash2, Wand2, PlusCircle } from 'lucide-react';
+import { Loader2, Trash2, PlusCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/lib/firebase-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { collection as firestoreCollection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { generateProductListing } from '@/ai/flows/generate-product-listing-flow';
-import { dataUriToFile } from '@/lib/utils';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSupplierForm } from '../suppliers/add-supplier-form';
 
 
@@ -54,9 +50,6 @@ type ProductFormValues = z.infer<typeof ProductFormSchema>;
 
 export function AddProductForm({ onProductAdded }: { onProductAdded: () => void }) {
   const [isPending, startTransition] = useTransition();
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [aiProductName, setAiProductName] = useState('');
-  const [aiKeywords, setAiKeywords] = useState('');
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
 
   const { toast } = useToast();
@@ -124,26 +117,6 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     const fileInput = document.getElementById('image-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
-
-  const handleGenerate = async () => {
-    if (!aiProductName) {
-        toast({ variant: 'destructive', title: 'Product name is required for AI generation.' });
-        return;
-    }
-    setIsGenerating(true);
-    try {
-        const result = await generateProductListing({ name: aiProductName, keywords: aiKeywords });
-        if (result.description) {
-            form.setValue('description', result.description);
-        }
-        form.setValue('name', aiProductName);
-    } catch (error) {
-        console.error("AI Generation Error: ", error);
-        toast({ variant: 'destructive', title: 'AI Generation Failed', description: 'Could not generate product details. Please try again.' });
-    } finally {
-        setIsGenerating(false);
-    }
-  };
 
   async function uploadImage(file: File): Promise<{ url: string } | null> {
     const formData = new FormData();
@@ -236,45 +209,6 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
   return (
     <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>
     <div className="space-y-6">
-        <Card className="bg-muted/50">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Wand2 /> AI Description Generator</CardTitle>
-                <CardDescription>
-                    Enter a product name and some keywords, and let AI generate a compelling description for you.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <Label htmlFor="ai-product-name">Product Name *</Label>
-                        <Input 
-                            id="ai-product-name"
-                            placeholder="e.g., Heavy Duty Angle Grinder"
-                            value={aiProductName}
-                            onChange={(e) => setAiProductName(e.target.value)} 
-                            disabled={isGenerating}
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="ai-keywords">Keywords</Label>
-                        <Input 
-                            id="ai-keywords"
-                            placeholder="e.g., 5-inch, powerful, metal cutting"
-                            value={aiKeywords}
-                            onChange={(e) => setAiKeywords(e.target.value)} 
-                            disabled={isGenerating}
-                        />
-                    </div>
-                </div>
-                <Button onClick={handleGenerate} disabled={isGenerating || !aiProductName}>
-                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                    {isGenerating ? 'Generating...' : 'Generate Description'}
-                </Button>
-            </CardContent>
-        </Card>
-
-        <Separator />
-    
         <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
