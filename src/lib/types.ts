@@ -109,3 +109,15 @@ export const GenerateProductImageOutputSchema = z.object({
   imageUrl: z.string().describe('The data URI of the generated product image.'),
 });
 export type GenerateProductImageOutput = z.infer<typeof GenerateProductImageOutputSchema>;
+
+export const GenerateProductListingInputSchema = z.object({
+  name: z.string().describe('The name of the product.'),
+  category: z.string().describe('The category of the product.'),
+  description: z.string().optional().describe('An optional user-provided description to guide the AI.'),
+});
+export type GenerateProductListingInput = z.infer<typeof GenerateProductListingInputSchema>;
+
+export const GenerateProductListingOutputSchema = z.object({
+  description: z.string().describe('The generated product description, written in an engaging and professional tone for an e-commerce site.'),
+});
+export type GenerateProductListingOutput = z.infer<typeof GenerateProductListingOutputSchema>;

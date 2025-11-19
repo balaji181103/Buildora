@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
-import { Loader2, Trash2, PlusCircle } from 'lucide-react';
+import { Loader2, Trash2, PlusCircle, Sparkles } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/lib/firebase-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,6 +28,8 @@ import { collection as firestoreCollection, onSnapshot, query, orderBy } from 'f
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSupplierForm } from '../suppliers/add-supplier-form';
+import { generateProductImage } from '@/ai/flows/generate-product-image-flow';
+import { Card, CardContent } from '@/components/ui/card';
 import { dataUriToFile } from '@/lib/utils';
 
 
@@ -52,6 +54,7 @@ type ProductFormValues = z.infer<typeof ProductFormSchema>;
 export function AddProductForm({ onProductAdded }: { onProductAdded: () => void }) {
   const [isPending, startTransition] = useTransition();
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -118,6 +121,47 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     const fileInput = document.getElementById('image-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
+
+  const handleGenerateImage = async () => {
+    const productName = form.getValues('name');
+    const productCategory = form.getValues('category');
+    if (!productName) {
+      toast({
+        variant: 'destructive',
+        title: 'Product Name Required',
+        description: 'Please enter a product name before generating an image.',
+      });
+      return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      const result = await generateProductImage({ name: productName, category: productCategory });
+      if (result.imageUrl) {
+        setImagePreview(result.imageUrl);
+        // Convert data URI to file and set it in the form
+        const file = await dataUriToFile(result.imageUrl, `${productName.replace(/\s+/g, '_')}.png`, 'image/png');
+        setImageFile(file);
+        form.setValue('image', file);
+        toast({
+          title: 'Image Generated!',
+          description: 'The AI-generated image is now ready.',
+        });
+      } else {
+        throw new Error('The AI did not return an image.');
+      }
+    } catch (error: any) {
+      console.error('AI Image Generation Error:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Image Generation Failed',
+        description: error.message || 'Could not generate image. Please try again.',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
 
   async function uploadImage(file: File): Promise<{ url: string } | null> {
     const formData = new FormData();
@@ -240,24 +284,28 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 )}
                 />
             </div>
-
-            <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                    <Textarea
-                    placeholder="Tell us a little bit about the product"
-                    className="resize-none h-24"
-                    {...field}
-                    />
-                </FormControl>
-                <FormMessage />
-                </FormItem>
-            )}
-            />
+            
+             <Card>
+                <CardContent className="pt-6 space-y-4">
+                     <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Description</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                placeholder="A brief description of the product."
+                                className="resize-none h-24"
+                                {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                </CardContent>
+            </Card>
         
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -328,8 +376,8 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                 <FormField
                 control={form.control}
                 name="supplier"
                 render={({ field }) => (
@@ -374,39 +422,68 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                     </FormItem>
                 )}
                 />
-                 <FormField
-                    control={form.control}
-                    name="image"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Product Image</FormLabel>
-                        <div className="flex items-center gap-4">
-                           <div className="flex flex-col gap-2">
-                             <FormControl>
-                                <Input 
-                                    id="image-upload"
-                                    type="file" 
-                                    accept="image/png, image/jpeg, image/webp, image/jpg"
-                                    onChange={handleImageChange}
-                                    className="max-w-xs"
-                                />
-                                </FormControl>
-                           </div>
-                            {imagePreview && (
-                            <div className="relative h-20 w-20 shrink-0">
-                                <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-md border p-1" />
-                                <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 z-10 h-6 w-6" onClick={removeImage}>
-                                <Trash2 className="h-3 w-3" />
-                                </Button>
-                            </div>
-                            )}
-                        </div>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
             </div>
-        
+            
+            <Card>
+                 <CardContent className="pt-6">
+                    <FormField
+                        control={form.control}
+                        name="image"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Product Image</FormLabel>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                                <div className="space-y-4">
+                                     <Card className="bg-muted/40 p-4 border-dashed">
+                                        <CardContent className="p-0 space-y-4">
+                                            <p className="text-sm text-muted-foreground">Generate an image using AI based on the product name.</p>
+                                             <Button 
+                                                type="button" 
+                                                variant="secondary"
+                                                onClick={handleGenerateImage} 
+                                                disabled={isGenerating}
+                                            >
+                                                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                                {isGenerating ? 'Generating...' : 'Generate AI Image'}
+                                            </Button>
+                                        </CardContent>
+                                    </Card>
+                                     <div className="flex items-center justify-center">
+                                        <Separator className="flex-1" />
+                                        <span className="px-4 text-xs text-muted-foreground">OR</span>
+                                        <Separator className="flex-1" />
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <FormControl>
+                                            <Input 
+                                                id="image-upload"
+                                                type="file" 
+                                                accept="image/png, image/jpeg, image/webp, image/jpg"
+                                                onChange={handleImageChange}
+                                                className="max-w-xs"
+                                            />
+                                        </FormControl>
+                                        <p className="text-xs text-muted-foreground">Upload your own image.</p>
+                                    </div>
+                                </div>
+                                
+                                {imagePreview && (
+                                <div className="relative aspect-square w-full max-w-sm mx-auto">
+                                    <Image src={imagePreview} alt="Product preview" layout="fill" objectFit="contain" className="rounded-md border p-1" />
+                                    <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 z-10 h-6 w-6" onClick={removeImage}>
+                                    <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                </div>
+                                )}
+                            </div>
+
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                </CardContent>
+            </Card>
+
             <div>
                 <FormLabel>Dimensions</FormLabel>
                 <div className="grid grid-cols-4 gap-4 mt-2">
