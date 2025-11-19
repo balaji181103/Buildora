@@ -4,23 +4,10 @@
  * @fileOverview An AI flow for generating a product image.
  *
  * - generateProductImage: A function to generate a product image from a name and category.
- * - GenerateProductImageInput: The input type for the function.
- * - GenerateProductImageOutput: The return type for the function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
-
-export const GenerateProductImageInputSchema = z.object({
-  name: z.string().describe('The name of the product.'),
-  category: z.string().optional().describe('The category of the product.'),
-});
-export type GenerateProductImageInput = z.infer<typeof GenerateProductImageInputSchema>;
-
-export const GenerateProductImageOutputSchema = z.object({
-  imageUrl: z.string().describe('The data URI of the generated product image.'),
-});
-export type GenerateProductImageOutput = z.infer<typeof GenerateProductImageOutputSchema>;
+import { GenerateProductImageInputSchema, GenerateProductImageOutputSchema, type GenerateProductImageInput, type GenerateProductImageOutput } from '@/lib/types';
 
 export async function generateProductImage(input: GenerateProductImageInput): Promise<GenerateProductImageOutput> {
   return await generateProductImageFlow(input);

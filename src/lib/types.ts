@@ -1,4 +1,5 @@
 
+import { z } from 'zod';
 
 export type OrderStatus = 'Pending' | 'Processing' | 'At Hub' | 'Out for Delivery' | 'Delivered' | 'Cancelled' | 'Ready for Pickup';
 
@@ -96,3 +97,15 @@ export type CartItem = {
   product: Product;
   quantity: number;
 };
+
+// AI Flow Schemas
+export const GenerateProductImageInputSchema = z.object({
+  name: z.string().describe('The name of the product.'),
+  category: z.string().optional().describe('The category of the product.'),
+});
+export type GenerateProductImageInput = z.infer<typeof GenerateProductImageInputSchema>;
+
+export const GenerateProductImageOutputSchema = z.object({
+  imageUrl: z.string().describe('The data URI of the generated product image.'),
+});
+export type GenerateProductImageOutput = z.infer<typeof GenerateProductImageOutputSchema>;
