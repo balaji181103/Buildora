@@ -9,19 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
-
-export const GenerateProductListingInputSchema = z.object({
-  name: z.string().describe('The name of the product.'),
-  category: z.string().describe('The category of the product.'),
-  description: z.string().optional().describe('An optional user-provided description to guide the AI.'),
-});
-export type GenerateProductListingInput = z.infer<typeof GenerateProductListingInputSchema>;
-
-export const GenerateProductListingOutputSchema = z.object({
-  description: z.string().describe('The generated product description, written in an engaging and professional tone for an e-commerce site.'),
-});
-export type GenerateProductListingOutput = z.infer<typeof GenerateProductListingOutputSchema>;
+import type { GenerateProductListingInput, GenerateProductListingOutput } from '@/lib/types';
+import { GenerateProductListingInputSchema, GenerateProductListingOutputSchema } from '@/lib/types';
 
 
 export async function generateProductListing(input: GenerateProductListingInput): Promise<GenerateProductListingOutput> {
