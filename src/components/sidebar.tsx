@@ -50,7 +50,6 @@ const contentManagementItems = [
 ]
 
 const utilityItems = [
-    { href: '/tools', icon: Cpu, label: 'Technology' },
     { href: '/seeder', icon: Trash2, label: 'Data Manager' },
 ]
 
