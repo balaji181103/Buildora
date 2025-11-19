@@ -16,9 +16,12 @@ export type Order = {
   customerId: string;
   status: OrderStatus;
   date: any; // Using 'any' for Firestore ServerTimestamp
-  total: number;
   items: OrderItem[];
   shippingAddress: Address;
+  subtotal: number;
+  shippingCost: number;
+  taxes: number;
+  total: number;
 };
 
 export type Product = {
@@ -109,3 +112,15 @@ export const GenerateProductImageOutputSchema = z.object({
   imageUrl: z.string().describe('The data URI of the generated product image.'),
 });
 export type GenerateProductImageOutput = z.infer<typeof GenerateProductImageOutputSchema>;
+
+export const GenerateProductListingInputSchema = z.object({
+  name: z.string().describe('The name of the product.'),
+  category: z.string().optional().describe('The category of the product.'),
+  features: z.string().optional().describe('A brief list of key product features, comma-separated.'),
+});
+export type GenerateProductListingInput = z.infer<typeof GenerateProductListingInputSchema>;
+
+export const GenerateProductListingOutputSchema = z.object({
+  description: z.string().describe('The generated product description.'),
+});
+export type GenerateProductListingOutput = z.infer<typeof GenerateProductListingOutputSchema>;

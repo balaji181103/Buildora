@@ -108,7 +108,7 @@ export default function PaymentPage() {
         }
 
         setIsPlacingOrder(true);
-        const { cart, customerId, customerName, shippingAddress, total, subtotal } = orderDetails;
+        const { cart, customerId, customerName, shippingAddress, total, subtotal, shippingCost, taxes } = orderDetails;
         
         let finalOrderId: string | null = null;
         try {
@@ -166,9 +166,12 @@ export default function PaymentPage() {
                     customerId: customerId,
                     status: 'Pending',
                     date: serverTimestamp(),
-                    total,
                     items: orderItems,
                     shippingAddress: shippingAddress,
+                    subtotal: subtotal,
+                    shippingCost: shippingCost,
+                    taxes: taxes,
+                    total: total,
                 };
 
                 transaction.set(newOrderRef, newOrder);
@@ -416,5 +419,3 @@ export default function PaymentPage() {
         </div>
     )
 }
-
-    
