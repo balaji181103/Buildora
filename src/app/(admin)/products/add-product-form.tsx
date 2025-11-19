@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
-import { Loader2, Trash2, PlusCircle, Sparkles } from 'lucide-react';
+import { Loader2, Trash2, PlusCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/lib/firebase-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -28,7 +28,6 @@ import { collection as firestoreCollection, onSnapshot, query, orderBy } from 'f
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSupplierForm } from '../suppliers/add-supplier-form';
-import { generateProductImage } from '@/ai/flows/generate-product-image-flow';
 import { dataUriToFile } from '@/lib/utils';
 
 
@@ -53,7 +52,6 @@ type ProductFormValues = z.infer<typeof ProductFormSchema>;
 export function AddProductForm({ onProductAdded }: { onProductAdded: () => void }) {
   const [isPending, startTransition] = useTransition();
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -120,47 +118,6 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     const fileInput = document.getElementById('image-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
-
-  const handleGenerateImage = async () => {
-    const productName = form.getValues('name');
-    const productCategory = form.getValues('category');
-
-    if (!productName) {
-      toast({
-        variant: 'destructive',
-        title: 'Product Name Required',
-        description: 'Please enter a product name to generate an image.',
-      });
-      return;
-    }
-
-    setIsGeneratingImage(true);
-    try {
-      const result = await generateProductImage({ name: productName, category: productCategory });
-      if (result.imageUrl) {
-        setImagePreview(result.imageUrl);
-        // Convert data URI to file and set it in the form
-        const file = await dataUriToFile(result.imageUrl, `${productName.replace(/\s+/g, '_')}.png`, 'image/png');
-        setImageFile(file);
-        form.setValue('image', file);
-        toast({
-          title: 'Image Generated!',
-          description: 'The AI-generated image is now ready.',
-        });
-      } else {
-        throw new Error('Image generation failed to return a URL.');
-      }
-    } catch (error) {
-      console.error("Error generating image:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Image Generation Failed',
-        description: 'Could not generate an image. Please try again.',
-      });
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  };
 
   async function uploadImage(file: File): Promise<{ url: string } | null> {
     const formData = new FormData();
@@ -434,15 +391,6 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                                     className="max-w-xs"
                                 />
                                 </FormControl>
-                                 <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    onClick={handleGenerateImage} 
-                                    disabled={isGeneratingImage}
-                                >
-                                    {isGeneratingImage ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                                    Generate Image
-                                </Button>
                            </div>
                             {imagePreview && (
                             <div className="relative h-20 w-20 shrink-0">
