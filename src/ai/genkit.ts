@@ -6,11 +6,12 @@ export const ai = genkit({
   plugins: [
     googleAI({
       apiKey: process.env.GEMINI_API_KEY,
-      generationConfig: {
-        model: 'gemini-1.5-flash',
-      },
     }),
   ],
   logLevel: 'debug',
   enableTracing: true,
+  defaultModel: {
+    name: 'googleai/gemini-1.5-flash',
+    config: {},
+  }
 });
