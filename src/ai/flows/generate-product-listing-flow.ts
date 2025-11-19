@@ -62,17 +62,22 @@ const generateProductListingFlow = ai.defineFlow(
     outputSchema: GenerateProductListingOutputSchema,
   },
   async (input) => {
-    const [descriptionResponse, imageResponse] = await Promise.all([
-      descriptionPrompt(input),
-      ai.generate({
-        model: 'googleai/imagen-4.0-fast-generate-001',
-        prompt: `A professional, clean studio-quality photo of the following product: ${input.name}, ${input.keywords}. The product should be on a plain, solid white background.`,
-      }),
-    ]);
+    // Step 1: Await the description prompt first.
+    const descriptionResponse = await descriptionPrompt(input);
+    const generatedDescription = descriptionResponse.output?.description || '';
 
-    const description = descriptionResponse.output?.description || '';
+    // Step 2: Use the description and original input to generate a better image.
+    const imageResponse = await ai.generate({
+      model: 'googleai/imagen-4.0-fast-generate-001',
+      prompt: `A professional, clean studio-quality photo of the following product: ${input.name}, ${input.keywords}. The product should be on a plain, solid white background. Product details: ${generatedDescription}`,
+    });
+
     const imageDataUri = imageResponse.media?.url || '';
 
-    return { description, imageDataUri };
+    // Step 3: Return both results.
+    return {
+      description: generatedDescription,
+      imageDataUri: imageDataUri,
+    };
   }
 );
