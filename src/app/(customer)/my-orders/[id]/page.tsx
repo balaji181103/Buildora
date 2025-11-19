@@ -116,9 +116,9 @@ export default function CustomerOrderTrackingPage() {
         body: tableRows,
         startY: 100,
         theme: 'striped',
-        headStyles: { fillColor: [34, 139, 34] }, // A shade of green
+        headStyles: { fillColor: [24, 158, 109] },
         didParseCell: function (data) {
-            if (data.column.index >= 2) { // Right-align price and total columns
+            if (data.column.index >= 2) { 
                 data.cell.styles.halign = 'right';
             }
         }
@@ -136,7 +136,7 @@ export default function CustomerOrderTrackingPage() {
     const shippingCost = order.shippingCost ?? 0;
     const taxes = order.taxes ?? subtotal * 0.18;
     const finalTotal = order.total ?? (subtotal + shippingCost + taxes);
-    const shippingMethod = order.deliveryMethod === 'faster' ? 'Fast Shipping' : 'Standard Delivery';
+    const shippingMethod = order.deliveryMethod === 'faster' ? 'Fast Shipping' : 'Standard';
     
     finalY += 10;
     doc.text("Subtotal:", leftAlignX, finalY);
@@ -151,7 +151,7 @@ export default function CustomerOrderTrackingPage() {
     doc.text(`${taxes.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
     
     finalY += 5;
-    doc.line(leftAlignX, finalY, 190, finalY); // separator for total
+    doc.line(leftAlignX - 2, finalY, 190, finalY);
 
     finalY += 5;
     doc.setFontSize(14);
