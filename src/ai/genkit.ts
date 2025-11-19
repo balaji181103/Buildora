@@ -10,8 +10,4 @@ export const ai = genkit({
   ],
   logLevel: 'debug',
   enableTracing: true,
-  defaultModel: {
-    name: 'googleai/gemini-1.5-flash',
-    config: {},
-  }
 });
