@@ -20,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Product, Supplier } from '@/lib/types';
-import { Loader2, Trash2, PlusCircle, Sparkles } from 'lucide-react';
+import { Trash2, PlusCircle } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { db } from '@/lib/firebase-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,7 +29,8 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AddSupplierForm } from '../suppliers/add-supplier-form';
 import { Card, CardContent } from '@/components/ui/card';
-import { generateProductListing } from '@/ai/flows/generate-product-listing-flow';
+import { dataUriToFile } from '@/lib/utils';
+import { generateProductImage } from '@/ai/flows/generate-product-image-flow';
 
 
 const ProductFormSchema = z.object({
@@ -53,7 +54,6 @@ type ProductFormValues = z.infer<typeof ProductFormSchema>;
 export function AddProductForm({ onProductAdded }: { onProductAdded: () => void }) {
   const [isPending, startTransition] = useTransition();
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
 
   const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -120,49 +120,6 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
     const fileInput = document.getElementById('image-upload') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   }
-
-  const handleGenerateDescription = async () => {
-    const productName = form.getValues('name');
-    const productCategory = form.getValues('category');
-    const currentDescription = form.getValues('description');
-
-    if (!productName || !productCategory) {
-      toast({
-        variant: 'destructive',
-        title: 'Name and Category Required',
-        description: 'Please enter a product name and category before generating a description.',
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const result = await generateProductListing({
-        name: productName,
-        category: productCategory,
-        description: currentDescription,
-      });
-
-      if (result.description) {
-        form.setValue('description', result.description);
-        toast({
-          title: 'Description Generated!',
-          description: 'The AI-generated description has been filled in.',
-        });
-      } else {
-        throw new Error('The AI did not return a description.');
-      }
-    } catch (error: any) {
-      console.error('AI Description Generation Error:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Description Generation Failed',
-        description: error.message || 'Could not generate description. Please try again.',
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
 
   async function uploadImage(file: File): Promise<{ url: string } | null> {
@@ -287,37 +244,23 @@ export function AddProductForm({ onProductAdded }: { onProductAdded: () => void 
                 />
             </div>
             
-             <Card>
-                <CardContent className="pt-6 space-y-4">
-                     <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                                <Textarea
-                                placeholder="A brief description of the product."
-                                className="resize-none h-24"
-                                {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                            </FormItem>
-                        )}
+            <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                        <Textarea
+                        placeholder="A brief description of the product."
+                        className="resize-none h-24"
+                        {...field}
                         />
-                         <Button 
-                            type="button" 
-                            variant="outline"
-                            onClick={handleGenerateDescription}
-                            disabled={isGenerating}
-                            size="sm"
-                        >
-                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                            {isGenerating ? 'Generating...' : 'Generate AI Description'}
-                        </Button>
-                </CardContent>
-            </Card>
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+            />
         
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
