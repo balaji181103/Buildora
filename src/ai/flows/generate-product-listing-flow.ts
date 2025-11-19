@@ -10,7 +10,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { googleAI } from '@genkit-ai/google-genai';
 
 const GenerateProductListingInputSchema = z.object({
   name: z.string().describe('The name of the product.'),
@@ -65,7 +64,7 @@ const generateProductListingFlow = ai.defineFlow(
     const [descriptionResponse, imageResponse] = await Promise.all([
       descriptionPrompt(input),
       ai.generate({
-        model: googleAI('imagen-4.0-fast-generate-001'),
+        model: 'googleai/imagen-4.0-fast-generate-001',
         prompt: `A professional, clean studio-quality photo of the following product: ${input.name}, ${input.keywords}. The product should be on a plain, solid white background.`,
       }),
     ]);
