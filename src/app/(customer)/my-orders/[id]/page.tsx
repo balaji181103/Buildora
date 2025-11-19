@@ -130,15 +130,20 @@ export default function CustomerOrderTrackingPage() {
     const rightAlignX = 190;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
+    
+    // Use fallback values in case these fields don't exist on older orders
+    const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const shippingCost = order.shippingCost ?? 0;
+    const taxes = order.taxes ?? 0;
 
     doc.text("Subtotal:", 140, finalY + 10);
-    doc.text(`${order.subtotal.toFixed(2)} INR`, rightAlignX, finalY + 10, { align: 'right' });
+    doc.text(`${subtotal.toFixed(2)} INR`, rightAlignX, finalY + 10, { align: 'right' });
 
     doc.text("Shipping:", 140, finalY + 17);
-    doc.text(`${order.shippingCost.toFixed(2)} INR`, rightAlignX, finalY + 17, { align: 'right' });
+    doc.text(`${shippingCost.toFixed(2)} INR`, rightAlignX, finalY + 17, { align: 'right' });
 
     doc.text("GST (18%):", 140, finalY + 24);
-    doc.text(`${order.taxes.toFixed(2)} INR`, rightAlignX, finalY + 24, { align: 'right' });
+    doc.text(`${taxes.toFixed(2)} INR`, rightAlignX, finalY + 24, { align: 'right' });
     
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
