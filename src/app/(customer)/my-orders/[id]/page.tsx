@@ -116,9 +116,9 @@ export default function CustomerOrderTrackingPage() {
         body: tableRows,
         startY: 100,
         theme: 'striped',
-        headStyles: { fillColor: [22, 163, 74] }, // A shade of green
+        headStyles: { fillColor: [34, 139, 34] }, // A shade of green
         didParseCell: function (data) {
-            if (data.column.index >= 2) {
+            if (data.column.index >= 2) { // Right-align price and total columns
                 data.cell.styles.halign = 'right';
             }
         }
@@ -128,7 +128,9 @@ export default function CustomerOrderTrackingPage() {
     let finalY = (doc as any).lastAutoTable.finalY || 140;
     
     const rightAlignX = 190;
+    const leftAlignX = 140;
     doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
     
     const subtotal = order.subtotal ?? order.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const shippingCost = order.shippingCost ?? 0;
@@ -137,25 +139,24 @@ export default function CustomerOrderTrackingPage() {
     const shippingMethod = order.deliveryMethod === 'faster' ? 'Fast Shipping' : 'Standard Delivery';
     
     finalY += 10;
-    doc.setFont('helvetica', 'normal');
-    doc.text("Subtotal:", 140, finalY);
+    doc.text("Subtotal:", leftAlignX, finalY);
     doc.text(`${subtotal.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
 
     finalY += 7;
-    doc.text(`Shipping (${shippingMethod}):`, 140, finalY);
+    doc.text(`Shipping (${shippingMethod}):`, leftAlignX, finalY);
     doc.text(`${shippingCost.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
 
     finalY += 7;
-    doc.text("GST (18%):", 140, finalY);
+    doc.text("GST (18%):", leftAlignX, finalY);
     doc.text(`${taxes.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
     
     finalY += 5;
-    doc.line(140, finalY, 190, finalY); // separator for total
+    doc.line(leftAlignX, finalY, 190, finalY); // separator for total
 
     finalY += 5;
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text("Total Paid:", 140, finalY);
+    doc.text("Total Paid:", leftAlignX, finalY);
     doc.text(`${finalTotal.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
 
     // Footer
