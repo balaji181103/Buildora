@@ -98,7 +98,7 @@ export default function CustomerOrderTrackingPage() {
     doc.setFont('helvetica', 'bold');
     doc.text("Order Details", 20, 95);
     
-    const tableColumn = ["Product Name", "Quantity", "Price", "Total"];
+    const tableColumn = ["Product Name", "Quantity", "Price (INR)", "Total (INR)"];
     const tableRows: (string|number)[][] = [];
 
     order.items.forEach(item => {
@@ -131,19 +131,16 @@ export default function CustomerOrderTrackingPage() {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
     
-    // --- CORRECTED LOGIC ---
-    // Calculate totals from items if they don't exist on the order object.
-    const subtotal = order.subtotal ?? order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = order.subtotal ?? 0;
     const shippingCost = order.shippingCost ?? 0;
-    // Calculate taxes if not present
-    const taxes = order.taxes ?? subtotal * 0.18; 
-    // Recalculate total to ensure it's always correct.
-    const finalTotal = subtotal + shippingCost + taxes;
+    const taxes = order.taxes ?? 0;
+    const finalTotal = order.total ?? (subtotal + shippingCost + taxes);
+    const shippingMethod = order.deliveryMethod === 'faster' ? 'Fast Shipping' : 'Standard Delivery';
 
     doc.text("Subtotal:", 140, finalY + 10);
     doc.text(`${subtotal.toFixed(2)} INR`, rightAlignX, finalY + 10, { align: 'right' });
 
-    doc.text("Shipping:", 140, finalY + 17);
+    doc.text(`Shipping (${shippingMethod}):`, 140, finalY + 17);
     doc.text(`${shippingCost.toFixed(2)} INR`, rightAlignX, finalY + 17, { align: 'right' });
 
     doc.text("GST (18%):", 140, finalY + 24);
@@ -153,7 +150,6 @@ export default function CustomerOrderTrackingPage() {
     doc.setFont('helvetica', 'bold');
     doc.text("Total Paid:", 140, finalY + 32);
     doc.text(`${finalTotal.toFixed(2)} INR`, rightAlignX, finalY + 32, { align: 'right' });
-    // --- END CORRECTION ---
 
     // Footer
     doc.setFontSize(10);

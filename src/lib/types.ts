@@ -22,6 +22,7 @@ export type Order = {
   shippingCost: number;
   taxes: number;
   total: number;
+  deliveryMethod: string;
 };
 
 export type Product = {
