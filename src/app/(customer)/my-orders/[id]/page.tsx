@@ -91,15 +91,15 @@ export default function CustomerOrderTrackingPage() {
     doc.setFont('helvetica', 'bold');
     doc.text("Order Details", 20, 90);
     
-    const tableColumn = ["Product Name", "Quantity", "Price", "Total"];
+    const tableColumn = ["Product Name", "Quantity", "Price (INR)", "Total (INR)"];
     const tableRows: (string|number)[][] = [];
 
     order.items.forEach(item => {
         const row = [
             item.name,
             item.quantity,
-            `₹${item.price.toFixed(2)}`,
-            `₹${(item.price * item.quantity).toFixed(2)}`
+            item.price.toFixed(2),
+            (item.price * item.quantity).toFixed(2)
         ];
         tableRows.push(row);
     });
@@ -120,15 +120,15 @@ export default function CustomerOrderTrackingPage() {
     doc.setFont('helvetica', 'normal');
 
     doc.text("Subtotal:", 140, finalY + 10);
-    doc.text(`₹${subtotal.toFixed(2)}`, rightAlign, finalY + 10, { align: 'right' });
+    doc.text(`${subtotal.toFixed(2)} INR`, rightAlign, finalY + 10, { align: 'right' });
 
     doc.text("GST (18%):", 140, finalY + 17);
-    doc.text(`₹${gstAmount.toFixed(2)}`, rightAlign, finalY + 17, { align: 'right' });
+    doc.text(`${gstAmount.toFixed(2)} INR`, rightAlign, finalY + 17, { align: 'right' });
     
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
     doc.text("Total Paid:", 140, finalY + 25);
-    doc.text(`₹${order.total.toFixed(2)}`, rightAlign, finalY + 25, { align: 'right' });
+    doc.text(`${order.total.toFixed(2)} INR`, rightAlign, finalY + 25, { align: 'right' });
 
     // Footer
     doc.setFontSize(10);
