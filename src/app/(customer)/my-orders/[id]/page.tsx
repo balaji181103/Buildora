@@ -46,7 +46,7 @@ export default function CustomerOrderTrackingPage() {
             const custRef = doc(db, "customers", orderData.customerId);
             const custSnap = await getDoc(custRef);
             if (custSnap.exists()) {
-                setCustomer(custSnap.data() as Customer);
+                setCustomer({ id: custSnap.id, ...custSnap.data() } as Customer);
             }
         }
         setLoading(false);
@@ -84,7 +84,7 @@ export default function CustomerOrderTrackingPage() {
     const address = order.shippingAddress;
     const addressLines = [
         order.customerName,
-        customer.phone,
+        customer.phone || 'No phone number provided',
         address.line1,
         address.line2,
         `${address.city}, ${address.state} - ${address.pincode}`
@@ -116,7 +116,7 @@ export default function CustomerOrderTrackingPage() {
         body: tableRows,
         startY: 100,
         theme: 'striped',
-        headStyles: { fillColor: [24, 158, 109] }, // Primary color
+        headStyles: { fillColor: [22, 163, 74] }, // A shade of green
         didParseCell: function (data) {
             if (data.column.index >= 2) {
                 data.cell.styles.halign = 'right';
@@ -129,27 +129,34 @@ export default function CustomerOrderTrackingPage() {
     
     const rightAlignX = 190;
     doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
     
-    const subtotal = order.subtotal ?? 0;
+    const subtotal = order.subtotal ?? order.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
     const shippingCost = order.shippingCost ?? 0;
-    const taxes = order.taxes ?? 0;
+    const taxes = order.taxes ?? subtotal * 0.18;
     const finalTotal = order.total ?? (subtotal + shippingCost + taxes);
     const shippingMethod = order.deliveryMethod === 'faster' ? 'Fast Shipping' : 'Standard Delivery';
-
-    doc.text("Subtotal:", 140, finalY + 10);
-    doc.text(`${subtotal.toFixed(2)} INR`, rightAlignX, finalY + 10, { align: 'right' });
-
-    doc.text(`Shipping (${shippingMethod}):`, 140, finalY + 17);
-    doc.text(`${shippingCost.toFixed(2)} INR`, rightAlignX, finalY + 17, { align: 'right' });
-
-    doc.text("GST (18%):", 140, finalY + 24);
-    doc.text(`${taxes.toFixed(2)} INR`, rightAlignX, finalY + 24, { align: 'right' });
     
+    finalY += 10;
+    doc.setFont('helvetica', 'normal');
+    doc.text("Subtotal:", 140, finalY);
+    doc.text(`${subtotal.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
+
+    finalY += 7;
+    doc.text(`Shipping (${shippingMethod}):`, 140, finalY);
+    doc.text(`${shippingCost.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
+
+    finalY += 7;
+    doc.text("GST (18%):", 140, finalY);
+    doc.text(`${taxes.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
+    
+    finalY += 5;
+    doc.line(140, finalY, 190, finalY); // separator for total
+
+    finalY += 5;
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text("Total Paid:", 140, finalY + 32);
-    doc.text(`${finalTotal.toFixed(2)} INR`, rightAlignX, finalY + 32, { align: 'right' });
+    doc.text("Total Paid:", 140, finalY);
+    doc.text(`${finalTotal.toFixed(2)} INR`, rightAlignX, finalY, { align: 'right' });
 
     // Footer
     doc.setFontSize(10);
