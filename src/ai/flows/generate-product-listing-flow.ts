@@ -42,7 +42,7 @@ export async function generateProductListing(
 
 const descriptionPrompt = ai.definePrompt({
   name: 'generateProductDescriptionPrompt',
-  model: googleAI.model('gemini-1.5-flash'),
+  model: googleAI.model('gemini-1.5-pro-latest'),
   input: { schema: GenerateProductListingInputSchema },
   output: { schema: z.object({ description: z.string() }) },
   prompt: `You are an expert copywriter for an e-commerce store that sells construction materials and tools.
