@@ -116,7 +116,7 @@ export default function CustomerOrderTrackingPage() {
         body: tableRows,
         startY: 100,
         theme: 'striped',
-        headStyles: { fillColor: [24, 158, 109] },
+        headStyles: { fillColor: [24, 158, 109] }, // Primary color
         didParseCell: function (data) {
             if (data.column.index >= 2) { 
                 data.cell.styles.halign = 'right';
@@ -133,9 +133,9 @@ export default function CustomerOrderTrackingPage() {
     doc.setFont('helvetica', 'normal');
     
     const subtotal = order.subtotal ?? order.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    const shippingCost = order.shippingCost ?? 0;
+    const shippingCost = order.shippingCost ?? (order.deliveryMethod === 'faster' ? 100 : 0);
     const taxes = order.taxes ?? subtotal * 0.18;
-    const finalTotal = order.total ?? (subtotal + shippingCost + taxes);
+    const finalTotal = subtotal + shippingCost + taxes;
     const shippingMethodLabel = order.deliveryMethod === 'faster' ? 'Shipping (Fast)' : 'Shipping (Std)';
     
     finalY += 10;
