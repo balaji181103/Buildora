@@ -69,10 +69,15 @@ const generateProductListingFlow = ai.defineFlow(
     // Step 2: Use the description and original input to generate a better image.
     const imageResponse = await ai.generate({
       model: 'googleai/imagen-4.0-fast-generate-001',
-      prompt: `A professional, clean studio-quality photo of the following product: ${input.name}, ${input.keywords}. The product should be on a plain, solid white background. Product details: ${generatedDescription}`,
+      prompt: `A professional, clean studio-quality photo of the following product on a plain white background: ${input.name}, ${input.keywords}. Product details: ${generatedDescription}`,
     });
+    
+    // Correctly access the image URL from the media array.
+    const imageDataUri = imageResponse.media[0]?.url || '';
 
-    const imageDataUri = imageResponse.media?.url || '';
+    if (!imageDataUri) {
+        throw new Error('Image generation failed to produce a data URI.');
+    }
 
     // Step 3: Return both results.
     return {
